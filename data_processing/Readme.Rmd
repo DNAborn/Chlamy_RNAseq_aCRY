@@ -1,0 +1,170 @@
+---
+  title: "RNAseq aCRY processing"
+author: "Kelterborn"
+date: "2024-03-15"
+output:
+  md_document:
+  variant: gfm
+toc: true
+always_allow_html: true
+editor_options: 
+  chunk_output_type: inline
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+```
+
+# Download data (AWS CLI)
+
+The Raw data for your project has also been uploaded completely. Please find the data download guide attached.
+Index in AWS: bmkdatarelease-37/delivery_20240313120107785
+Access key ID: AKIA45O7KHZWJCKW62VE
+Secret Access Key: 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
+Web log-in link: https://sctrack.sendcloud.net/track/click2/eNpFj8FOxDAMRP8lgls2jR0aNzf2O1YoSlOzVNs6qOkKBOLfyS4HJGsO1jzP-BT60A9aKa2AwDobPBI5H58GCD4ChIAQsamp-QA2hggY0frDLGO5ymQfljnJ-VOex7msabvwZnJZTRalrVZv-_5eH92x64aBArQwR9RuzWeZxaSPatKavorcmC4XqWXhO_ialsq3VmgNODR9b4JX__s2TI5Hytxqkwcm5JYw4EgJJ57Q_blq3reUL6ayTHkp18kI70p__-j7i9qFl18qJUo2.html
+Username:delivery_20240313120107785
+Password:Pwd2024@x4S416
+
+```{bash, eval=FALSE}
+
+# install aws
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws --version
+
+aws configure
+AWS Access Key ID [None]: AKIA45O7KHZWJCKW62VE
+AWS Secret Access Key [None]: 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
+Default region name [None]: eu-north-1
+Default output format [None]: table
+
+fastq="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/fastq"
+cd $fastq
+
+# test
+aws s3api get-object --bucket bmkdatarelease-37 --key delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/sampleName_clientId.txt sampleName_clientId.txt
+
+# all files
+aws s3 cp s3://bmkdatarelease-37/delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/ . --recursive
+
+```
+
+# 0. Prepare System
+BiocManager::install()
+
+## -R_libraries
+```{r library}
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(AnnotationHub)
+library(DESeq2)
+library(EnhancedVolcano)
+library(pheatmap)
+library(writexl)
+library(biomaRt)
+library(ape)
+library(kableExtra)
+library(knitr)
+
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+
+library(SummarizedExperiment)
+library(GenomicRanges)
+library(ape)
+
+library(viridis)
+library(patchwork)
+library("ggpubr")
+library(vsn)
+
+library(PCAtools)
+
+# library(wget)
+
+```
+
+## -R_folders
+```{r r_folders}
+
+```
+
+## -Linux folders
+```{bash linux_folders, eval=FALSE}
+fastqdir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/fastq" #aCRY;
+fastqdir2="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/" #pCRY;
+
+dir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY"
+
+quantdir="$dir/quants"
+
+indexdir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/chlamy_index_v6.1"
+
+```
+
+# 1. Mapping
+```{bash mapping, eval=FALSE}
+mamba activate salmon;
+
+fastqfiles=$(ls $fastqdir/*_1*.fq.gz);
+fastqfiles2=$(ls $fastqdir2/*R1*.fastq.gz);
+
+# fastqfiles_all="${fastqfiles} ${fastqfiles2}";
+fastqfiles_all=$fastqfiles;
+
+echo "${fastqfiles:0:100}";
+echo "${fastqfiles2:0:100}";
+echo "${fastqfiles_all:0:100}";
+
+# files: Unknown_BU327-002T0001_1.fq.gz;
+for fn in $fastqfiles_all;
+do
+bfn=$(echo "`basename ${fn}`");
+samp=${bfn%"_1.fq.gz"};
+R1=$fn;
+R2=$(echo "$R1" | sed 's/_1/_2/');
+echo "Processing Sample: $samp";
+test -f $R1 && echo "--> File: $R1 exists"
+test -f $R2 && echo "--> File: $R2 exists"
+outquant=${quantdir}/${samp}_quant
+echo $outquant
+echo $indexdir
+
+salmon quant -i $indexdir -l A \
+  -1 $R1 \
+  -2 $R2 \
+  -p 25 --validateMappings --gcBias -o $outquant
+
+done
+
+```
+
+
+
+
+
+
+
