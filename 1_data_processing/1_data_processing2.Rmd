@@ -1,0 +1,516 @@
+---
+  title: "RNAseq aCRY processing"
+author: "Kelterborn"
+date: "2024-03-15"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+always_allow_html: true
+editor_options: 
+  chunk_output_type: console
+knit: (function(input_file, encoding) {
+    rmarkdown::render(input_file,output_file= 'README.md')
+    })
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+```
+
+
+# 0. Prepare System
+BiocManager::install()
+
+## -R_libraries
+```{r library}
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(AnnotationHub)
+library(DESeq2)
+library(EnhancedVolcano)
+library(pheatmap)
+library(writexl)
+library(biomaRt)
+library(ape)
+library(kableExtra)
+library(knitr)
+
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+
+library(SummarizedExperiment)
+library(GenomicRanges)
+library(ape)
+
+library(viridis)
+library(patchwork)
+library("ggpubr")
+library(vsn)
+
+library(PCAtools)
+
+# library(wget)
+
+```
+
+## -R_folders
+```{r r_folders}
+ifelse(Sys.info()["sysname"]== "Linux",
+       s <- "/mnt/s",
+       s <- "S:")
+dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
+list.files(dir) %>% head()
+gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
+list.files(gitdir) %>% head()
+
+fastqdir <- paste(dir,"fastq",sep="/")
+list.files(fastqdir) %>% tail()
+fastqdir2 <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/",sep="/")
+list.files(fastqdir2) %>% head()
+
+indexdir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/chlamy_index_v6.1",sep="/")
+
+fastaPath <- file.path(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.0.hardmasked.fa.gz")
+head(readLines(fastaPath,n=50))
+
+quantdir <- paste(dir,"quants",sep="/")
+
+```
+
+## -Linux folders
+```{bash linux_folders, eval=FALSE}
+fastqdir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/fastq" #aCRY;
+fastqdir2="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/" #pCRY;
+
+dir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY";
+
+quantdir="$dir/quants";
+
+indexdir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/chlamy_index_v6.1";
+
+```
+
+# 1. Raw data processing
+## 1a. Download data (AWS CLI)
+
+The Raw data for your project has also been uploaded completely. Please find the data download guide attached.
+Index in AWS: bmkdatarelease-37/delivery_20240313120107785
+Access key ID: AKIA45O7KHZWJCKW62VE
+Secret Access Key: 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
+Web log-in link: https://sctrack.sendcloud.net/track/click2/eNpFj8FOxDAMRP8lgls2jR0aNzf2O1YoSlOzVNs6qOkKBOLfyS4HJGsO1jzP-BT60A9aKa2AwDobPBI5H58GCD4ChIAQsamp-QA2hggY0frDLGO5ymQfljnJ-VOex7msabvwZnJZTRalrVZv-_5eH92x64aBArQwR9RuzWeZxaSPatKavorcmC4XqWXhO_ialsq3VmgNODR9b4JX__s2TI5Hytxqkwcm5JYw4EgJJ57Q_blq3reUL6ayTHkp18kI70p__-j7i9qFl18qJUo2.html
+Username:delivery_20240313120107785
+Password:Pwd2024@x4S416
+
+```{bash, eval=FALSE}
+
+# install aws
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws --version
+
+aws configure
+AWS Access Key ID [None]: AKIA45O7KHZWJCKW62VE
+AWS Secret Access Key [None]: 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
+Default region name [None]: eu-north-1
+Default output format [None]: table
+
+fastq="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/fastq"
+cd $fastq
+
+# test
+aws s3api get-object --bucket bmkdatarelease-37 --key delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/sampleName_clientId.txt sampleName_clientId.txt
+
+# all files
+aws s3 cp s3://bmkdatarelease-37/delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/ . --recursive
+
+```
+
+### check md5
+```{bash}
+cd $fastqdir
+ls
+# 1 file
+md5sum Unknown_BU327-002T0008_1.fq.gz
+
+# Check downloads
+
+# Path to the text file containing the MD5 sums
+md5_file="data_md5.txt"
+
+# Function to check the MD5 sum of a file
+check_md5() {
+    file_name=$1
+    expected_sum=$2
+
+    md5_sum=$(md5sum "$file_name" | awk '{print $1}')
+    if [[ $md5_sum == $expected_sum ]]; then
+        echo "$file_name: MD5 sum is correct."
+    else
+        echo "$file_name: MD5 sum is incorrect."
+    fi
+}
+
+# Read the MD5 sums from the text file and check them
+while IFS= read -r line; do
+    file_name=$(echo "$line" | awk '{print $2}')
+    expected_sum=$(echo "$line" | awk '{print $1}')
+    if [[ -f $file_name ]]; then
+        check_md5 "$file_name" "$expected_sum"
+    else
+        echo "$file_name: File not found."
+    fi
+done < "$md5_file" | tee -a $log
+
+```
+
+
+## 1b. Fastqc
+
+## 1c. Mapping
+```{bash mapping, eval=FALSE}
+mamba activate salmon;
+
+fastqfiles=$(ls $fastqdir/*_1*.fq.gz);
+fastqfiles2=$(ls $fastqdir2/*R1*.fastq.gz);
+
+# fastqfiles_all="${fastqfiles} ${fastqfiles2}";
+fastqfiles_all=$fastqfiles;
+
+echo "${fastqfiles:0:100}";
+echo "${fastqfiles2:0:100}";
+echo "${fastqfiles_all:0:100}";
+
+# files: Unknown_BU327-002T0001_1.fq.gz;
+for fn in $fastqfiles_all;
+do
+bfn=$(echo "`basename ${fn}`");
+samp=${bfn%"_1.fq.gz"};
+R1=$fn;
+R2=$(echo "$R1" | sed 's/_1/_2/');
+echo "Processing Sample: $samp";
+test -f $R1 && echo "--> File: $R1 exists"
+test -f $R2 && echo "--> File: $R2 exists"
+outquant=${quantdir}/${samp}_quant
+echo $outquant
+echo $indexdir
+
+salmon quant -i $indexdir -l A \
+  -1 $R1 \
+  -2 $R2 \
+  -p 25 --validateMappings --gcBias -o $outquant
+
+done
+
+```
+
+
+# 2. Process Data
+## 2a. Sample names
+```{r}
+# Get Sample table
+# Filenames
+
+quantdir <- paste(dir,"quants",sep="/")
+
+f <- list.files(path = quantdir)
+files <- as.factor(str_remove(f,pattern ="_quant"))
+# short form
+sample <- str_remove(files,pattern ="Unknown_")
+sample
+# condition
+library(readxl)
+Samplepath <- filePath(path=dir, file="sample_table.xlsx")
+Samplefile <- read_xlsx(Samplepath)
+Samplefile
+samplename <- Samplefile$'Sample name [user defined]'
+samplename
+genotype <- str_split(samplename, pattern="-", simplify = TRUE)[,1] %>% as.factor() %>% relevel(ref="WT")
+genotype
+
+light <- str_split(samplename, pattern="-", simplify = TRUE)[,2] %>% str_remove(pattern="\\d")
+# \\d = digits
+light <- str_split(samplename, pattern="-", simplify = TRUE)[,2] %>% str_remove_all(pattern="[0-9]") %>% as.factor() %>% relevel(ref="D")
+# [0-9]$ number at the end
+light
+
+repetition <- str_split(samplename, pattern="-", simplify = TRUE)[,2] %>% str_remove_all(pattern="[A-Z]") %>% as.factor()
+repetition
+
+RNA_conc <- Samplefile$'RNA conc. [ng/µl]'
+RNA_conc
+
+lane <- str_split(files,pattern ="_",simplify = T)[,5]
+lane
+
+condition <- paste(genotype, light, sep="_") %>% factor(levels = c("WT_D","pcry_D","WT_BL","pcry_BL","WT_R","pcry_R"))
+condition
+                                                        
+# Make table
+sample.table <- data.frame(sample.id = sample, filenames = files, sample = samplename, genotype = genotype, treatment = light, condition = condition, repetition = repetition, lane = lane,RNA_conc=RNA_conc)
+sample.table
+```
+
+
+## 2b. Mapping Rates
+
+```{r}
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+outdir <- "C:/Users/kelterbs/OneDrive - Charité - Universitätsmedizin Berlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044"
+datadir <- "S:/AG/AG-Scholz-NGS/Daten/Simon/P3044"
+quantdir <- paste(datadir,"quants",sep="/")
+
+list.files(path = outdir)
+list.files(path = datadir)
+list.files(path = quantdir)
+
+samplelist <- {}
+mappingrates <- {}
+for (i in list.files(path = quantdir)){
+print(i)
+si <- paste("",str_sub(i,11,-7),sep = "")
+si
+samplelist <- c(samplelist,si)
+f <- readLines(paste(quantdir,i,"logs/salmon_quant.log", sep="/"))
+line <- grep("Mapping rate = ",f,value=TRUE)
+sl <- str_length(line)
+sl
+notime <- substring(line,30,sl)
+notime
+manual <- substring(line,sl-7,sl-1)
+val <- as.numeric(str_extract(notime,"[0-9.]+"))
+val
+valr<-round(val, digits=2)
+print(paste("Mapping rate of ",si," is: ",valr," %"))
+mappingrates <- c(mappingrates,valr)
+}
+
+# Make table
+
+m.table <- data.frame(sample.table,mappingrates)
+```
+
+
+
+### Plot mapping rates
+```{r}
+
+# Colours
+
+# Plot
+plot(m.table$mappingrates)
+# -> boring
+
+# increase margin for longer names
+par(mar=c(4,15,4,4)+.1)
+barplot(height=mappingrates, names=samplename, horiz=T, las=1)
+mkdirs("graphs")
+
+pdf(file="graphs/Mapping_Rates.pdf", width=10, height=10)
+par(mar=c(4,12,4,4)+.1)
+xx <- barplot(height=mappingrates, names=samplename, horiz=T, las=1, xlim=c(0,100)) #col=col
+text(x = mappingrates, y = xx, label = mappingrates, pos = 4, cex = 0.8, col = "red")
+dev.off()
+
+```
+
+## 2c. Tximeta
+
+```{r}
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+
+getwd()
+outdir <- "C:/Users/kelterbs/OneDrive - Charité - Universitätsmedizin Berlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044"
+datadir <- "S:/AG/AG-Scholz-NGS/Daten/Simon/P3044"
+quantdir <- paste(datadir,"quants",sep="/")
+example.quant <- paste(quantdir,list.files(quantdir)[1],"quant.sf",sep="/")
+
+list.files(quantdir)[1]
+file.exists(example.quant)
+
+# first file:
+example.table <- read.table(example.quant, header=T)
+head(example.table)
+basename(example.quant)
+dirname(example.quant)
+basename(dirname(example.quant))
+
+# generate file list & prepare variables
+files={}
+for (i in list.dirs(path = dirname(dirname(example.quant)), full.names = TRUE, recursive = FALSE)) {
+files <- c(files,paste(i,"/quant.sf",sep=""))
+print(basename(i))
+# print(head(read.table(files[length(files)], header=T)))
+print (files[length(files)])
+}
+head(files)
+
+dir <- dirname(files)
+head(dir)
+head(basename(dir))
+run <- basename(dir)
+dirdir <- dirname(dir)
+head(dirdir)
+
+tximeta_files <- file.path(dirdir, run, "quant.sf") 
+file.exists(tximeta_files)
+file.exists(files)
+
+# names as working sample names
+# see 'm.table' at mapping rates
+coldata <- data.frame(files, names = run, stringsAsFactors=FALSE)
+coldata <- data.frame(coldata,m.table)
+coldata
+colnames(coldata)
+head(coldata$genotype)
+condition
+
+# load tximeta
+# with linked Transcriptome
+## Chlamy
+dir1 <- "S:/AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy"
+
+indexDir <- file.path(dir1,"chlamy_index_v6.1")
+fastaPath <- file.path(dir1,"Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.0.hardmasked.fa.gz")
+head(readLines(fastaPath,n=50))
+gtfPath <- file.path(dir1,"Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.repeatmasked_assembly_v6.0.gff3.gz")
+readLines(gtfPath,n=20)
+gtfPath <- file.path(dir1,"Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.gene_exons.gff3.gz")
+readLines(gtfPath,n=20)
+gtfPath <- file.path(dir1,"Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.gene.gff3.gz")
+readLines(gtfPath,n=20)
+
+file.exists(indexDir, fastaPath, gtfPath)
+
+makeLinkedTxome(indexDir=indexDir,
+                source="Phytozome",
+                organism="Chlamydomonas reinhardtii",
+                release="v6.1",
+                genome="CreinhardtiiCC_4532_707",
+                fasta=fastaPath,
+                gtf=gtfPath,
+                write=FALSE)
+
+gtfdata <- readLines(gtfPath)
+head(gtfdata, n=20)
+
+
+# gene_name info sind in gff3 abder nicht in se?
+
+se <- tximeta(coldata, useHub=F)
+se
+
+library(SummarizedExperiment)
+
+colData(se)
+# meta infos sind da (genotype, treatment,...)
+
+# rename Samples
+rownames(colData(se)) <- colData(se)$sample.id
+
+rowRanges(se)
+# genome info
+seqinfo(se)
+# ?
+head(assays(se)[["counts"]])
+# counts. THE DATA
+
+# Mapping infos:
+names(metadata(se)[["quantInfo"]])
+str(metadata(se)[["quantInfo"]]) # Infos from Salmon Mapping
+metadata(se)[["quantInfo"]]$percent_mapped
+metadata(se)[["quantInfo"]]$num_processed
+
+par(mfrow=c(1,2))
+barplot(metadata(se)[["quantInfo"]]$percent_mapped, main="Mapping Rate")
+barplot(metadata(se)[["quantInfo"]]$num_processed/1000000, main="Mio. Reads")
+
+edb <- retrieveDb(se)
+class(edb)
+genes(edb)
+columns(edb)
+
+
+se.exons <- addExons(se)
+rowRanges(se.exons)[[1]]
+gse <- summarizeToGene(se)
+rowRanges(gse)
+
+head(assays(gse)[["counts"]])[1:5,1:5]
+head(assays(gse)[["abundance"]])[1:5,1:5]
+head(assays(gse)[["length"]])[1:5,1:5]
+
+#### add gene symbol
+columns(retrieveDb(se))
+edb
+metadata(se)$txomeInfo$source
+
+TXNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "TXNAME", keytype = "GENEID", multiVals="first"))
+# select()' returned 1:many mapping between keys and columns = 1 gene has many transcripts...
+TXNAME.list <- (mapIds(edb,keys = mcols(gse)$gene_id, column = "TXNAME", keytype = "GENEID", multiVals="list"))
+head(TXNAME.list)
+# info is already there
+CDSID <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSID", keytype = "GENEID", multiVals="first"))
+head(CDSID)
+# ?
+CDSNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSNAME", keytype = "GENEID", multiVals="first"))
+head(CDSNAME)
+# same as gene_id
+EXONNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "EXONNAME", keytype = "GENEID", multiVals="first"))
+head(EXONNAME)
+TXTYPE <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "TXTYPE", keytype = "GENEID", multiVals="first"))
+head(TXTYPE)
+# no useful info... no gene Symbol!!
+
+# add CDSID
+mcols(gse)$CDSID <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSID", keytype = "GENEID", multiVals="first"))
+
+
+colnames(mcols(gse))
+head(rownames(gse))
+
+getwd()
+save(gse,file=paste(outdir,"tximeta.txm", sep="/"))
+gse <- 1
+load(file=paste(outdir,"tximeta.txm", sep="/"))
+
+
+```
+
+
+
+
+
+
