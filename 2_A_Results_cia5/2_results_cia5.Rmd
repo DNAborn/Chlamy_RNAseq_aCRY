@@ -1,0 +1,166 @@
+---
+title: "RNAseq cia5 results"
+author: "Kelterborn"
+date: "2024-04-16"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+always_allow_html: true
+editor_options: 
+  chunk_output_type: console
+knit: (function(input_file, encoding) {
+    rmarkdown::render(input_file,output_file= 'README.md')
+    })
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+```
+
+
+# 0. Prepare System
+BiocManager::install()
+
+## -R_libraries
+```{r r_libraries}
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(AnnotationHub)
+library(DESeq2)
+library(EnhancedVolcano)
+library(pheatmap)
+library(writexl)
+library(biomaRt)
+library(ape)
+library(kableExtra)
+library(knitr)
+
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(DESeq2)
+
+library(SummarizedExperiment)
+library(GenomicRanges)
+library(ape)
+
+library(viridis)
+library(patchwork)
+library("ggpubr")
+library(vsn)
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(PCAtools)
+
+# library(wget)
+
+```
+
+## -R_folders
+```{r r_folders}
+ifelse(Sys.info()["sysname"]== "Linux",
+       s <- "/mnt/s",
+       s <- "S:")
+dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
+list.files(dir) %>% head()
+gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
+list.files(gitdir) %>% head()
+
+fastqdir <- paste(dir,"fastq",sep="/")
+list.files(fastqdir) %>% tail()
+fastqdir2 <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/",sep="/")
+list.files(fastqdir2) %>% head()
+
+indexDir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/chlamy_index_v6.1",sep="/")
+
+fastaPath <- file.path(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.0.hardmasked.fa.gz")
+head(readLines(fastaPath,n=10))
+
+gtfPath <- file.path(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.gene.gff3.gz")
+readLines(gtfPath,n=10)
+
+quantdir <- paste(dir,"quants",sep="/")
+
+```
+
+# 1. Load data
+```{r load_data}
+load(file=paste(dir,"dds_cia5.RDS", sep="/"))
+load(paste(dir,"anno.RDS",sep="/"))
+
+```
+
+### - Plot counts
+#### -- cia5 & rbcs
+
+```{r example_counts, fig.show="hold", out.width="50%", eval=TRUE, include=TRUE, echo=FALSE}
+
+## cia5
+
+# plap6
+PLAP6 <- "Cre03.g188700"
+d <- plotCounts(dds,gene = PLAP6, intgroup= c("treatment","genotype","condition"), returnData=TRUE)
+g1 <- ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
+   scale_y_continuous(limits = c(60,150),trans = "log2") +
+  scale_fill_manual(values = c("grey30","salmon")) + 
+    labs(title = paste("PLAP6 (",PLAP6,")",sep=""))
+
+# rbcl
+anno[str_detect(anno[["Description"]],"RuBisCO"),1:9]
+rbcl <- "CreCp.g802313"
+d <- plotCounts(dds,gene = rbcl, intgroup= c("treatment","genotype","condition"), returnData=TRUE)
+g2 <- ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
+   scale_y_continuous(trans = "log2") +
+  scale_fill_manual(values = c("grey30","salmon")) + 
+#  scale_color_manual(values = c("grey30","salmon")) + 
+    labs(title = paste("rbcl (",rbcl,")",sep=""))
+g1
+g2
+g1+g2 + plot_layout(guides = "collect", axes="collect", axis_titles="collect") & theme(legend.position = 'right')
+
+```
+
+
+# 2. Results
+```{r results}
+resultsNames(dds)
+res <- results(dds,contrast = c("genotype","cia5","WT"))
+res["Cre03.g188700",]
+
+```
+
+
+
+
+
+```{r}
+sessionInfo()
+```
+
+
