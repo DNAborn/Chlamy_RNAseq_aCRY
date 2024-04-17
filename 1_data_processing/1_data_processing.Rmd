@@ -300,7 +300,7 @@ m.table <- data.frame(sample.table,mappingrates)
 
 # Plot
 par(mar=c(2,4,0,0)+.1) # set margins for figure
-plot(sample_table_all$mappingrates)
+plot(m.table$mappingrates)
 # -> boring
 
 # increase margin for longer names
@@ -632,7 +632,7 @@ colData(gse_cia5)$genotype <- colData(gse_cia5)$genotype %>% relevel(ref="WT")
 ```
 
 ### Deseq2 acry
-```{r}
+```{r dds_acry}
 design <- ~condition
 # design <- ~genotype+treatment+genotype:treatment
 
@@ -640,7 +640,7 @@ dds <- DESeqDataSet(gse_acry, design=design)
 colData(dds) %>% head() %>% kable()
 
 ##########################################\n
-## filter all rows with rowsum = 0 ####
+# filter all rows with rowsum = 0 ####
 par(mfrow=c(1,2))
 hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10))
 hist(counts(dds), breaks=1000000, ylim = c(0,100000), xlim = c(0,10))

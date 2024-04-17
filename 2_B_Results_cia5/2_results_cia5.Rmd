@@ -88,6 +88,12 @@ list.files(dir) %>% head()
 gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 list.files(gitdir) %>% head()
 
+dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3043",sep="/")
+gitdir <- paste(dir,"git_Chlamy_RNAseq_plap6",sep="/")
+datadir <- paste(dir,"data",sep="/")
+outdir <- gitdir
+pubdir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3043/git_Chlamy_RNAseq_plap6/pub_figures",sep="/")
+
 fastqdir <- paste(dir,"fastq",sep="/")
 list.files(fastqdir) %>% tail()
 fastqdir2 <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/",sep="/")
@@ -107,8 +113,11 @@ quantdir <- paste(dir,"quants",sep="/")
 
 # 1. Load data
 ```{r load_data}
-load(file=paste(dir,"dds_cia5.RDS", sep="/"))
-load(paste(dir,"anno.RDS",sep="/"))
+# load(paste(dir,"dds_cia5.RDS", sep="/"))
+# load(paste(dir,"anno.RDS",sep="/"))
+
+load("~/S/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/dds_cia5.RDS")
+load("~/S/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/anno.RDS")
 
 ```
 
@@ -126,7 +135,7 @@ g1 <- ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
     geom_boxplot(color="black") +
     geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
    scale_y_continuous(limits = c(60,150),trans = "log2") +
-  scale_fill_manual(values = c("grey30","salmon")) + 
+  scale_fill_manual(values = c("grey30","mediumpurple2")) + 
     labs(title = paste("PLAP6 (",PLAP6,")",sep=""))
 
 # rbcl
@@ -137,14 +146,28 @@ g2 <- ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
     geom_boxplot(color="black") +
     geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
    scale_y_continuous(trans = "log2") +
-  scale_fill_manual(values = c("grey30","salmon")) + 
+  scale_fill_manual(values = c("grey30","mediumpurple2")) + 
 #  scale_color_manual(values = c("grey30","salmon")) + 
     labs(title = paste("rbcl (",rbcl,")",sep=""))
 g1
 g2
-g1+g2 + plot_layout(guides = "collect", axes="collect", axis_titles="collect") & theme(legend.position = 'right')
+p <- g1+g2 + plot_layout(guides = "collect", axes="collect", axis_titles="collect") & theme(legend.position = 'right')
 
 ```
+
+###### -export
+```{r export_plap6, eval=FALSE}
+ggexport(g1, filename = paste(pubdir,"Counts_cia5_PLAP6.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(g1, filename = paste(pubdir,"Counts_cia5_PLAP6.png",sep="/"),width = 8.2, height = 4.7)
+
+ggexport(g2, filename = paste(pubdir,"Counts_cia5_rbcl.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(g2, filename = paste(pubdir,"Counts_cia5_rbcl.png",sep="/"),width = 8.2, height = 4.7)
+
+ggexport(p, filename = paste(pubdir,"Counts_cia5_PLAP6+rbcl.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(p, filename = paste(pubdir,"Counts_cia5_PLAP6+rbcl.png",sep="/"),width = 8.2, height = 4.7)
+
+```
+
 
 
 # 2. Results

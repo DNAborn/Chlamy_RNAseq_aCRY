@@ -21,7 +21,10 @@ Kelterborn
       annotation](#-add-gene-info-from-master-annotation)
     - [-add anno data into gse](#-add-anno-data-into-gse)
   - [2c. DESeq2 Analysis](#2c-deseq2-analysis)
+    - [Deseq2 acry](#deseq2-acry)
+    - [Deseq2 cia5](#deseq2-cia5)
 - [3. Pre-Analysis](#3-pre-analysis)
+  - [load data](#load-data)
   - [- Data transformations](#--data-transformations)
   - [- Check sample distance](#--check-sample-distance)
   - [- Perform principal component
@@ -66,6 +69,7 @@ library(tidyverse)
 library(tximeta)
 library(tximport)
 library(curl)
+library(DESeq2)
 
 library(SummarizedExperiment)
 library(GenomicRanges)
@@ -75,7 +79,9 @@ library(viridis)
 library(patchwork)
 library("ggpubr")
 library(vsn)
-
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
 library(PCAtools)
 
 # library(wget)
@@ -97,16 +103,17 @@ dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
 list.files(dir) %>% head()
 ```
 
-    ## [1] "anno.RDS"               "dds.RDS"                "fastq"                 
-    ## [4] "git_Chlamy_RNAseq_aCRY" "quants"                 "rlog.rld"
+    ## [1] "anno.RDS"               "dds_acry.RDS"           "dds_cia5.RDS"          
+    ## [4] "dds.RDS"                "fastq"                  "git_Chlamy_RNAseq_aCRY"
 
 ``` r
 gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 list.files(gitdir) %>% head()
 ```
 
-    ## [1] "1_data_processing"            "git_Chlamy_RNAseq_aCRY.Rproj"
-    ## [3] "graphs"                       "README.md"
+    ## [1] "1_data_processing"            "2_B_Results_cia5"            
+    ## [3] "git_Chlamy_RNAseq_aCRY.Rproj" "graphs"                      
+    ## [5] "README.md"                    "Rplot.pdf"
 
 ``` r
 fastqdir <- paste(dir,"fastq",sep="/")
@@ -338,39 +345,39 @@ sample.table <- data.frame(Samplefile[,-3])
 sample.table %>% kable()
 ```
 
-| filename               | clientId | clientName  | group    | species | genotype | treatment | replicate | condition |
-|:-----------------------|:---------|:------------|:---------|:--------|:---------|:----------|----------:|:----------|
-| Unknown_BU327-002T0001 | 1.1      | aCRYred1    | aCRYred  | Cre     | acry     | red       |         1 | acry_red  |
-| Unknown_BU327-002T0002 | 1.2      | aCRYred2    | aCRYred  | Cre     | acry     | red       |         2 | acry_red  |
-| Unknown_BU327-002T0003 | 1.3      | aCRYred3    | aCRYred  | Cre     | acry     | red       |         3 | acry_red  |
-| Unknown_BU327-002T0004 | 2.1      | WTred1      | WTred    | Cre     | WT       | red       |         1 | WT_red    |
-| Unknown_BU327-002T0005 | 2.2      | WTred2      | WTred    | Cre     | WT       | red       |         2 | WT_red    |
-| Unknown_BU327-002T0006 | 2.3      | WTred3      | WTred    | Cre     | WT       | red       |         3 | WT_red    |
-| Unknown_BU327-002T0007 | 3.1      | aCRYblue1   | aCRYblue | Cre     | acry     | blue      |         1 | acry_blue |
-| Unknown_BU327-002T0008 | 3.2      | aCRYblue2   | aCRYblue | Cre     | acry     | blue      |         2 | acry_blue |
-| Unknown_BU327-002T0009 | 3.3      | aCRYblue3   | aCRYblue | Cre     | acry     | blue      |         3 | acry_blue |
-| Unknown_BU327-002T0010 | 4.1      | WTblue1     | WTblue   | Cre     | WT       | blue      |         1 | WT_blue   |
-| Unknown_BU327-002T0011 | 4.2      | WTblue2     | WTblue   | Cre     | WT       | blue      |         2 | WT_blue   |
-| Unknown_BU327-002T0012 | 4.3      | WTblue3     | WTblue   | Cre     | WT       | blue      |         3 | WT_blue   |
-| Unknown_BU327-002T0013 | DK.1     | WTdark1     | WTdark   | Cre     | WT       | dark      |         1 | WT_dark   |
-| Unknown_BU327-002T0014 | DK.2     | WTdark2     | WTdark   | Cre     | WT       | dark      |         2 | WT_dark   |
-| Unknown_BU327-002T0015 | DK.3     | WTdark3     | WTdark   | Cre     | WT       | dark      |         3 | WT_dark   |
-| Unknown_BU327-002T0016 | DA.1     | aCRYdark1   | aCRYdark | Cre     | acry     | dark      |         1 | acry_dark |
-| Unknown_BU327-002T0017 | DA.2     | aCRYdark2   | aCRYdark | Cre     | acry     | dark      |         2 | acry_dark |
-| Unknown_BU327-002T0018 | A1       | 3h-L-1      | A        | Cym     | WT       | light     |         1 | NA        |
-| Unknown_BU327-002T0019 | A2       | 3h-L-2      | A        | Cym     | WT       | light     |         2 | NA        |
-| Unknown_BU327-002T0020 | A3       | 3h-L-3      | A        | Cym     | WT       | light     |         3 | NA        |
-| Unknown_BU327-002T0021 | A4       | 3h-D-1      | A        | Cym     | WT       | dark      |         1 | WT_dark   |
-| Unknown_BU327-002T0022 | A5       | 3h-D-2      | A        | Cym     | WT       | dark      |         2 | WT_dark   |
-| Unknown_BU327-002T0023 | A6       | 3h-D-3      | A        | Cym     | WT       | dark      |         3 | WT_dark   |
-| Unknown_BU327-002T0024 | B1       | WT-16HL-1   | B        | Cre     | WT       | 16HL      |         1 | WT_16HL   |
-| Unknown_BU327-002T0025 | B2       | WT-16HL-2   | B        | Cre     | WT       | 16HL      |         2 | WT_16HL   |
-| Unknown_BU327-002T0026 | B3       | WT-16HL-3   | B        | Cre     | WT       | 16HL      |         3 | WT_16HL   |
-| Unknown_BU327-002T0027 | C1       | cia5-16HL-1 | C        | Cre     | cia5     | 16HL      |         1 | cia5_16HL |
-| Unknown_BU327-002T0028 | C2       | cia5-16HL-2 | C        | Cre     | cia5     | 16HL      |         2 | cia5_16HL |
-| Unknown_BU327-002T0029 | C3       | cia5-16HL-3 | C        | Cre     | cia5     | 16HL      |         3 | cia5_16HL |
-| Unknown_BU327-002T0030 | D1       | WT-3HL-1    | D        | Cre     | WT       | 3HL       |         1 | WT_3HL    |
-| Unknown_BU327-002T0031 | D2       | WT-3HL-2    | D        | Cre     | WT       | 3HL       |         2 | WT_3HL    |
+| filename               | clientId | clientName  | group    | species | genotype | treatment | replicate | experiment | condition |
+|:-----------------------|:---------|:------------|:---------|:--------|:---------|:----------|----------:|:-----------|:----------|
+| Unknown_BU327-002T0001 | 1.1      | aCRYred1    | aCRYred  | Cre     | acry     | red       |         1 | acry       | acry_red  |
+| Unknown_BU327-002T0002 | 1.2      | aCRYred2    | aCRYred  | Cre     | acry     | red       |         2 | acry       | acry_red  |
+| Unknown_BU327-002T0003 | 1.3      | aCRYred3    | aCRYred  | Cre     | acry     | red       |         3 | acry       | acry_red  |
+| Unknown_BU327-002T0004 | 2.1      | WTred1      | WTred    | Cre     | WT       | red       |         1 | acry       | WT_red    |
+| Unknown_BU327-002T0005 | 2.2      | WTred2      | WTred    | Cre     | WT       | red       |         2 | acry       | WT_red    |
+| Unknown_BU327-002T0006 | 2.3      | WTred3      | WTred    | Cre     | WT       | red       |         3 | acry       | WT_red    |
+| Unknown_BU327-002T0007 | 3.1      | aCRYblue1   | aCRYblue | Cre     | acry     | blue      |         1 | acry       | acry_blue |
+| Unknown_BU327-002T0008 | 3.2      | aCRYblue2   | aCRYblue | Cre     | acry     | blue      |         2 | acry       | acry_blue |
+| Unknown_BU327-002T0009 | 3.3      | aCRYblue3   | aCRYblue | Cre     | acry     | blue      |         3 | acry       | acry_blue |
+| Unknown_BU327-002T0010 | 4.1      | WTblue1     | WTblue   | Cre     | WT       | blue      |         1 | acry       | WT_blue   |
+| Unknown_BU327-002T0011 | 4.2      | WTblue2     | WTblue   | Cre     | WT       | blue      |         2 | acry       | WT_blue   |
+| Unknown_BU327-002T0012 | 4.3      | WTblue3     | WTblue   | Cre     | WT       | blue      |         3 | acry       | WT_blue   |
+| Unknown_BU327-002T0013 | DK.1     | WTdark1     | WTdark   | Cre     | WT       | dark      |         1 | acry       | WT_dark   |
+| Unknown_BU327-002T0014 | DK.2     | WTdark2     | WTdark   | Cre     | WT       | dark      |         2 | acry       | WT_dark   |
+| Unknown_BU327-002T0015 | DK.3     | WTdark3     | WTdark   | Cre     | WT       | dark      |         3 | acry       | WT_dark   |
+| Unknown_BU327-002T0016 | DA.1     | aCRYdark1   | aCRYdark | Cre     | acry     | dark      |         1 | acry       | acry_dark |
+| Unknown_BU327-002T0017 | DA.2     | aCRYdark2   | aCRYdark | Cre     | acry     | dark      |         2 | acry       | acry_dark |
+| Unknown_BU327-002T0018 | A1       | 3h-L-1      | A        | Cym     | WT       | light     |         1 | Cym        | NA        |
+| Unknown_BU327-002T0019 | A2       | 3h-L-2      | A        | Cym     | WT       | light     |         2 | Cym        | NA        |
+| Unknown_BU327-002T0020 | A3       | 3h-L-3      | A        | Cym     | WT       | light     |         3 | Cym        | NA        |
+| Unknown_BU327-002T0021 | A4       | 3h-D-1      | A        | Cym     | WT       | dark      |         1 | Cym        | WT_dark   |
+| Unknown_BU327-002T0022 | A5       | 3h-D-2      | A        | Cym     | WT       | dark      |         2 | Cym        | WT_dark   |
+| Unknown_BU327-002T0023 | A6       | 3h-D-3      | A        | Cym     | WT       | dark      |         3 | Cym        | WT_dark   |
+| Unknown_BU327-002T0024 | B1       | WT-16HL-1   | B        | Cre     | WT       | 16HL      |         1 | cia5       | WT_16HL   |
+| Unknown_BU327-002T0025 | B2       | WT-16HL-2   | B        | Cre     | WT       | 16HL      |         2 | cia5       | WT_16HL   |
+| Unknown_BU327-002T0026 | B3       | WT-16HL-3   | B        | Cre     | WT       | 16HL      |         3 | cia5       | WT_16HL   |
+| Unknown_BU327-002T0027 | C1       | cia5-16HL-1 | C        | Cre     | cia5     | 16HL      |         1 | cia5       | cia5_16HL |
+| Unknown_BU327-002T0028 | C2       | cia5-16HL-2 | C        | Cre     | cia5     | 16HL      |         2 | cia5       | cia5_16HL |
+| Unknown_BU327-002T0029 | C3       | cia5-16HL-3 | C        | Cre     | cia5     | 16HL      |         3 | cia5       | cia5_16HL |
+| Unknown_BU327-002T0030 | D1       | WT-3HL-1    | D        | Cre     | WT       | 3HL       |         1 | extra      | WT_3HL    |
+| Unknown_BU327-002T0031 | D2       | WT-3HL-2    | D        | Cre     | WT       | 3HL       |         2 | extra      | WT_3HL    |
 
 ``` r
 sample.table <- data.frame(lapply(sample.table, factor))
@@ -379,7 +386,7 @@ sample.table <- data.frame(lapply(sample.table, factor))
 str(sample.table)
 ```
 
-    ## 'data.frame':    31 obs. of  9 variables:
+    ## 'data.frame':    31 obs. of  10 variables:
     ##  $ filename  : Factor w/ 31 levels "Unknown_BU327-002T0001",..: 1 2 3 4 5 6 7 8 9 10 ...
     ##  $ clientId  : Factor w/ 31 levels "1.1","1.2","1.3",..: 1 2 3 4 5 6 7 8 9 10 ...
     ##  $ clientName: Factor w/ 31 levels "3h-D-1","3h-D-2",..: 12 13 14 29 30 31 7 8 9 23 ...
@@ -388,15 +395,12 @@ str(sample.table)
     ##  $ genotype  : Factor w/ 3 levels "acry","cia5",..: 1 1 1 3 3 3 1 1 1 3 ...
     ##  $ treatment : Factor w/ 6 levels "dark","blue",..: 3 3 3 3 3 3 2 2 2 2 ...
     ##  $ replicate : Factor w/ 3 levels "1","2","3": 1 2 3 1 2 3 1 2 3 1 ...
+    ##  $ experiment: Factor w/ 4 levels "acry","cia5",..: 1 1 1 1 1 1 1 1 1 1 ...
     ##  $ condition : Factor w/ 9 levels "WT_dark","acry_dark",..: 6 6 6 5 5 5 4 4 4 3 ...
 
 ## 2b. Mapping Rates
 
 ``` r
-library(stringr)
-library(R.utils)
-library(RColorBrewer)
-
 samplelist <- {}
 mappingrates <- {}
 for (i in list.files(path = quantdir)){
@@ -492,11 +496,14 @@ m.table <- data.frame(sample.table,mappingrates)
 ### Plot mapping rates
 
 ``` r
-# Colours
-
 # Plot
-par(mar=c(2,4,0,0)+.1)
-# plot(sample_table_all$mappingrates)
+par(mar=c(2,4,0,0)+.1) # set margins for figure
+plot(m.table$mappingrates)
+```
+
+![](README_files/figure-gfm/plot_mappingrates-1.png)<!-- -->
+
+``` r
 # -> boring
 
 # increase margin for longer names
@@ -507,7 +514,7 @@ xx <- barplot(height=mappingrates, cex.names=0.5, names=samplename, horiz=T, las
 text(x = mappingrates, y = xx, label = mappingrates, pos = 4, cex = 0.5, col = "red")
 ```
 
-![](README_files/figure-gfm/plot_mappingrates-1.png)<!-- -->
+![](README_files/figure-gfm/plot_mappingrates-2.png)<!-- -->
 
 ``` r
 par(mar=c(4,4,4,4)+.1)
@@ -652,14 +659,14 @@ coldata <- data.frame(coldata,sample.table)
 coldata %>% head() %>% kable()
 ```
 
-| files                                                                                               | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | condition | mappingrates |
-|:----------------------------------------------------------------------------------------------------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:----------|-------------:|
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0001_quant/quant.sf | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry_red  |        69.74 |
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0002_quant/quant.sf | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry_red  |        67.08 |
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0003_quant/quant.sf | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry_red  |        69.49 |
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0004_quant/quant.sf | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | WT_red    |        73.55 |
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0005_quant/quant.sf | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | WT_red    |        75.63 |
-| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0006_quant/quant.sf | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | WT_red    |        77.41 |
+| files                                                                                               | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:----------------------------------------------------------------------------------------------------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0001_quant/quant.sf | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry       | acry_red  |        69.74 |
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0002_quant/quant.sf | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry       | acry_red  |        67.08 |
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0003_quant/quant.sf | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry       | acry_red  |        69.49 |
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0004_quant/quant.sf | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | acry       | WT_red    |        73.55 |
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0005_quant/quant.sf | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | acry       | WT_red    |        75.63 |
+| /mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/quants/Unknown_BU327-002T0006_quant/quant.sf | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | acry       | WT_red    |        77.41 |
 
 ``` r
 # load tximeta
@@ -711,7 +718,7 @@ se
     ## rowData names(3): tx_id gene_id tx_name
     ## colnames(25): Unknown_BU327-002T0001_quant Unknown_BU327-002T0002_quant
     ##   ... Unknown_BU327-002T0030_quant Unknown_BU327-002T0031_quant
-    ## colData names(11): names filename ... condition mappingrates
+    ## colData names(12): names filename ... condition mappingrates
 
 ``` r
 library(SummarizedExperiment)
@@ -719,14 +726,14 @@ library(SummarizedExperiment)
 colData(se) %>% head() %>% kable()
 ```
 
-|                              | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | condition | mappingrates |
-|:-----------------------------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:----------|-------------:|
-| Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry_red  |        69.74 |
-| Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry_red  |        67.08 |
-| Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry_red  |        69.49 |
-| Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | WT_red    |        73.55 |
-| Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | WT_red    |        75.63 |
-| Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | WT_red    |        77.41 |
+|                              | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:-----------------------------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry       | acry_red  |        69.74 |
+| Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry       | acry_red  |        67.08 |
+| Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry       | acry_red  |        69.49 |
+| Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | acry       | WT_red    |        73.55 |
+| Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | acry       | WT_red    |        75.63 |
+| Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | acry       | WT_red    |        77.41 |
 
 ``` r
 # meta infos sind da (genotype, treatment,...)
@@ -33700,9 +33707,9 @@ getwd()
     ## [1] "/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/git_Chlamy_RNAseq_aCRY/1_data_processing"
 
 ``` r
-# save(gse,file=paste(dir,"tximeta.txm", sep="/"))
+# save(gse,file=paste(dir,"tximeta.RDS", sep="/"))
 # gse <- 1
-# load(file=paste(outdir,"tximeta.txm", sep="/"))
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
 ```
 
 ### -Add gene info from Master annotation
@@ -34842,31 +34849,25 @@ dim(anno)
 ``` r
 # anno[1:10,1:10]
 
-# saveRDS(anno, file = paste(dir,"anno.RDS",sep="/"), compress = FALSE)
-# anno <- readRDS(paste(outdir,"anno.RDS",sep="/"))
+# save(anno, file = paste(dir,"anno.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"anno.RDS",sep="/"))
 ```
 
 ### -add anno data into gse
 
 ``` r
-# load(file=paste(outdir,"tximeta.txm", sep="/"))
-gse
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
+# load(file=paste(dir,"/anno.RDS", sep="/"))
+anno[1:3,1:8] %>% kable()
 ```
 
-    ## class: RangedSummarizedExperiment 
-    ## dim: 17616 25 
-    ## metadata(7): tximetaInfo quantInfo ... txdbInfo assignRanges
-    ## assays(3): counts abundance length
-    ## rownames(17616): Cre01.g000050_4532 Cre01.g000100_4532 ...
-    ##   CreMt.g802343_4532 CreMt.g802344_4532
-    ## rowData names(3): gene_id tx_ids CDSID
-    ## colnames(25): aCRYred1 aCRYred2 ... WT-3HL-1 WT-3HL-2
-    ## colData names(11): names filename ... condition mappingrates
+|               | locusName_4532     | initial_v6_locus_ID | action | Replacement_v5.v6.\_model | geneSymbol | strainLocusId | PMID                                         | previousIdentifiers |
+|:--------------|:-------------------|:--------------------|:-------|:--------------------------|:-----------|:--------------|:---------------------------------------------|:--------------------|
+| Cre01.g000050 | Cre01.g000050_4532 | Cr_01_00004         |        |                           | RWP14      | 4532_01_00005 | 15785851#24987011                            | g4.t1#RWP14         |
+| Cre01.g000100 | Cre01.g000100_4532 | Cr_01_00008         |        |                           |            | 4532_01_00011 |                                              | g5.t1               |
+| Cre01.g000150 | Cre01.g000150_4532 | Cr_01_00012         |        |                           | ZRT2       | 4532_01_00015 | 15710683#16766055#22569643#21131558#21498682 | CrZIP2#g6.t1        |
 
 ``` r
-anno <- readRDS(file=paste(dir,"/anno.RDS", sep="/"))
-# anno[1:10,1:10]
-
 # Remove "_4532"
 mcols(gse)$gene_id2 <- mcols(gse)[,"gene_id"]
 mcols(gse)$gene_id <- str_remove(mcols(gse)[,"gene_id2"], pattern = "_4532")
@@ -34977,13 +34978,7 @@ mcols(gse) %>% head() %>% kable()
 | Cre01.g000300 | Cre01.g000300 | Cre01.g0…. | 33    | Cre01.g000300_4532 | CGI58      | CGI58         | GDP8         | GDP8#g9.t1          | GDP8, g9.t1              | Esterase/lipase/thioesterase                   | Glycerophosphoryl diester phosphodiesterase family protein# Predicted glycerophosphodiester phosphodiesterasehydrolase in the hydrolase, alpha/beta fold family# Name comes from Comparative gene identification-58 protein# | Mitochondrion (RC 3 score: 0.862 TPlen: 44 on \#1 protein) | Mitochondrion (score 0.988 on \#1 protein) |
 
 ``` r
-getwd()
-```
-
-    ## [1] "/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/git_Chlamy_RNAseq_aCRY/1_data_processing"
-
-``` r
-# save(gse,file=paste(dir,"tximeta.txm",sep="/"))
+save(gse,file=paste(dir,"tximeta.RDS",sep="/"))
 ```
 
 ## 2c. DESeq2 Analysis
@@ -34995,20 +34990,19 @@ getwd()
     ## [1] "/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/git_Chlamy_RNAseq_aCRY/1_data_processing"
 
 ``` r
-# load(file=paste(outdir,"tximeta.txm", sep="/"))
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
 
-library(DESeq2)
 colData(gse) %>% head() %>% kable()
 ```
 
-|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | condition | mappingrates |
-|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:----------|-------------:|
-| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry_red  |        69.74 |
-| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry_red  |        67.08 |
-| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry_red  |        69.49 |
-| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | WT_red    |        73.55 |
-| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | WT_red    |        75.63 |
-| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | WT_red    |        77.41 |
+|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry       | acry_red  |        69.74 |
+| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry       | acry_red  |        67.08 |
+| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry       | acry_red  |        69.49 |
+| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | acry       | WT_red    |        73.55 |
+| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | acry       | WT_red    |        75.63 |
+| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | acry       | WT_red    |        77.41 |
 
 ``` r
 mcols(gse) %>% head() %>% kable()
@@ -35024,31 +35018,33 @@ mcols(gse) %>% head() %>% kable()
 | Cre01.g000300 | Cre01.g000300 | Cre01.g0…. | 33    | Cre01.g000300_4532 | CGI58      | CGI58         | GDP8         | GDP8#g9.t1          | GDP8, g9.t1              | Esterase/lipase/thioesterase                   | Glycerophosphoryl diester phosphodiesterase family protein# Predicted glycerophosphodiester phosphodiesterasehydrolase in the hydrolase, alpha/beta fold family# Name comes from Comparative gene identification-58 protein# | Mitochondrion (RC 3 score: 0.862 TPlen: 44 on \#1 protein) | Mitochondrion (score 0.988 on \#1 protein) |
 
 ``` r
-gse$condition
+gse_acry <- gse[,colData(gse)$experiment=="acry"]
+colData(gse_acry) <- colData(gse_acry) %>% droplevels()
+colData(gse_acry)$genotype <- colData(gse_acry)$genotype %>% relevel(ref="WT")
+
+gse_cia5 <- gse[,colData(gse)$experiment=="cia5"]
+colData(gse_cia5) <- colData(gse_cia5) %>% droplevels()
+colData(gse_cia5)$genotype <- colData(gse_cia5)$genotype %>% relevel(ref="WT")
 ```
 
-    ##  [1] acry_red  acry_red  acry_red  WT_red    WT_red    WT_red    acry_blue
-    ##  [8] acry_blue acry_blue WT_blue   WT_blue   WT_blue   WT_dark   WT_dark  
-    ## [15] WT_dark   acry_dark acry_dark WT_16HL   WT_16HL   WT_16HL   cia5_16HL
-    ## [22] cia5_16HL cia5_16HL WT_3HL    WT_3HL   
-    ## 9 Levels: WT_dark acry_dark WT_blue acry_blue WT_red acry_red ... cia5_16HL
+### Deseq2 acry
 
 ``` r
 design <- ~condition
 # design <- ~genotype+treatment+genotype:treatment
 
-dds <- DESeqDataSet(gse, design=design)
+dds <- DESeqDataSet(gse_acry, design=design)
 colData(dds) %>% head() %>% kable()
 ```
 
-|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | condition | mappingrates |
-|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:----------|-------------:|
-| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry_red  |        69.74 |
-| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry_red  |        67.08 |
-| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry_red  |        69.49 |
-| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | WT_red    |        73.55 |
-| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | WT_red    |        75.63 |
-| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | WT_red    |        77.41 |
+|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry       | acry_red  |        69.74 |
+| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry       | acry_red  |        67.08 |
+| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry       | acry_red  |        69.49 |
+| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | acry       | WT_red    |        73.55 |
+| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | acry       | WT_red    |        75.63 |
+| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | acry       | WT_red    |        77.41 |
 
 ``` r
 ##########################################\n
@@ -35058,7 +35054,7 @@ hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10))
 hist(counts(dds), breaks=1000000, ylim = c(0,100000), xlim = c(0,10))
 ```
 
-![](README_files/figure-gfm/deseq2-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ``` r
 # -> dip at log(counts(dds)=2-3)
@@ -35071,7 +35067,7 @@ keep.sn %>% summary()
 ```
 
     ##    Mode   FALSE    TRUE 
-    ## logical    1272   16344
+    ## logical    1806   15810
 
 ``` r
 dds <- dds[keep.sn,]
@@ -35081,14 +35077,14 @@ dds
 ```
 
     ## class: DESeqDataSet 
-    ## dim: 16344 25 
+    ## dim: 15810 17 
     ## metadata(8): tximetaInfo quantInfo ... assignRanges version
     ## assays(4): counts abundance avgTxLength normalizationFactors
-    ## rownames(16344): Cre01.g000050 Cre01.g000100 ... CreMt.g802343
+    ## rownames(15810): Cre01.g000050 Cre01.g000100 ... CreMt.g802343
     ##   CreMt.g802344
     ## rowData names(13): gene_id tx_ids ... TargetP Predalgo
-    ## colnames(25): aCRYred1 aCRYred2 ... WT-3HL-1 WT-3HL-2
-    ## colData names(11): names filename ... condition mappingrates
+    ## colnames(17): aCRYred1 aCRYred2 ... aCRYdark1 aCRYdark2
+    ## colData names(12): names filename ... condition mappingrates
 
 ``` r
 head(assays(dds)[["counts"]])[1:5,1:5]
@@ -35105,20 +35101,20 @@ head(assays(dds)[["counts"]])[1:5,1:5]
 length(rownames(counts(dds)))
 ```
 
-    ## [1] 16344
+    ## [1] 15810
 
 ``` r
 colData(dds) %>% head() %>% kable()
 ```
 
-|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | condition | mappingrates |
-|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:----------|-------------:|
-| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry_red  |        69.74 |
-| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry_red  |        67.08 |
-| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry_red  |        69.49 |
-| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | WT_red    |        73.55 |
-| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | WT_red    |        75.63 |
-| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | WT_red    |        77.41 |
+|          | names                        | filename               | clientId | clientName | group   | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:---------|:-----------------------------|:-----------------------|:---------|:-----------|:--------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| aCRYred1 | Unknown_BU327-002T0001_quant | Unknown_BU327-002T0001 | 1.1      | aCRYred1   | aCRYred | Cre     | acry     | red       | 1         | acry       | acry_red  |        69.74 |
+| aCRYred2 | Unknown_BU327-002T0002_quant | Unknown_BU327-002T0002 | 1.2      | aCRYred2   | aCRYred | Cre     | acry     | red       | 2         | acry       | acry_red  |        67.08 |
+| aCRYred3 | Unknown_BU327-002T0003_quant | Unknown_BU327-002T0003 | 1.3      | aCRYred3   | aCRYred | Cre     | acry     | red       | 3         | acry       | acry_red  |        69.49 |
+| WTred1   | Unknown_BU327-002T0004_quant | Unknown_BU327-002T0004 | 2.1      | WTred1     | WTred   | Cre     | WT       | red       | 1         | acry       | WT_red    |        73.55 |
+| WTred2   | Unknown_BU327-002T0005_quant | Unknown_BU327-002T0005 | 2.2      | WTred2     | WTred   | Cre     | WT       | red       | 2         | acry       | WT_red    |        75.63 |
+| WTred3   | Unknown_BU327-002T0006_quant | Unknown_BU327-002T0006 | 2.3      | WTred3     | WTred   | Cre     | WT       | red       | 3         | acry       | WT_red    |        77.41 |
 
 ``` r
 # add metadata
@@ -35139,13 +35135,13 @@ dds <- DESeq(dds)
 DESeq2::plotMA(dds)
 ```
 
-![](README_files/figure-gfm/deseq2-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
 
 ``` r
 plotCounts(dds, gene = "Cre01.g000150", intgroup = "condition")
 ```
 
-![](README_files/figure-gfm/deseq2-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
 
 ``` r
 head(mcols(dds)$geneSymbol)
@@ -35185,35 +35181,35 @@ g
 plotCounts(dds, gene = g, intgroup = "condition")
 ```
 
-![](README_files/figure-gfm/deseq2-4.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-4.png)<!-- -->
 
 ``` r
 g <- anno[str_detect(anno[["geneSymbol"]],"PCRY"),"gene_id"]
 plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
 ```
 
-![](README_files/figure-gfm/deseq2-5.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-5.png)<!-- -->
 
 ``` r
 g <- anno[str_detect(anno[["geneSymbol"]],"ACRY"),"gene_id"]
 plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
 ```
 
-![](README_files/figure-gfm/deseq2-6.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-6.png)<!-- -->
 
 ``` r
 g <- anno[str_detect(anno[["geneSymbol"]],"ROC15"),"gene_id"]
 plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
 ```
 
-![](README_files/figure-gfm/deseq2-7.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-7.png)<!-- -->
 
 ``` r
 g <- anno[str_detect(anno[["geneSymbol"]],"ROC40"),"gene_id"]
 plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
 ```
 
-![](README_files/figure-gfm/deseq2-8.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-8.png)<!-- -->
 
 ``` r
 # search genes
@@ -35259,12 +35255,133 @@ anno[str_detect(anno[["previousIdentifiers"]],"CRY"),1:9] %>% kable()
 # save dds #####
 
 # save(dds, file = paste(dir,"dds_23design.RDS",sep="/"), compress = FALSE)
-# save(dds, file = paste(dir,"dds.RDS",sep="/"), compress = FALSE)
-# dds <- readRDS(paste(outdir,"dds.RDS",sep="/"))
+# save(dds, file = paste(dir,"dds_acry.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"dds.RDS",sep="/"))
 # dds
 ```
 
+### Deseq2 cia5
+
+``` r
+design <- ~genotype
+dds <- DESeqDataSet(gse_cia5, design=design)
+colData(dds) %>% head() %>% kable()
+```
+
+|             | names                        | filename               | clientId | clientName  | group | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:------------|:-----------------------------|:-----------------------|:---------|:------------|:------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| WT-16HL-1   | Unknown_BU327-002T0024_quant | Unknown_BU327-002T0024 | B1       | WT-16HL-1   | B     | Cre     | WT       | 16HL      | 1         | cia5       | WT_16HL   |        71.45 |
+| WT-16HL-2   | Unknown_BU327-002T0025_quant | Unknown_BU327-002T0025 | B2       | WT-16HL-2   | B     | Cre     | WT       | 16HL      | 2         | cia5       | WT_16HL   |        77.49 |
+| WT-16HL-3   | Unknown_BU327-002T0026_quant | Unknown_BU327-002T0026 | B3       | WT-16HL-3   | B     | Cre     | WT       | 16HL      | 3         | cia5       | WT_16HL   |        81.90 |
+| cia5-16HL-1 | Unknown_BU327-002T0027_quant | Unknown_BU327-002T0027 | C1       | cia5-16HL-1 | C     | Cre     | cia5     | 16HL      | 1         | cia5       | cia5_16HL |        79.76 |
+| cia5-16HL-2 | Unknown_BU327-002T0028_quant | Unknown_BU327-002T0028 | C2       | cia5-16HL-2 | C     | Cre     | cia5     | 16HL      | 2         | cia5       | cia5_16HL |        78.38 |
+| cia5-16HL-3 | Unknown_BU327-002T0029_quant | Unknown_BU327-002T0029 | C3       | cia5-16HL-3 | C     | Cre     | cia5     | 16HL      | 3         | cia5       | cia5_16HL |        82.51 |
+
+``` r
+## filter all rows with rowsum = 0 ####
+par(mfrow=c(1,2))
+hist(log(counts(dds)), breaks=100, ylim = c(0,4000), xlim = c(0,10))
+hist(counts(dds), breaks=300000, ylim = c(0,10000), xlim = c(0,10))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+``` r
+# -> dip at log(counts(dds)=2-3)
+par(mfrow=c(1,1))
+
+# min counts
+# at least 5 counts in 3 samples
+keep.sn <- rowSums(counts(dds) >= 5) >= 3
+keep.sn %>% summary()
+```
+
+    ##    Mode   FALSE    TRUE 
+    ## logical    1738   15878
+
+``` r
+dds <- dds[keep.sn,]
+
+dds <- estimateSizeFactors(dds)
+dds
+```
+
+    ## class: DESeqDataSet 
+    ## dim: 15878 6 
+    ## metadata(8): tximetaInfo quantInfo ... assignRanges version
+    ## assays(4): counts abundance avgTxLength normalizationFactors
+    ## rownames(15878): Cre01.g000050 Cre01.g000100 ... CreMt.g802342
+    ##   CreMt.g802343
+    ## rowData names(13): gene_id tx_ids ... TargetP Predalgo
+    ## colnames(6): WT-16HL-1 WT-16HL-2 ... cia5-16HL-2 cia5-16HL-3
+    ## colData names(12): names filename ... condition mappingrates
+
+``` r
+head(assays(dds)[["counts"]])[1:5,1:5]
+```
+
+    ##               WT-16HL-1 WT-16HL-2 WT-16HL-3 cia5-16HL-1 cia5-16HL-2
+    ## Cre01.g000050       200       192       178         361         242
+    ## Cre01.g000100       134       104       167         122         107
+    ## Cre01.g000150       964       898       896         109          66
+    ## Cre01.g000200       486       598       562         473         400
+    ## Cre01.g000250       569       521       532         465         373
+
+``` r
+length(rownames(counts(dds)))
+```
+
+    ## [1] 15878
+
+``` r
+colData(dds) %>% head() %>% kable()
+```
+
+|             | names                        | filename               | clientId | clientName  | group | species | genotype | treatment | replicate | experiment | condition | mappingrates |
+|:------------|:-----------------------------|:-----------------------|:---------|:------------|:------|:--------|:---------|:----------|:----------|:-----------|:----------|-------------:|
+| WT-16HL-1   | Unknown_BU327-002T0024_quant | Unknown_BU327-002T0024 | B1       | WT-16HL-1   | B     | Cre     | WT       | 16HL      | 1         | cia5       | WT_16HL   |        71.45 |
+| WT-16HL-2   | Unknown_BU327-002T0025_quant | Unknown_BU327-002T0025 | B2       | WT-16HL-2   | B     | Cre     | WT       | 16HL      | 2         | cia5       | WT_16HL   |        77.49 |
+| WT-16HL-3   | Unknown_BU327-002T0026_quant | Unknown_BU327-002T0026 | B3       | WT-16HL-3   | B     | Cre     | WT       | 16HL      | 3         | cia5       | WT_16HL   |        81.90 |
+| cia5-16HL-1 | Unknown_BU327-002T0027_quant | Unknown_BU327-002T0027 | C1       | cia5-16HL-1 | C     | Cre     | cia5     | 16HL      | 1         | cia5       | cia5_16HL |        79.76 |
+| cia5-16HL-2 | Unknown_BU327-002T0028_quant | Unknown_BU327-002T0028 | C2       | cia5-16HL-2 | C     | Cre     | cia5     | 16HL      | 2         | cia5       | cia5_16HL |        78.38 |
+| cia5-16HL-3 | Unknown_BU327-002T0029_quant | Unknown_BU327-002T0029 | C3       | cia5-16HL-3 | C     | Cre     | cia5     | 16HL      | 3         | cia5       | cia5_16HL |        82.51 |
+
+``` r
+# run DESeq
+dds <- DESeq(dds)
+
+# qc check
+DESeq2::plotMA(dds)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+
+``` r
+plotDispEsts(dds)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
+
+``` r
+# counts
+plotCounts(dds, gene = "Cre01.g000150", intgroup = "genotype", col=colData(dds)$genotype)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-4.png)<!-- -->
+
+``` r
+save(dds, file = paste(dir,"dds_cia5.RDS",sep="/"), compress = FALSE)
+```
+
 # 3. Pre-Analysis
+
+### load data
+
+``` r
+load(file=paste(dir,"dds_cia5.RDS", sep="/"))
+load(file=paste(dir,"dds_acry.RDS", sep="/"))
+load(file=paste(dir,"anno.RDS", sep="/"))
+```
 
 ### - Data transformations
 
@@ -35280,8 +35397,8 @@ meanSdPlot(assay(rld))
 ### - Check sample distance
 
     ##  [1] red  red  red  red  red  red  blue blue blue blue blue blue dark dark dark
-    ## [16] dark dark 16HL 16HL 16HL 16HL 16HL 16HL 3HL  3HL 
-    ## Levels: dark blue red light 3HL 16HL
+    ## [16] dark dark
+    ## Levels: dark blue red
 
 <img src="README_files/figure-gfm/pre_sample_dist-1.png" width="100%" />
 
@@ -35291,116 +35408,14 @@ meanSdPlot(assay(rld))
 
 ###### – Advanced PCA
 
-    ## PC5 
-    ##   5
+    ## PC4 
+    ##   4
 
 <img src="README_files/figure-gfm/pca_advanced-1.png" width="80%" /><img src="README_files/figure-gfm/pca_advanced-2.png" width="80%" /><img src="README_files/figure-gfm/pca_advanced-3.png" width="80%" /><img src="README_files/figure-gfm/pca_advanced-4.png" width="80%" />
 
 ### - Plot example counts
 
-    ##                     gene_id geneSymbol     id.symbol
-    ## Cre01.g043550 Cre01.g043550       QER7 Cre01.g043550
-    ## Cre02.g079550 Cre02.g079550     ROC110          DRP2
-    ## Cre02.g083750 Cre02.g083750      ROC75         ROC75
-    ## Cre02.g095900 Cre02.g095900     ROC114        ROC114
-    ## Cre02.g096300 Cre02.g096300       CCM1          CCM1
-    ## Cre03.g199000 Cre03.g199000      PHOT1         PHOT1
-    ## Cre06.g250800 Cre06.g250800       CRB1          CRB1
-    ## Cre06.g275350 Cre06.g275350      ROC40         ROC40
-    ## Cre06.g278159 Cre06.g278159       CON1          CON1
-    ## Cre06.g278200 Cre06.g278200      ROC66         ROC66
-    ## Cre06.g310550 Cre06.g310550        HY5           HY5
-    ## Cre09.g399552 Cre09.g399552       LCR1          LCR1
-    ## Cre09.g410450 Cre09.g410450      ROC15         ROC15
-    ## Cre12.g545800 Cre12.g545800      ROC55         ROC55
-    ## Cre13.g567250 Cre13.g567250       QER6 Cre13.g567250
-    ## Cre17.g745697 Cre17.g745697       QER4 Cre17.g745697
-
-    ##    Mode   FALSE    TRUE 
-    ## logical       1      15
-
-    ##                   locusName_4532 initial_v6_locus_ID action
-    ## Cre06.g310550 Cre06.g310550_4532      Cr_06_32541_EX       
-    ##               Replacement_v5.v6._model geneSymbol    strainLocusId PMID
-    ## Cre06.g310550                                 HY5 4532_06_35976_EX     
-    ##               previousIdentifiers                        Description
-    ## Cre06.g310550       BLZ3#g7186.t1 putative bZIP transcription factor
-    ##                                                                                                                                                                                                                                                                                                                                                                          Comments
-    ## Cre06.g310550 def HY5 (ELONGATED HYPOCOTYL 5)# DNA binding / transcription factor  / HY5-like protein (HYH), nearly identical to HY5-like protein (Arabidopsis thaliana) GI:18042111# similar to TGACG-motif binding factor GI:2934884 from (Glycine max)# contains Pfam profile: PF00170 bZIP transcription factor The similarity is strong but only in this small domain region
-    ##               Polycistronic TMHMM_transmembrane                    TargetP
-    ## Cre06.g310550                  TMHMM: 0 helices Other (RC 1 on #1 protein)
-    ##                                    Predalgo interactions
-    ## Cre06.g310550 Other (score - on #1 protein)             
-    ##               experimental_localization
-    ## Cre06.g310550                          
-    ##                                                                      CLiP_library
-    ## Cre06.g310550 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre06.g310550
-    ##                   mutant_phenotypes Plastid.ribosome_pulldown
-    ## Cre06.g310550 no phenotype detected                          
-    ##               TF_database..PMID.27067009. Flagellar_Proteome
-    ## Cre06.g310550                                               
-    ##               Co.expression.cluster..PMID.28710131.
-    ## Cre06.g310550                                      
-    ##               GEnome.scale.Metabolic.Model       gene_id
-    ## Cre06.g310550                              Cre06.g310550
-    ##               previousIdentifiers_list prev.symbols id.symbol
-    ## Cre06.g310550             BLZ3, g7....         BLZ3       HY5
-
-    ##   [1] "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"  
-    ##   [9] "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"  
-    ##  [17] "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"   "QER7"  
-    ##  [25] "QER7"   "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110"
-    ##  [33] "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110"
-    ##  [41] "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110" "ROC110"
-    ##  [49] "ROC110" "ROC110" "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75" 
-    ##  [57] "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75" 
-    ##  [65] "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75"  "ROC75" 
-    ##  [73] "ROC75"  "ROC75"  "ROC75"  "ROC114" "ROC114" "ROC114" "ROC114" "ROC114"
-    ##  [81] "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114"
-    ##  [89] "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114" "ROC114"
-    ##  [97] "ROC114" "ROC114" "ROC114" "ROC114" "CCM1"   "CCM1"   "CCM1"   "CCM1"  
-    ## [105] "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"  
-    ## [113] "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"  
-    ## [121] "CCM1"   "CCM1"   "CCM1"   "CCM1"   "CCM1"   "PHOT1"  "PHOT1"  "PHOT1" 
-    ## [129] "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1" 
-    ## [137] "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1" 
-    ## [145] "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "PHOT1"  "CRB1"   "CRB1"  
-    ## [153] "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"  
-    ## [161] "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"  
-    ## [169] "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "CRB1"   "ROC40" 
-    ## [177] "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40" 
-    ## [185] "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40" 
-    ## [193] "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40"  "ROC40" 
-    ## [201] "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"  
-    ## [209] "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"  
-    ## [217] "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"   "CON1"  
-    ## [225] "CON1"   "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66" 
-    ## [233] "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66" 
-    ## [241] "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66"  "ROC66" 
-    ## [249] "ROC66"  "ROC66"  "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"  
-    ## [257] "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"  
-    ## [265] "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"   "LCR1"  
-    ## [273] "LCR1"   "LCR1"   "LCR1"   "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15" 
-    ## [281] "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15" 
-    ## [289] "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC15" 
-    ## [297] "ROC15"  "ROC15"  "ROC15"  "ROC15"  "ROC55"  "ROC55"  "ROC55"  "ROC55" 
-    ## [305] "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55" 
-    ## [313] "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55" 
-    ## [321] "ROC55"  "ROC55"  "ROC55"  "ROC55"  "ROC55"  "QER6"   "QER6"   "QER6"  
-    ## [329] "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"  
-    ## [337] "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"  
-    ## [345] "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER6"   "QER4"   "QER4"  
-    ## [353] "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"  
-    ## [361] "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"  
-    ## [369] "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"   "QER4"
-
-    ## [1] "WT_dark"   "acry_dark" "WT_blue"   "acry_blue" "WT_red"    "acry_red" 
-    ## [7] "WT_3HL"    "WT_16HL"   "cia5_16HL"
-
-    ##  [1] "CON1"   "PHOT1"  "ROC40"  "CRB1"   "QER4"   "ROC110" "QER7"   "ROC114"
-    ##  [9] "ROC75"  "CCM1"   "ROC55"  "LCR1"   "QER6"   "ROC66"  "ROC15"
-
-<img src="README_files/figure-gfm/example_counts-1.png" width="50%" /><img src="README_files/figure-gfm/example_counts-2.png" width="50%" /><img src="README_files/figure-gfm/example_counts-3.png" width="50%" /><img src="README_files/figure-gfm/example_counts-4.png" width="50%" /><img src="README_files/figure-gfm/example_counts-5.png" width="50%" />
+#### cia5
 
 ``` r
 sessionInfo()

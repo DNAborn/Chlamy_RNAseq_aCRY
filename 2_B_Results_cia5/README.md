@@ -90,18 +90,27 @@ gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 list.files(gitdir) %>% head()
 ```
 
-    ## [1] "1_data_processing"            "2_A_Results_cia5"            
+    ## [1] "1_data_processing"            "2_B_Results_cia5"            
     ## [3] "git_Chlamy_RNAseq_aCRY.Rproj" "graphs"                      
     ## [5] "README.md"                    "Rplot.pdf"
 
 ``` r
+dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3043",sep="/")
+gitdir <- paste(dir,"git_Chlamy_RNAseq_plap6",sep="/")
+datadir <- paste(dir,"data",sep="/")
+outdir <- gitdir
+pubdir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3043/git_Chlamy_RNAseq_plap6/pub_figures",sep="/")
+
 fastqdir <- paste(dir,"fastq",sep="/")
 list.files(fastqdir) %>% tail()
 ```
 
-    ## [1] "Unknown_BU327-002T0029_1.fq.gz" "Unknown_BU327-002T0029_2.fq.gz"
-    ## [3] "Unknown_BU327-002T0030_1.fq.gz" "Unknown_BU327-002T0030_2.fq.gz"
-    ## [5] "Unknown_BU327-002T0031_1.fq.gz" "Unknown_BU327-002T0031_2.fq.gz"
+    ## [1] "P3043_RNA_32_fib-HSM-6_S32_L007_R2_001.fastq.gz"    
+    ## [2] "P3043_RNA_32_fib-HSM-6_S32_L007_R2_001.fastq.gz.md5"
+    ## [3] "P3043_RNA_32_fib-HSM-6_S32_L008_R1_001.fastq.gz"    
+    ## [4] "P3043_RNA_32_fib-HSM-6_S32_L008_R1_001.fastq.gz.md5"
+    ## [5] "P3043_RNA_32_fib-HSM-6_S32_L008_R2_001.fastq.gz"    
+    ## [6] "P3043_RNA_32_fib-HSM-6_S32_L008_R2_001.fastq.gz.md5"
 
 ``` r
 fastqdir2 <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/P3044/fastq/",sep="/")
@@ -152,8 +161,11 @@ quantdir <- paste(dir,"quants",sep="/")
 # 1. Load data
 
 ``` r
-load(file=paste(dir,"dds_cia5.RDS", sep="/"))
-load(paste(dir,"anno.RDS",sep="/"))
+# load(paste(dir,"dds_cia5.RDS", sep="/"))
+# load(paste(dir,"anno.RDS",sep="/"))
+
+load("~/S/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/dds_cia5.RDS")
+load("~/S/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/anno.RDS")
 ```
 
 ### - Plot counts
@@ -198,6 +210,19 @@ load(paste(dir,"anno.RDS",sep="/"))
     ## CreCp.g802313                    RuBisCO large subunit
 
 <img src="README_files/figure-gfm/example_counts-1.png" width="50%" /><img src="README_files/figure-gfm/example_counts-2.png" width="50%" />
+
+###### -export
+
+``` r
+ggexport(g1, filename = paste(pubdir,"Counts_cia5_PLAP6.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(g1, filename = paste(pubdir,"Counts_cia5_PLAP6.png",sep="/"),width = 8.2, height = 4.7)
+
+ggexport(g2, filename = paste(pubdir,"Counts_cia5_rbcl.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(g2, filename = paste(pubdir,"Counts_cia5_rbcl.png",sep="/"),width = 8.2, height = 4.7)
+
+ggexport(p, filename = paste(pubdir,"Counts_cia5_PLAP6+rbcl.pdf",sep="/"),width = 8.2, height = 4.7)
+ggsave(p, filename = paste(pubdir,"Counts_cia5_PLAP6+rbcl.png",sep="/"),width = 8.2, height = 4.7)
+```
 
 # 2. Results
 
