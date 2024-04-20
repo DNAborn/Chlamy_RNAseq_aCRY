@@ -1,0 +1,536 @@
+---
+title: "RNAseq aCRY pCRY data dive"
+author: "Kelterborn"
+date: "2024-04-19"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+always_allow_html: true
+editor_options: 
+  chunk_output_type: console
+knit: (function(input_file, encoding) {
+    rmarkdown::render(input_file,output_file= 'Readme.md')
+    })
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+```
+
+
+BiocManager::install("ggalt") # , type="source"
+
+# Load System
+## -R_libraries
+```{r r_libraries}
+library(PCAtools)
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(AnnotationHub)
+library(DESeq2)
+library(EnhancedVolcano)
+library(pheatmap)
+library(writexl)
+library(biomaRt)
+library(ape)
+library(kableExtra)
+library(knitr)
+
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(DESeq2)
+
+library(SummarizedExperiment)
+library(GenomicRanges)
+library(ape)
+
+library(viridis)
+library(patchwork)
+library(ggpubr)
+library(vsn)
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+
+# library(wget)
+
+```
+
+## -R_folders
+```{r r_folders}
+
+# Linux Workstation
+ifelse(Sys.info()["sysname"]== "Linux",
+       s <- "/mnt/s",
+    ifelse(Sys.info()["sysname"]== "Darwin",
+       s <- "/mnt/s",
+       s <- "S:"))
+dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
+# list.files(dir) %>% head()
+gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
+# list.files(gitdir) %>% head()
+
+# Macbook
+scriptdir <- rstudioapi::getSourceEditorContext()$path
+gitdir <- scriptdir %>% dirname() %>% dirname()
+dir <- gitdir %>% dirname()
+
+```
+
+# 1. Load aCRY & pCRY
+## - Tximeta files
+```{r get_tximeta_files}
+
+# Annotation file
+load(file=paste(dir,"anno.RDS", sep="/"))
+
+# Seq 1
+tximeta_pcry_file <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044/tximeta.txm"
+load(file=tximeta_pcry_file)
+gse_pcry <- gse
+
+# Seq 2 (acry + cia5)
+load(file=paste(dir,"tximeta.RDS", sep="/"))
+gse_acry <- gse[,colData(gse)$experiment=="acry"]
+colData(gse_acry) <- colData(gse_acry) %>% droplevels()
+colData(gse_acry)$genotype <- colData(gse_acry)$genotype %>% relevel(ref="WT")
+
+# combine
+( mcols(gse_acry) == mcols(gse_pcry) ) %>% summary()
+# (( colData(gse_acry) %>% names() ) == ( colData(gse_pcry) %>% names() ) ) %>% summary()
+names(colData(gse_pcry)) <- c("names","clientId","filename","clientName","genotype","treatment","condition","replicate","lane","RNA_conc","mappingrates")
+colData(gse_acry) <- colData(gse_acry)[,c(1:4,7:12)]
+colData(gse_pcry)$experiment <- "pcry"
+colData(gse_pcry) <- colData(gse_pcry)[,c(1,3,2,4:6,8,12,7,11)]  
+# (( colData(gse_acry) %>% names() ) == ( colData(gse_pcry) %>% names() ) ) %>% summary()
+
+# now same metadata
+gse <- cbind(gse_acry,gse_pcry)
+
+colData(gse)$genotype
+
+colData(gse)$treatment <- colData(gse)$treatment %>% str_replace(pattern="D", replacement = "dark") %>%
+  str_replace(pattern="BL", replacement = "blue") %>%
+  str_replace(pattern="R", replacement = "red") %>% factor(levels = c("dark","blue","red"))
+
+colData(gse)$condition <- paste(colData(gse)$genotype,colData(gse)$treatment,sep="_") %>% factor(levels=c("WT_dark","acry_dark","pcry_dark","WT_blue","acry_blue","pcry_blue","WT_red","acry_red","pcry_red"))
+
+colData(gse)$experiment
+
+```
+
+
+## Run Deseq2
+```{r dds_acry_pcry}
+# design <- ~condition
+design <- ~genotype+treatment+genotype:treatment
+
+dds <- DESeqDataSet(gse, design=design)
+colData(dds) %>% head() %>% kable()
+
+##########################################\n
+# filter all rows with rowsum = 0 ####\n
+par(mfrow=c(1,2))
+hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10))
+hist(counts(dds), breaks=1000000, ylim = c(0,100000), xlim = c(0,10))
+# -> dip at log(counts(dds)=2-3)
+par(mfrow=c(1,1))
+
+# min counts
+# at least 5 counts in 3 samples
+keep.sn <- rowSums(counts(dds) >= 5) >= 3
+keep.sn %>% summary()
+dds <- dds[keep.sn,]
+
+dds <- estimateSizeFactors(dds)
+dds
+head(assays(dds)[["counts"]])[1:5,1:5]
+length(rownames(counts(dds)))
+
+# colData(dds) %>% head() %>% kable()
+# add metadata
+# colData(dds)$strain <- factor(colData(dds)$strain)
+
+# ## combine technical replicates #####\n
+# colData(dds)
+# dds <- collapseReplicates(dds, dds$sampleid,dds$lane)
+# colData(dds)
+# dds$runsCollapsed
+# colnames(dds)
+# matchFirstLevel <- dds$sampleid == levels(factor(dds$sampleid))[1]
+# all(rowSums(counts(dds[,matchFirstLevel])) == counts(dds[,1]))
+
+###########\n
+# run DESeq
+dds <- DESeq(dds)
+
+plotDispEsts(dds)
+resultsNames(dds)
+DESeq2::plotMA(dds)
+
+plotCounts(dds, gene = "Cre01.g000150", intgroup = "condition", col=colData(dds)$experiment)
+
+head(mcols(dds)$geneSymbol)
+
+
+###############\n
+# save dds #####
+
+# save(dds, file = paste(dir,"dds_acry_pcry.RDS",sep="/"), compress = FALSE)
+# save(dds, file = paste(dir,"dds_acry.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"dds.RDS",sep="/"))
+# dds
+
+```
+
+
+# 2. Pre-Analysis
+### - Data transformations
+```{r pre_trans, eval=TRUE, include=FALSE, echo=FALSE}
+vsd <- vst(dds, blind=FALSE) #Variance stabilized transformation
+ntd <- normTransform(dds)
+rld <- rlog(dds, blind=FALSE) #regularized logarithm
+```
+
+```{r pre_trans_fig, figures-side, fig.show="hold", out.width="25%"}
+# load(file=paste(data,"rlog.rld", sep="/"))
+meanSdPlot(counts(dds, normalized =TRUE))
+meanSdPlot(assay(ntd))
+meanSdPlot(assay(vsd))
+meanSdPlot(assay(rld))
+
+```
+
+### - Check sample distance
+```{r pre_sample_dist, fig.height=6, out.width="100%", eval=TRUE, include=TRUE, echo=FALSE}
+sampleDists <- dist(t(assay(vsd)))
+
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- vsd$clientName
+# colnames(sampleDistMatrix) <- NULL
+colData(vsd)$treatment
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+anno_col <- as.data.frame(colData(vsd)[,c("treatment","genotype","experiment")])
+anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","yellow1","gold"
+                    genotype = c("green4","orchid","tan2"))
+
+names(anno_colors$treatment) <- levels(anno_col$treatment)
+names(anno_colors$genotype) <- levels(anno_col$genotype)
+
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         annotation_col=anno_col,
+         annotation_colors = anno_colors,
+         show_colnames     = FALSE,
+         col=viridis(20),
+         cutree_rows = 6,
+         cutree_cols = 6,
+         fontsize_row = 5)
+
+
+```
+
+
+### - Perform principal component analysis
+```{r pca, warning = FALSE, fig.show="hold", out.width="80%", fig.height=7, eval=TRUE, include=TRUE, echo=FALSE}
+# transform data
+# load(file=paste(data,"deseq2.dds", sep="/"))
+vst_dat <- assay(vst(dds))
+
+### PCA with top 500 genes with highest row variance 
+pcaData <- plotPCA(vsd, intgroup=colnames(colData(vsd)), returnData=TRUE)
+# levels(pcaData$genotype)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+g1 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "treatment") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_color_manual(values = anno_colors$treatment)
+
+g2 <- ggplot(pcaData, aes(PC1, PC2, color=experiment, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "experiment") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+  scale_color_manual(values = anno_colors$genotype)
+
+g3 <- ggplot(pcaData, aes(PC1, PC2, color=condition, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "condition") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+  # coord_fixed()
+  scale_color_viridis_d(option ="viridis") 
+
+
+((g1+g2) / (g3)) + plot_layout(guides = "collect", axis_titles="collect")
+
+
+```
+
+
+###### -- Advanced PCA
+```{r pca_advanced, warning = FALSE, fig.show="hold", out.width="80%", fig.height=6, eval=TRUE, include=TRUE, echo=FALSE}
+# transform data
+# calculate PCA (all data)
+## https://www.bioconductor.org/packages/devel/bioc/vignettes/PCAtools/inst/doc/PCAtools.html#modify-bi-plots
+
+# p <- pca(vst_dat, metadata = colData(dds))
+# vst <- assay(vst(dds))
+p <- pca(vst_dat, metadata = colData(dds), removeVar = 0.1)
+
+# check different PCAs
+p1 <- pairsplot(p,colby = 'treatment', colkey = anno_colors$treatment,title = 'treatment',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # -> PC1 = treatment
+
+p2 <- pairsplot(p,colby = 'genotype', colkey = anno_colors$genotype,title = 'genotype',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # -> PC1&3 = genotype
+
+p4 <- pairsplot(p,colby = 'condition', colkey = viridis(length(levels(colData(dds)$condition))),title = 'condition',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # PC1 & PC3 = condition
+
+(p1+p2) / (p4)
+
+# Determine optimum number of PCs to retain
+elbow <- findElbowPoint(p$variance)
+elbow
+
+# plot Scree
+# find explaining PCs
+horn <- parallelPCA(vst_dat)
+# horn$n = 2
+# warnings()
+
+# horn <- list()
+# horn$n <- 2
+
+screeplot(p,
+    components = getComponents(p, 1:20),
+    vline = c(horn$n, elbow)) +
+    geom_label(aes(x = horn$n + 1, y = 30,
+      label = paste('Horn',horn$n,sep="="), vjust = -1, size = 8)) +
+    geom_label(aes(x = elbow + 1, y = 50,
+      label = paste('Elbow',elbow,sep="="), vjust = -1, size = 8))
+
+bi <- biplot(p,x="PC3",y="PC1",
+    lab = p$metadata$condition,
+    colby = 'condition',colkey = viridis(length(levels(colData(dds)$condition))),
+    hline = 0, vline = 0,
+    encircle = TRUE, encircleFill = TRUE,
+    labSize = 3, legendIconSize = 4.0,
+    legendPosition = 'bottom',
+    sizeLoadingsNames = 3,
+    axisLabSize = 10,
+    captionLabSize = 1)
+
+bi <- bi +theme(panel.background = element_rect(fill='transparent'))
+
+pairs <- pairsplot(p,
+    components = getComponents(p, c(1:7)),
+    triangle = TRUE, trianglelabSize = 6,
+    hline = 0, vline = 0,
+    pointSize = 2,
+    gridlines.major = FALSE, gridlines.minor = FALSE,
+    colby = 'condition', colkey = viridis(length(levels(colData(dds)$condition))),
+    plotaxes = FALSE,
+    margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm'))
+
+layout <- c(
+  area(t = 1, l = 1, b = 6, r = 6),
+  area(t = 5, l = 1, b = 7, r = 3)
+)
+pairs + bi + 
+  plot_layout(design = layout)
+
+# pairs + inset_element(bi, left = 0, bottom = 0, right = 0.5, top = 0.5)
+
+plotloadings(p,
+             components = getComponents(p)[1:7],
+             col = viridis(3),
+             labSize = 3)
+
+
+```
+
+
+### 3. Plot counts
+#### 
+
+```{r example_counts, fig.show="hold", out.width="50%", eval=FALSE, include=TRUE, echo=FALSE}
+
+
+# search genes
+anno[str_detect(anno[["geneSymbol"]],"CRY"),1:9] %>% kable()
+
+anno[str_detect(anno[["geneSymbol"]],"ROC"),1:9] %>% kable()
+anno[str_detect(anno[["previousIdentifiers"]],"CRY"),1:9] %>% kable()
+
+
+
+# plap6
+PLAP6 <- "Cre03.g188700"
+d <- plotCounts(dds,gene = PLAP6, intgroup= c("treatment","genotype","condition"), returnData=TRUE)
+
+resultsNames(dds)
+res <- results(dds,contrast = c("genotype","cia5","WT"))
+res["Cre03.g188700",]
+ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
+   # scale_fill_manual(values=cols[c(1,5)]) +
+  #  scale_color_manual(values=cols[c(1,5)]) +
+   scale_y_continuous(trans = "log2") +
+  scale_fill_manual(values = c("grey30","salmon")) + 
+  scale_color_manual(values = c("grey30","salmon")) + 
+    labs(title = paste("PLAP6 (",PLAP6,")",sep=""))
+  assign(paste("gcounts_",ig,sep=""),gcounts)
+  
+  gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+# ggsave(paste(outdir,"graphs/2023_11_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
+#   width = 18,
+#   height = 10)
+
+
+
+goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "DCRY2", "PHOT1", "UVR8", "HKR1") #"HKR2"
+
+anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+# Get Count data
+i <- 1
+l <- length(goi_phot)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=anno_phot[i,"gene_id"], intgroup=c("condition","genotype","treatment"), main=anno_phot[i,"id.symbol"],returnData=TRUE)
+  d$Gene <- rep(anno_phot[i,"id.symbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  # rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+
+# TF genes
+
+goi_tf <- c("CCM1","LCR1", "HY5", "PHOT1", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
+anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
+summary(anno_tf$gene_id %in% rownames(dds))
+anno_tf[!anno_tf$gene_id %in% rownames(dds),]
+anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+
+# Combined counts table TFs
+
+goi <- anno_tf
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","treatment","genotype"),col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+all_counts$Gene <- factor(all_counts$Gene, levels = anno_tf$geneSymbol[c(9,6,8,7,15,2,1,4,3,5,13,11,14,10,12)])
+levels(all_counts$Gene)
+
+# colours
+# group.colors <- rep(anno_colors$treatment, each = 2)
+group.colors <- rep(anno_colors$treatment, each = 2)[c(1:6,7,9,11)]
+names(group.colors) <- colData(dds)$condition %>% levels()
+anno_colors$condition <- group.colors
+
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+
+cols = brewer.pal(n=9,name = 'Paired')
+
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition, color=condition)) +
+  geom_boxplot(color="black") +
+  geom_point(position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  scale_y_continuous(trans = "log2")
+gcounts
+
+gcounts2 <- ggplot(all_counts, aes(x = condition, y = count, fill=Gene)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(trans = "log2")
+gcounts2
+
+gcounts3 <- ggplot(all_counts[all_counts$Gene=="ROC40",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
+  geom_boxplot(color="black") +
+  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=anno_colors$treatment) +
+  scale_color_manual(values=anno_colors$treatment) +
+  scale_y_continuous(trans = "log2") +
+  labs(title = "ROC40") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+gcounts3
+
+gcounts4 <- ggplot(all_counts[all_counts$Gene=="ROC114",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
+  geom_boxplot(color="black") +
+  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=anno_colors$treatment) +
+  scale_color_manual(values=anno_colors$treatment) +
+  scale_y_continuous(trans = "log2") +
+  labs(title = "ROC114") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+gcounts4
+
+
+```
+
+```{r}
+sessionInfo()
+```
+
+
+
