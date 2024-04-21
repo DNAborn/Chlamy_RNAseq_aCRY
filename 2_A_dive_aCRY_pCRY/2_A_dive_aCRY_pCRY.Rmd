@@ -382,74 +382,14 @@ plotloadings(p,
 
 
 # 3. Results
-## - Plot Counts
-
-```{r example_counts, fig.show="hold", out.width="50%", eval=FALSE, include=TRUE, echo=FALSE}
 
 
-# search genes
-anno[str_detect(anno[["geneSymbol"]],"CRY"),1:9] %>% kable()
-
-anno[str_detect(anno[["geneSymbol"]],"ROC"),1:9] %>% kable()
-anno[str_detect(anno[["previousIdentifiers"]],"CRY"),1:9] %>% kable()
-
-
-
-
-# plap6
-PLAP6 <- "Cre03.g188700"
-d <- plotCounts(dds,gene = PLAP6, intgroup= c("treatment","genotype","condition"), returnData=TRUE)
-
-resultsNames(dds)
-res <- results(dds,contrast = c("genotype","cia5","WT"))
-res["Cre03.g188700",]
-ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
-    geom_boxplot(color="black") +
-    geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
-   # scale_fill_manual(values=cols[c(1,5)]) +
-  #  scale_color_manual(values=cols[c(1,5)]) +
-   scale_y_continuous(trans = "log2") +
-  scale_fill_manual(values = c("grey30","salmon")) + 
-  scale_color_manual(values = c("grey30","salmon")) + 
-    labs(title = paste("PLAP6 (",PLAP6,")",sep=""))
-  assign(paste("gcounts_",ig,sep=""),gcounts)
-  
-  gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
-  geom_boxplot(fatten = 1) +
-  scale_fill_manual(values = group.colors) +
-  scale_y_continuous(trans = "log2")
-gcounts
-# ggsave(paste(outdir,"graphs/2023_11_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
-#   width = 18,
-#   height = 10)
-
-
-
-goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "DCRY2", "PHOT1", "UVR8", "HKR1") #"HKR2"
-
-anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
-rownames(anno_phot) <- anno_phot$geneSymbol
-anno_phot <- anno_phot[goi_phot,]
-
-rownames(anno_phot) <- anno_phot$geneSymbol
-anno_phot <- anno_phot[goi_phot,]
-
-# Get Count data
-i <- 1
-l <- length(goi_phot)
-all_counts <- {}
-for (i in 1:l){
-  d <-  plotCounts(dds, gene=anno_phot[i,"gene_id"], intgroup=c("condition","genotype","treatment"), main=anno_phot[i,"id.symbol"],returnData=TRUE)
-  d$Gene <- rep(anno_phot[i,"id.symbol"],length(rownames(d)))
-  d$sample <- rownames(d)
-  # rownames(d) <- {}
-  all_counts <- bind_rows(all_counts,d)
-  }
-
+## Plot Counts
+```{r}
 
 # TF genes
 
-goi_tf <- c("CCM1","LCR1", "HY5", "PHOT1", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
+goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
 anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
 anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
 anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
@@ -463,7 +403,7 @@ goi <- anno_tf
 l <- nrow(goi)
 all_counts <- {}
 for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","treatment","genotype"),col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
   d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
   d$sample <- rownames(d)
   rownames(d) <- {}
@@ -472,15 +412,19 @@ for (i in 1:l){
 
 all_counts$Gene
 levels(all_counts$condition)
-all_counts$Gene <- factor(all_counts$Gene, levels = anno_tf$geneSymbol[c(9,6,8,7,15,2,1,4,3,5,13,11,14,10,12)])
+all_counts$Gene <- factor(all_counts$Gene)
 levels(all_counts$Gene)
 
-# colours
-# group.colors <- rep(anno_colors$treatment, each = 2)
-group.colors <- rep(anno_colors$treatment, each = 2)[c(1:6,7,9,11)]
-names(group.colors) <- colData(dds)$condition %>% levels()
-anno_colors$condition <- group.colors
+all_counts$Gene <- factor(all_counts$Gene, levels = c("CON1", "ROC40", "CRB1" ,  "QER4" , "ROC110",  "QER7" ,"ROC114" , "ROC75", "CCM1" , "ROC55" , "LCR1",  "QER6" , "ROC66",    "ROC15")  )
+levels(all_counts$Gene)
 
+
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
 max_val <- 1.0*max(all_counts$count)
 
 # Plot
@@ -489,45 +433,1005 @@ gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
   scale_fill_manual(values = group.colors) +
   scale_y_continuous(trans = "log2")
 gcounts
+ggsave(paste(figures,"2023_12_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
+  width = 12,
+  height = 8)
 
-cols = brewer.pal(n=9,name = 'Paired')
+## Phot genes all-in-one
+goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1") #"HKR2" "DCRY2", 
 
-gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition, color=condition)) +
-  geom_boxplot(color="black") +
-  geom_point(position=position_dodge(width=0.75), alpha=1) +
-  scale_fill_manual(values=cols) +
-  scale_color_manual(values=cols) +
+anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+# Combined counts table TFs
+
+goi <- anno_phot
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
+levels(all_counts$Gene)
+
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
   scale_y_continuous(trans = "log2")
 gcounts
+ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
+  width = 12,
+  height = 8)
 
-gcounts2 <- ggplot(all_counts, aes(x = condition, y = count, fill=Gene)) +
-  geom_boxplot(fatten = 1) +
-  scale_fill_viridis_d() +
-  scale_y_continuous(trans = "log2")
-gcounts2
+```
 
-gcounts3 <- ggplot(all_counts[all_counts$Gene=="ROC40",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
-  geom_boxplot(color="black") +
-  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
-  scale_fill_manual(values=anno_colors$treatment) +
-  scale_color_manual(values=anno_colors$treatment) +
-  scale_y_continuous(trans = "log2") +
-  labs(title = "ROC40") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-gcounts3
 
-gcounts4 <- ggplot(all_counts[all_counts$Gene=="ROC114",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
-  geom_boxplot(color="black") +
-  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
-  scale_fill_manual(values=anno_colors$treatment) +
-  scale_color_manual(values=anno_colors$treatment) +
-  scale_y_continuous(trans = "log2") +
-  labs(title = "ROC114") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-gcounts4
+
+
+
+
+# ---------------------------
+# COPY & PASTE from pCRY
+## Make results
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+outdir <- "C:/Users/kelterbs/OneDrive - Charité - Universitätsmedizin Berlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044"
+setwd(outdir)
+
+dds <- readRDS(paste(outdir,"dds_23design.RDS",sep="/"))
+anno <- readRDS(file=paste(outdir,"anno.RDS", sep="/"))
+
+design(dds)
+resultsNames(dds)
+cbind(resultsNames(dds),c(rep(0,6)))
+
+# res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
+
+# Unterschiede zwischen WT und pCRY unter versch. Belichtungen
+res1 <- res_WT_D_vs.pcry_D <- results(dds, contrast=c(0,0,0,1,0,0))
+res1 <- res_WT_D_vs.pcry_D <- results(dds,name = "genotype_pcry_vs_WT")
+
+res2 <- res_WT_BL_vs.pcry_BL <- results(dds, contrast=c(0,1,0,0,1,0))
+
+res3 <- res_WT_R_vs.pcry_R <- results(dds, contrast=c(0,0,1,0,0,1))
+
+# Unterschiede zwischen versch. Belichtungen über beide Genotypen
+# D vs. (BL+R)
+res4 <- res_D_vs._BL_R <-results(dds, contrast=c(0,0,2/6,2/6,1/3,1/3))
+
+# D vs. BL
+res5 <- res_BL_vs._D <- results(dds, contrast=c(0,0,1,0,0.5,0))
+
+# D vs. R
+res6 <- res_D_vs._R <- results(dds, contrast=c(0,0,0,1,0,0.5))
+
+# WT vs. pCRY
+res7 <- res_WT_vs._pcry <- results(dds, contrast=c(0,3,0,0,1,1))
+
+
+
+
+## Make top lists:
+
+topgenes <- function(res){
+a <- subset(res, padj < 0.05 & baseMean > 20 & (log2FoldChange < -0.5 | log2FoldChange > 0.5))
+a$id.symbol <- anno[rownames(a),"id.symbol"]
+a$symbol <- anno[rownames(a),"geneSymbol"]
+a <- a[order(a$baseMean, decreasing = T),]
+  a$rank.bm <- seq(1:length(rownames(a)))
+a <- a[order(a$padj, decreasing = F),]
+  a$rank.padj <- seq(1:length(rownames(a)))
+a <- a[order(abs(a$log2FoldChange), decreasing = T),]
+  a$rank.l2FC <- seq(1:length(rownames(a)))
+a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
+  a <- a[order(a$rank.sum),]
+print(a)
+}
+
+top.res1 <- topgenes(res=res1)
+summary(res1)
+top.res2 <- topgenes(res=res2)
+summary(res2)
+top.res3 <- topgenes(res=res3)
+summary(res3)
+top.res4 <- topgenes(res=res4)
+summary(res4)
+top.res5 <- topgenes(res=res5)
+summary(res5)
+top.res6 <- topgenes(res=res6)
+summary(res6)
+top.res7 <- topgenes(res=res7)
+summary(res7)
+
+top.all <- rbind(top.res1,
+         top.res2,
+         top.res3,
+         top.res4,
+         top.res5,
+         top.res6,
+         top.res7)
+top.all <- top.all[order(top.all$rank.sum),]
+head(top.all, n=185) %>% rownames() %>% unique() %>% length()
+top.all <- top.all[unique(rownames(top.all)),]
+
+# top.all <- head(top.all, n=100)
+
+
+## Shrinkage
+res1_shrink <- lfcShrink(dds, res=res1, type="ashr")
+res2_shrink <- lfcShrink(dds, res=res2, type="ashr")
+res3_shrink <- lfcShrink(dds, res=res3, type="ashr")
+res4_shrink <- lfcShrink(dds, res=res4, type="ashr")
+res5_shrink <- lfcShrink(dds, res=res5, type="ashr")
+res6_shrink <- lfcShrink(dds, res=res6, type="ashr")
+res7_shrink <- lfcShrink(dds, res=res7, type="ashr")
+
+```
+
+### combine L2FC with padj
+```{r}
+
+res3_shrink
+subset(mcols(dds), id.symbol =="SELU1") %>% rownames()
+res3_shrink["Cre06.g263550",]
+
+# DataFrame with 1 row and 5 columns
+#                baseMean log2FoldChange     lfcSE      pvalue        padj
+#               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
+# Cre06.g263550   3566.14        2.90397  0.167321 1.72033e-71 1.97322e-68
+
+plot(res3_shrink$log2FoldChange,-log(res3_shrink$padj))
+res3_shrink$logpadj <- -log(res3_shrink$padj, base=10)
+
+-log(1.38379e-06,base = 10)
+
+x=-2.5
+60/(3^2)
+
+y=-8*x^2 + 50
+y
+
+res3_shrink$ishs <- ifelse((-20/3*(res3_shrink$log2FoldChange^2) + 60) < res3_shrink$logpadj,TRUE,FALSE)
+summary(res3_shrink$ishs)
+subset(res3_shrink,ishs==TRUE & logpadj< 50 & abs(log2FoldChange)<2.5)
+subset(res3_shrink,ishs==TRUE & logpadj< 50)
+
+# for log2 -/+ 5 and padj 100 
+res1_shrink$ishs <- ifelse((-20/3*(res1_shrink$log2FoldChange^2) + 60) < -log(res1_shrink$padj, base=10),TRUE,FALSE)
+res2_shrink$ishs <- ifelse((-20/3*(res2_shrink$log2FoldChange^2) + 60) < -log(res2_shrink$padj, base=10),TRUE,FALSE)
+res3_shrink$ishs <- ifelse((-20/3*(res3_shrink$log2FoldChange^2) + 60) < -log(res3_shrink$padj, base=10),TRUE,FALSE)
+res4_shrink$ishs <- ifelse((-20/3*(res4_shrink$log2FoldChange^2) + 60) < -log(res4_shrink$padj, base=10),TRUE,FALSE)
+res5_shrink$ishs <- ifelse((-20/3*(res5_shrink$log2FoldChange^2) + 60) < -log(res5_shrink$padj, base=10),TRUE,FALSE)
+res6_shrink$ishs <- ifelse((-20/3*(res6_shrink$log2FoldChange^2) + 60) < -log(res6_shrink$padj, base=10),TRUE,FALSE)
+res7_shrink$ishs <- ifelse((-20/3*(res7_shrink$log2FoldChange^2) + 60) < -log(res7_shrink$padj, base=10),TRUE,FALSE)
 
 
 ```
+
+```{r}
+outdir
+figures <- paste(outdir,"figures",sep="/")
+dir.create(figures)
+
+
+```
+
+## Colours
+```{r}
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+```
+
+
+## PCA (Panel B)
+```{r}
+library("PCAtools")
+library(ggalt)
+
+vsd <- vst(dds, blind=FALSE)
+length(vsd)
+
+dubs <- duplicated(mcols(vsd)$id.symbol)
+length(dubs)
+
+unique <- unique(mcols(vsd)$id.symbol)
+length(unique)
+
+vsd2 <- vsd[!duplicated(mcols(vsd)$id.symbol)]
+rownames(vsd2) <- mcols(vsd2)$id.symbol
+
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+names(group.colors) <- levels(colData(dds)$condition)
+group.colors      
+
+plotPCA(vsd2, intgroup="condition")
+vst <- assay(vsd2)
+p <- pca(vst, metadata = colData(dds), removeVar = 0.1)
+screeplot(p, axisLabSize = 18, titleLabSize = 22)
+biplot(p, colby = "condition")
+biplot(p, showLoadings = TRUE,labSize = 5, pointSize = 5, sizeLoadingsNames = 5)
+
+biplot(p,x= "PC1", y="PC3",
+       lab = p$metadata$sample,
+    colby = 'condition', colkey = group.colors,
+    encircle = TRUE,
+    encircleFill = TRUE,
+    legendPosition = 'right',
+    labSize = 4)
+ggsave(paste(figures,"2023_12_PCA1-3.png",sep="/"),
+  width = 6,
+  height = 6)
+
+biplot(p,x= "PC3", y="PC4",
+       lab = p$metadata$sample,
+    colby = 'condition', colkey = group.colors,
+    encircle = TRUE,
+    encircleFill = TRUE,
+    legendPosition = 'right')
+ggsave(paste(figures,"2023_12_PCA3-4.pdf",sep="/"),
+  width = 12,
+  height = 12)
+
+pairsplot(p,colby = 'condition', colkey = group.colors)
+ggsave(paste(figures,"2023_12_pairsplot.pdf",sep="/"),
+  width = 12,
+  height = 12)
+
+
+plotloadings(p,
+    rangeRetain = 0.01,
+    labSize = 2.0,
+    title = 'Loadings plot',
+    subtitle = 'PC1, PC2, PC3, PC4, PC5',
+    caption = 'Top 1% variables',
+    drawConnectors = TRUE)
+ggsave(paste(figures,"2023_12_loadings.pdf",sep="/"),
+  width = 12,
+  height = 12)
+
+# Determine optimum number of PCs to retain
+elbow <- findElbowPoint(p$variance)
+elbow
+
+anno["Cre01.g016600",]
+
+ biplot(p,
+    lab = p$metadata$condition,
+    colby = 'condition', colkey = group.colors,
+    hline = 0, vline = 0,
+    encircle = TRUE, encircleFill = TRUE,
+    legendLabSize = 16, legendIconSize = 8.0,
+    legendPosition = 'right')
+
+pairsplot(p,
+    components = getComponents(p, c(1:6)),
+    triangle = TRUE, trianglelabSize = 12,
+    hline = 0, vline = 0,
+    pointSize = 2,
+    gridlines.major = FALSE, gridlines.minor = FALSE,
+    colby = 'condition', colkey = group.colors,
+    title = 'Pairs plot', plotaxes = FALSE,
+    margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm'))
+ 
+
+```
+
+
+
+
+
+## Counts
+```{r}
+
+# TF genes
+
+goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
+anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
+summary(anno_tf$gene_id %in% rownames(dds))
+anno_tf[!anno_tf$gene_id %in% rownames(dds),]
+anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+
+# Combined counts table TFs
+
+goi <- anno_tf
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+all_counts$Gene <- factor(all_counts$Gene)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene, levels = c("CON1", "ROC40", "CRB1" ,  "QER4" , "ROC110",  "QER7" ,"ROC114" , "ROC75", "CCM1" , "ROC55" , "LCR1",  "QER6" , "ROC66",    "ROC15")  )
+levels(all_counts$Gene)
+
+
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+ggsave(paste(figures,"2023_12_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
+  width = 12,
+  height = 8)
+
+## Phot genes all-in-one
+goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1") #"HKR2" "DCRY2", 
+
+anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+# Combined counts table TFs
+
+goi <- anno_phot
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
+levels(all_counts$Gene)
+
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
+  width = 12,
+  height = 8)
+
+```
+
+## Volcanos
+### dark
+```{r}
+
+# dark
+res <- res1_shrink
+n <- 'WT vs. pCRY in dark'
+nf <- 'figures/Volcano_dark.png'
+l <- nrow(top.res1)
+pcol <- "black"
+lcol <- colours[1+1]
+
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 6,
+                ifelse(res$padj < 1e-100,6,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evd <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-60),
+    FCcutoff = 3,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evd
+
+
+```
+
+### blue
+```{r}
+
+# blue
+res <- res2_shrink
+n <- 'WT vs. pCRY in blue'
+nf <- 'figures/Volcano_blue.png'
+l <- nrow(top.res2)
+pcol <- colours[3]
+lcol <- colours[3+1]
+
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 17,
+                ifelse(res$padj < 1e-100,17,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evb <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-50),
+    FCcutoff = 2.5,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evb
+
+
+```
+
+### red
+```{r}
+
+# red
+res <- res3_shrink
+n <- 'WT vs. pCRY in red'
+nf <- 'figures/Volcano_r.png'
+l <- nrow(top.res3)
+pcol <- colours[5]
+lcol <- colours[5+1]
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 6,
+                ifelse(res$padj < 1e-100,6,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evr <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-50),
+    FCcutoff = 2.5,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evr
+
+#ggsave(file="figures/Vulcano_rtest.pdf",
+#       width = 12,
+#       height = 12)
+
+```
+
+### all
+```{r}
+
+
+ga <- ggarrange(evb,
+                evd+rremove("ylab"),
+                evr+rremove("ylab"),
+                ncol = 3, nrow = 1,common.legend = TRUE, legend = "bottom",
+                widths = c(1.05,1,1))
+
+
+ggsave(ga, file="figures/Vulcano_all.pdf",
+       width = 12,
+       height = 8)
+
+# + ggplot2::coord_cartesian(xlim=c(-10, 10))
+# ggplot2::coord_cartesian(xlim=c(-5, 5)
+
+
+
+
+# with ggplot
+ggplot(as.data.frame(resLFC_WT_BL_vs.pcry_BL),aes(log2FoldChange,-log(padj))) +
+  geom_point() +
+  geom_point(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rownames(top_WT_BL_vs.pcry_BL),]), colour = "blue") + 
+  geom_point(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rocs,]), colour = "red") +
+  geom_text_repel(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rocs,]), aes(label=anno[rocs,"id.symbol"]),colour = "red",hjust=-0.5, vjust=-1) +
+  xlim(-5,5)
+getwd()
+ggsave("graphs/Vulcano ROCs-2.pdf",
+       width = 10,
+       height = 6)
+
+## enhanced vulcano
+library(airway)
+  library(magrittr)
+
+ library('DESeq2')
+
+  dds <- DESeqDataSet(airway, design = ~ cell + dex)
+  dds <- DESeq(dds, betaPrior=FALSE)
+  res <- results(dds,
+    contrast = c('dex','trt','untrt'))
+  res <- lfcShrink(dds,
+    contrast = c('dex','trt','untrt'), res=res, type = 'normal')
+ EnhancedVolcano(res,
+    lab = rownames(res),
+    x = 'log2FoldChange',
+    y = 'pvalue')
+ 
+ 
+
+```
+
+
+
+
+## Heatmap
+
+
+### plot heatmap
+```{r}
+library("pheatmap")
+ntd <- normTransform(dds)
+top.all.hm <- head(top.all, n=100)
+df <- assay(ntd)[rownames(top.all.hm),]
+rownames(df) <- mcols(dds)[rownames(df),"id.symbol"]
+
+# anno_col <- as.data.frame(colData(dds)[,c("condition","treatment","genotype")])
+anno_col <- data.frame(condition = dds$condition, treatment = dds$treatment)
+rownames(anno_col) <- rownames(colData(dds))
+
+# column order
+anno_col <- arrange(anno_col, match(anno_col$condition, levels(anno_col$condition)))
+levels(anno_col$condition)
+df <- df[,rownames(anno_col)]
+
+annot_colors=list(condition=c(Cancer="#F0978D",Healthy="#63D7DE"))
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+
+mycolors2 <- list(genotype = c("#525252","#969696"),
+     treatment = c("#525252","#1F78B4","#E31A1C"),
+     condition = colours)
+
+names(mycolors2$genotype) <- levels(anno_col$genotype)
+names(mycolors2$treatment) <- levels(anno_col$treatment)
+names(mycolors2$condition) <- levels(anno_col$condition)
+mycolors2
+
+xx <- pheatmap(df, cluster_rows=TRUE, show_rownames=TRUE,
+         cluster_cols=FALSE,
+         annotation_col=anno_col,
+         color=colorRampPalette(c("navy", "white", "red"))(50),
+         annotation_colors=mycolors2
+         )
+
+ggsave("figures/2023_12_Heatmap_top.png",plot=xx,
+       width = 5,
+       height = 15)
+
+
+
+```
+
+### Complex Heatmap
+```{r}
+
+df
+genes <- anno_tf
+
+# collapse replicates
+colData(dds)
+dds_heat <- collapseReplicates(dds, dds$condition,dds$sample)
+dds_heat$sample <- factor(dds_heat$sample, levels=c("WT-D1","pcry-D1","WT-BL1","pcry-BL1","WT-R1","pcry-R1"))
+colData(dds_heat)
+dds_heat$runsCollapsed
+colnames(dds_heat)
+matchFirstLevel <- dds_heat$sample == levels(dds_heat$sample)[1]
+stopifnot(all(rowSums(counts(dds_heat[,matchFirstLevel])) == counts(dds_heat[,1])))
+
+mat <- counts(dds_heat)
+length(rownames(counts(dds_heat)))
+length(rownames(df))
+rownames(mat) <- mcols(dds_heat)$id.symbol
+length(rownames(mat))
+
+mat <- mat[df,]
+
+position <- mat
+l <- length(rownames(mat))
+pos <- data.frame(genes = rownames(mat),pos = 1:l)
+rownames(pos) <- rownames(mat)
+pos <- pos[genes,2]
+
+# mat <- cbind(res,counts(dds_heat))
+# mat <- subset(mat,!SYMBOL2=="" & SYMBOL2 %in% df$SYMBOL2)
+# rownames(mat) <- mat$SYMBOL2
+# mat <- mat[,c(12:15)]
+heat <- t(scale(t(mat)))
+Heatmap(heat)
+
+summary(heat)
+myCol <- colorRampPalette(c('brown3', 'yellow2', 'darkolivegreen3'))(100)
+myBreaks <- seq(-1.5, 1.5, length.out = 100)
+
+ann <- data.frame(condition = colData(dds_heat)[,"condition"],
+  stringsAsFactors = FALSE)
+
+colAnn <- HeatmapAnnotation(
+  df = ann,
+  which = 'col', # 'col' (samples) or 'row' (gene) annotation?
+  na_col = 'white', # default colour for any NA values in the annotation data-frame, 'ann'
+  # col = colours,
+  annotation_height = 0.6,
+  annotation_width = unit(1, 'cm'),
+  gap = unit(1, 'mm'))
+
+boxplotCol <- HeatmapAnnotation(
+  boxplot = anno_boxplot(
+    heat,
+    border = FALSE,
+    gp = gpar(fill = '#CCCCCC'),
+    pch = '.',
+    size = unit(2, 'mm'),
+    axis = TRUE,
+    axis_param = list(
+      gp = gpar(fontsize = 12),
+      side = 'left')),
+  annotation_width = unit(c(2.0), 'cm'),
+  which = 'col')
+
+boxplotRow <- HeatmapAnnotation(
+  boxplot = row_anno_boxplot(
+    heat,
+    border = FALSE,
+    gp = gpar(fill = '#CCCCCC'),
+    pch = '.',
+    size = unit(2, 'mm'),
+    axis = TRUE,
+    axis_param = list(
+      gp = gpar(fontsize = 12),
+      side = 'top')),
+  annotation_width = unit(c(2.0), 'cm'),
+  which = 'row')
+
+genelabels <- rowAnnotation(
+  Genes = anno_mark(
+    at = pos,
+    labels = genes,
+    labels_gp = gpar(fontsize = 15, fontface = 'bold'),
+    padding = 0.75),
+  width = unit(2.0, 'cm') +
+    
+    max_text_width(
+      rownames(heat)[seq(1, nrow(heat), 40)],
+      gp = gpar(fontsize = 10,  fontface = 'bold')))
+
+# Clusters
+# pamClusters <- cluster::pam(heat, k = 4) # pre-select k = 4 centers
+pamClusters <- cluster::pam(heat, k= 8) # pre-select k = 4 centers
+
+pamClusters$clustering <- paste0('Cluster ', pamClusters$clustering)
+pamClusters$clustering <- factor(pamClusters$clustering,
+                                 levels = c('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4','Cluster 5', 'Cluster 6'))
+
+
+hmap <- Heatmap(heat,
+                
+                # split the genes / rows according to the PAM clusters
+                split = pamClusters$clustering,
+                cluster_row_slices = TRUE,
+                
+                name = 'Gene\nZ-\nscore',
+
+                col = colorRamp2(myBreaks, myCol),
+                
+                # parameters for the colour-bar that represents gradient of expression
+                heatmap_legend_param = list(
+                  color_bar = 'continuous',
+                  legend_direction = 'vertical',
+                  legend_width = unit(8, 'cm'),
+                  legend_height = unit(5.0, 'cm'),
+                  title_position = 'topcenter',
+                  title_gp=gpar(fontsize = 12, fontface = 'bold'),
+                  labels_gp=gpar(fontsize = 12, fontface = 'bold')),
+                
+                # row (gene) parameters
+                cluster_rows = TRUE,
+                show_row_dend = TRUE,
+                row_title = 'Statistically significant genes',
+                row_title_side = 'left',
+                row_title_gp = gpar(fontsize = 12,  fontface = 'bold'),
+                row_title_rot = 90,
+                show_row_names = FALSE,
+                row_names_gp = gpar(fontsize = 10, fontface = 'bold'),
+                row_names_side = 'left',
+                row_dend_width = unit(25,'mm'),
+                
+                # column (sample) parameters
+                cluster_columns = TRUE,
+                show_column_dend = TRUE,
+                column_title = '',
+                column_title_side = 'bottom',
+                column_title_gp = gpar(fontsize = 12, fontface = 'bold'),
+                column_title_rot = 0,
+                show_column_names = TRUE,
+                column_names_gp = gpar(fontsize = 10, fontface = 'bold'),
+                column_names_max_height = unit(10, 'cm'),
+                column_dend_height = unit(25,'mm'),
+                
+                # cluster methods for rows and columns
+                clustering_distance_columns = function(x) as.dist(1 - cor(t(x))),
+                clustering_method_columns = 'ward.D2',
+                clustering_distance_rows = function(x) as.dist(1 - cor(t(x))),
+                clustering_method_rows = 'ward.D2',
+                
+                # specify top and bottom annotations
+                top_annotation = colAnn)
+                # bottom_annotation = boxplotCol)
+
+
+pdf("Heatmap2.pdf", height = 18, width = 6)
+draw(hmap + genelabels,
+     heatmap_legend_side = 'left',
+     annotation_legend_side = 'right',
+     row_sub_title_side = 'left')
+dev.off()
+
+```
+
+
+
+# Export
+
+```{r}
+
+library(writexl)
+
+# combine results
+
+res <- res_WT_BL_vs.pcry_BL
+res1 <- res_WT_D_vs.pcry_D
+res2 <- res_WT_BL_vs.pcry_BL
+res3 <- res_WT_R_vs.pcry_R
+res4 <- res_WT_D_vs.WT_BL
+res5 <- res_WT_D_vs.WT_R
+
+colnames(anno)
+
+res_exp <- data.frame(
+  # general
+  "gene_id" = rownames(dds),
+  "gene_name" = anno[rownames(dds),"geneSymbol"],
+  "Alias" = anno[rownames(dds),"prev.symbols"],
+  "id.symbol" = anno[rownames(dds),"id.symbol"],
+ "Description" = anno[rownames(dds),"Description"],
+ "Comments" = anno[rownames(dds),"Comments"],
+ "TargetP" = anno[rownames(dds),"TargetP"],
+ "Predalgo" = anno[rownames(dds),"Predalgo"],
+ "baseMean" = res$baseMean,
+ # results 1
+ "L2FC.WT_D_vs.pcry_D" = res1$log2FoldChange,
+ "pvalue.WT_D_vs.pcry_D" = res1$pvalue,
+ "padj.WT_D_vs.pcry_D" = res1$padj,
+  # results 2
+ "L2FC.WT_BL_vs.pcry_BL" = res2$log2FoldChange,
+ "pvalue.WT_BL_vs.pcry_BL" = res2$pvalue,
+ "padj.WT_BL_vs.pcry_BL" = res2$padj,
+  # results 3
+ "L2FC.WT_R_vs.pcry_R" = res3$log2FoldChange,
+ "pvalue.WT_R_vs.pcry_R" = res3$pvalue,
+ "padj.WT_R_vs.pcry_R" = res3$padj,
+  # results 4
+ "L2FC.WT_D_vs.WT_BL" = res4$log2FoldChange,
+ "pvalue.WT_D_vs.WT_BL" = res4$pvalue,
+ "padj.WT_D_vs.WT_BL" = res4$padj,
+  # results 5
+ "L2FC.WT_D_vs.WT_R" = res5$log2FoldChange,
+ "pvalue.WT_D_vs.WT_R" = res5$pvalue,
+ "padj.WT_D_vs.WT_R" = res5$padj,
+  counts(dds, normalized=TRUE))
+res_exp
+
+outdir <- "C:/Users/kelterbs/OneDrive - Charité - Universitätsmedizin Berlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044"
+
+write_xlsx(data.frame(res_exp),
+           paste(outdir,"2023_08 P3044 results.xlsx",sep="/"))
+
+# Counts only
+counts <- round(counts(dds, normalized=TRUE))
+colnames(counts)
+colData(dds)$sample.name <- paste(colData(dds)$condition,colData(dds)$repetition,sep="_")
+colnames(counts) == colData(dds)$sample.id
+colnames(counts) <- colData(dds)$sample.name
+
+write.csv(counts, file.path(outdir,"Counts.csv"))
+
+Exp_design <- data.frame(names = colData(dds)$sample.name,
+                         genotype = colData(dds)$genotype,
+                         treatment = colData(dds)$treatment,
+                         condition = colData(dds)$condition) %>% t()
+
+Exp_design <- matrix(colData(dds)$sample.name,
+                     colData(dds)$genotype,
+                     colData(dds)$treatment,
+                    colData(dds)$condition)
+
+rownames(Exp_design)[1] <- {1}
+
+
+write.table(Exp_design,file.path(outdir,"Exp_design.csv"), sep=",",  col.names=FALSE)
+
+
+
+
+
+
+```
+
+
+
+
+
+
 
 ```{r}
 sessionInfo()
