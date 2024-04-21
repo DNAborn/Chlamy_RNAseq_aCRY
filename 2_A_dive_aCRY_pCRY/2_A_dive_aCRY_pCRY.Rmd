@@ -10,8 +10,8 @@ always_allow_html: true
 editor_options: 
   chunk_output_type: console
 knit: (function(input_file, encoding) {
-    rmarkdown::render(input_file,output_file= 'Readme.md')
     })
+    rmarkdown::render(input_file,output_file= 'Readme.md')
 ---
   
 ```{r setup, include=FALSE}
@@ -96,7 +96,7 @@ gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 # Macbook
 scriptdir <- rstudioapi::getSourceEditorContext()$path
 gitdir <- scriptdir %>% dirname() %>% dirname()
-dir <- gitdir %>% dirname()
+dir <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq aCRY"
 
 ```
 
@@ -381,8 +381,8 @@ plotloadings(p,
 ```
 
 
-### 3. Plot counts
-#### 
+# 3. Results
+## - Plot Counts
 
 ```{r example_counts, fig.show="hold", out.width="50%", eval=FALSE, include=TRUE, echo=FALSE}
 
