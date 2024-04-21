@@ -395,6 +395,7 @@ anno[str_detect(anno[["previousIdentifiers"]],"CRY"),1:9] %>% kable()
 
 
 
+
 # plap6
 PLAP6 <- "Cre03.g188700"
 d <- plotCounts(dds,gene = PLAP6, intgroup= c("treatment","genotype","condition"), returnData=TRUE)

@@ -845,6 +845,9 @@ g3 <- ggplot(pcaData, aes(PC1, PC2, color=condition, shape=genotype)) +
 ((g1+g2) / (g3)) + plot_layout(guides = "collect", axis_titles="collect")
 
 
+
+
+
 ```
 
 
