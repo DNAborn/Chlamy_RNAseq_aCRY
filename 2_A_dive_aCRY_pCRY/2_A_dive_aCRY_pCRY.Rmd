@@ -10,8 +10,8 @@ always_allow_html: true
 editor_options: 
   chunk_output_type: console
 knit: (function(input_file, encoding) {
-    })
     rmarkdown::render(input_file,output_file= 'Readme.md')
+        })
 ---
   
 ```{r setup, include=FALSE}
@@ -382,10 +382,28 @@ plotloadings(p,
 
 
 # 3. Results
+## Colors
+```{r}
+# colours
+Greys <- brewer.pal(9, name="Greys")[c(7,5)]
+Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
+colours <- c(Greys,Paired)
+group.colors <- colours
+group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+group.colors <- c("grey10","grey40","grey80","royalblue4","royalblue2", "lightblue2",  "darkred","brown2","salmon1")
+
+anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","yellow1","gold"
+                    genotype = c("green4","orchid","tan2"))
+
+
+group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056","tan2","brown","orangered")
+
+
+```
 
 
 ## Plot Counts
-```{r}
+```{r plot_counts}
 
 # TF genes
 
@@ -403,7 +421,7 @@ goi <- anno_tf
 l <- nrow(goi)
 all_counts <- {}
 for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
   d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
   d$sample <- rownames(d)
   rownames(d) <- {}
@@ -419,23 +437,28 @@ all_counts$Gene <- factor(all_counts$Gene, levels = c("CON1", "ROC40", "CRB1" , 
 levels(all_counts$Gene)
 
 
-# colours
-Greys <- brewer.pal(9, name="Greys")[c(7,5)]
-Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
-colours <- c(Greys,Paired)
-group.colors <- colours
-group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
+
 max_val <- 1.0*max(all_counts$count)
 
 # Plot
-gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+gcounts1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
   geom_boxplot(fatten = 1) +
   scale_fill_manual(values = group.colors) +
   scale_y_continuous(trans = "log2")
-gcounts
-ggsave(paste(figures,"2023_12_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
-  width = 12,
-  height = 8)
+gcounts1
+
+gcounts2 <- ggplot(all_counts, aes(x = Gene, y = count, fill=genotype)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = anno_colors$genotype) +
+  scale_y_continuous(trans = "log2")
+gcounts2
+
+gcounts1 / gcounts2
+
+# ggsave(paste(figures,"2023_12_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
+# width = 12,
+# height = 8)
+
 
 ## Phot genes all-in-one
 goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1") #"HKR2" "DCRY2", 
@@ -450,7 +473,7 @@ goi <- anno_phot
 l <- nrow(goi)
 all_counts <- {}
 for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup="condition", col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
   d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
   d$sample <- rownames(d)
   rownames(d) <- {}
@@ -467,23 +490,33 @@ levels(all_counts$Gene)
 all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
 levels(all_counts$Gene)
 
-# colours
-Greys <- brewer.pal(9, name="Greys")[c(7,5)]
-Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
-colours <- c(Greys,Paired)
-group.colors <- colours
-group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
-max_val <- 1.0*max(all_counts$count)
 
 # Plot
-gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+max_val <- 1.0*max(all_counts$count)
+gcounts1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
   geom_boxplot(fatten = 1) +
   scale_fill_manual(values = group.colors) +
   scale_y_continuous(trans = "log2")
-gcounts
-ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
-  width = 12,
-  height = 8)
+gcounts1
+
+gcounts2 <- ggplot(all_counts, aes(x = Gene, y = count, fill=genotype)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = anno_colors$genotype) +
+  scale_y_continuous(trans = "log2")
+gcounts2
+
+gcounts3 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colours2) +
+  scale_y_continuous(trans = "log2")
+gcounts3
+
+gcounts1 / gcounts2 / gcounts3
+
+
+# ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
+#   width = 12,
+#   height = 8)
 
 ```
 
@@ -590,7 +623,7 @@ res7_shrink <- lfcShrink(dds, res=res7, type="ashr")
 ```
 
 ### combine L2FC with padj
-```{r}
+```{r, eval=FALSE}
 
 res3_shrink
 subset(mcols(dds), id.symbol =="SELU1") %>% rownames()
@@ -629,7 +662,7 @@ res7_shrink$ishs <- ifelse((-20/3*(res7_shrink$log2FoldChange^2) + 60) < -log(re
 
 ```
 
-```{r}
+```{r, eval=FALSE}
 outdir
 figures <- paste(outdir,"figures",sep="/")
 dir.create(figures)
@@ -638,7 +671,7 @@ dir.create(figures)
 ```
 
 ## Colours
-```{r}
+```{r, eval=FALSE}
 Greys <- brewer.pal(9, name="Greys")[c(7,5)]
 Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
 colours <- c(Greys,Paired)
@@ -646,7 +679,7 @@ colours <- c(Greys,Paired)
 
 
 ## PCA (Panel B)
-```{r}
+```{r, eval=FALSE}
 library("PCAtools")
 library(ggalt)
 
@@ -748,7 +781,7 @@ pairsplot(p,
 
 
 ## Counts
-```{r}
+```{r, eval=FALSE}
 
 # TF genes
 
@@ -852,7 +885,7 @@ ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcount
 
 ## Volcanos
 ### dark
-```{r}
+```{r, eval=FALSE}
 
 # dark
 res <- res1_shrink
@@ -923,7 +956,7 @@ evd
 ```
 
 ### blue
-```{r}
+```{r, eval=FALSE}
 
 # blue
 res <- res2_shrink
@@ -994,7 +1027,7 @@ evb
 ```
 
 ### red
-```{r}
+```{r, eval=FALSE}
 
 # red
 res <- res3_shrink
@@ -1067,7 +1100,7 @@ evr
 ```
 
 ### all
-```{r}
+```{r, eval=FALSE}
 
 
 ga <- ggarrange(evb,
@@ -1127,7 +1160,7 @@ library(airway)
 
 
 ### plot heatmap
-```{r}
+```{r, eval=FALSE}
 library("pheatmap")
 ntd <- normTransform(dds)
 top.all.hm <- head(top.all, n=100)
@@ -1173,7 +1206,7 @@ ggsave("figures/2023_12_Heatmap_top.png",plot=xx,
 ```
 
 ### Complex Heatmap
-```{r}
+```{r, eval=FALSE}
 
 df
 genes <- anno_tf
@@ -1342,7 +1375,7 @@ dev.off()
 
 # Export
 
-```{r}
+```{r, eval=FALSE}
 
 library(writexl)
 
