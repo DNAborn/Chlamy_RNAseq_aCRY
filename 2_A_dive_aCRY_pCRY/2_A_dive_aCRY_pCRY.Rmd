@@ -391,7 +391,6 @@ plotloadings(p,
 
 
 # 3. Results
-<<<<<<< HEAD
 ## Colors
 ```{r}
 # colours
@@ -407,8 +406,9 @@ anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","
 
 
 group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056","tan2","brown","orangered")
+```
 
-=======
+
 ## Make results
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 
@@ -416,7 +416,7 @@ group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056",
 
 design(dds)
 resultsNames(dds)
-cbind(resultsNames(dds),c(rep(0,6)))
+cbind(resultsNames(dds),c(rep(0,resultsNames(dds) %>% length())))
 
 # res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
 
@@ -498,7 +498,6 @@ res4_shrink <- lfcShrink(dds, res=res4, type="ashr")
 res5_shrink <- lfcShrink(dds, res=res5, type="ashr")
 res6_shrink <- lfcShrink(dds, res=res6, type="ashr")
 res7_shrink <- lfcShrink(dds, res=res7, type="ashr")
->>>>>>> 2fc42e34b5b7a0257788ecd80cb44f6b3e7c1d94
 
 ```
 
@@ -624,7 +623,7 @@ gcounts1 / gcounts2 / gcounts3
 
 ## Volcanos
 ### dark
-```{r}
+```{r, eval=FALSE}
 
 # dark
 res <- res1_shrink
@@ -695,7 +694,7 @@ evd
 ```
 
 ### blue
-```{r}
+```{r eval=FALSE}
 
 # blue
 res <- res2_shrink
@@ -1524,12 +1523,6 @@ library(airway)
  
 
 ```
-=======
-
-
->>>>>>> 2fc42e34b5b7a0257788ecd80cb44f6b3e7c1d94
-
-
 
 
 ## Heatmap
