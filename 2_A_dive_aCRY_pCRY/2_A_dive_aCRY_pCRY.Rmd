@@ -96,7 +96,16 @@ gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 # Macbook
 scriptdir <- rstudioapi::getSourceEditorContext()$path
 gitdir <- scriptdir %>% dirname() %>% dirname()
-dir <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq aCRY"
+
+if(Sys.info()["sysname"]== "Linux"){
+  s <- "/mnt/s"
+  dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")} else {
+    if(Sys.info()["sysname"]== "Darwin"){
+       s <- "/mnt/s"
+       dir <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq aCRY"} else {
+       s <- "S:" 
+       dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")}}
+
 
 ```
 
@@ -382,6 +391,7 @@ plotloadings(p,
 
 
 # 3. Results
+<<<<<<< HEAD
 ## Colors
 ```{r}
 # colours
@@ -398,6 +408,97 @@ anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","
 
 group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056","tan2","brown","orangered")
 
+=======
+## Make results
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+
+
+
+design(dds)
+resultsNames(dds)
+cbind(resultsNames(dds),c(rep(0,6)))
+
+# res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
+
+# Unterschiede zwischen WT und pCRY unter versch. Belichtungen
+res1 <- res_WT_D_vs.pcry_D <- results(dds, contrast=c(0,0,0,1,0,0))
+res1 <- res_WT_D_vs.pcry_D <- results(dds,name = "genotype_pcry_vs_WT")
+
+res2 <- res_WT_BL_vs.pcry_BL <- results(dds, contrast=c(0,1,0,0,1,0))
+
+res3 <- res_WT_R_vs.pcry_R <- results(dds, contrast=c(0,0,1,0,0,1))
+
+# Unterschiede zwischen versch. Belichtungen über beide Genotypen
+# D vs. (BL+R)
+res4 <- res_D_vs._BL_R <-results(dds, contrast=c(0,0,2/6,2/6,1/3,1/3))
+
+# D vs. BL
+res5 <- res_BL_vs._D <- results(dds, contrast=c(0,0,1,0,0.5,0))
+
+# D vs. R
+res6 <- res_D_vs._R <- results(dds, contrast=c(0,0,0,1,0,0.5))
+
+# WT vs. pCRY
+res7 <- res_WT_vs._pcry <- results(dds, contrast=c(0,3,0,0,1,1))
+
+
+
+
+## Make top lists:
+
+topgenes <- function(res){
+a <- subset(res, padj < 0.05 & baseMean > 20 & (log2FoldChange < -0.5 | log2FoldChange > 0.5))
+a$id.symbol <- anno[rownames(a),"id.symbol"]
+a$symbol <- anno[rownames(a),"geneSymbol"]
+a <- a[order(a$baseMean, decreasing = T),]
+  a$rank.bm <- seq(1:length(rownames(a)))
+a <- a[order(a$padj, decreasing = F),]
+  a$rank.padj <- seq(1:length(rownames(a)))
+a <- a[order(abs(a$log2FoldChange), decreasing = T),]
+  a$rank.l2FC <- seq(1:length(rownames(a)))
+a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
+  a <- a[order(a$rank.sum),]
+print(a)
+}
+
+top.res1 <- topgenes(res=res1)
+summary(res1)
+top.res2 <- topgenes(res=res2)
+summary(res2)
+top.res3 <- topgenes(res=res3)
+summary(res3)
+top.res4 <- topgenes(res=res4)
+summary(res4)
+top.res5 <- topgenes(res=res5)
+summary(res5)
+top.res6 <- topgenes(res=res6)
+summary(res6)
+top.res7 <- topgenes(res=res7)
+summary(res7)
+
+top.all <- rbind(top.res1,
+         top.res2,
+         top.res3,
+         top.res4,
+         top.res5,
+         top.res6,
+         top.res7)
+top.all <- top.all[order(top.all$rank.sum),]
+head(top.all, n=185) %>% rownames() %>% unique() %>% length()
+top.all <- top.all[unique(rownames(top.all)),]
+
+# top.all <- head(top.all, n=100)
+
+
+## Shrinkage
+res1_shrink <- lfcShrink(dds, res=res1, type="ashr")
+res2_shrink <- lfcShrink(dds, res=res2, type="ashr")
+res3_shrink <- lfcShrink(dds, res=res3, type="ashr")
+res4_shrink <- lfcShrink(dds, res=res4, type="ashr")
+res5_shrink <- lfcShrink(dds, res=res5, type="ashr")
+res6_shrink <- lfcShrink(dds, res=res6, type="ashr")
+res7_shrink <- lfcShrink(dds, res=res7, type="ashr")
+>>>>>>> 2fc42e34b5b7a0257788ecd80cb44f6b3e7c1d94
 
 ```
 
@@ -520,6 +621,276 @@ gcounts1 / gcounts2 / gcounts3
 
 ```
 
+
+## Volcanos
+### dark
+```{r}
+
+# dark
+res <- res1_shrink
+n <- 'WT vs. pCRY in dark'
+nf <- 'figures/Volcano_dark.png'
+l <- nrow(top.res1)
+pcol <- "black"
+lcol <- colours[1+1]
+
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 6,
+                ifelse(res$padj < 1e-100,6,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evd <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-60),
+    FCcutoff = 3,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evd
+
+
+```
+
+### blue
+```{r}
+
+# blue
+res <- res2_shrink
+n <- 'WT vs. pCRY in blue'
+nf <- 'figures/Volcano_blue.png'
+l <- nrow(top.res2)
+pcol <- colours[3]
+lcol <- colours[3+1]
+
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 17,
+                ifelse(res$padj < 1e-100,17,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evb <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-50),
+    FCcutoff = 2.5,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evb
+
+
+```
+
+### red
+```{r}
+
+# red
+res <- res3_shrink
+n <- 'WT vs. pCRY in red'
+nf <- 'figures/Volcano_r.png'
+l <- nrow(top.res3)
+pcol <- colours[5]
+lcol <- colours[5+1]
+
+rownames(res) <- mcols(dds)$id.symbol
+res <- res[!is.na(res$padj),]
+res <- res[!is.na(res$log2FoldChange),]
+
+shape <- ifelse(abs(res$log2FoldChange) > 5, 6,
+                ifelse(res$padj < 1e-100,6,16))
+summary(is.na(shape))
+# shape[is.na(shape)] <- 2
+names(shape)[shape == 6] <- 'outliner'
+names(shape)[shape == 16] <- 'in range'
+
+res$log2FoldChange[res$log2FoldChange > 5] <- 5
+res$log2FoldChange[res$log2FoldChange < -5] <- -5
+res$padj[res$padj < 1e-100] <- 1e-100
+summary(res$padj < 1e-100)
+
+keyvals <- ifelse(
+    res$ishs == TRUE, pcol,
+      'grey')
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == pcol] <- 'highly significant'
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+  
+evr <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = rownames(res),
+    selectLab  = rownames(res)[which(names(keyvals) == 'highly significant')],
+    # selectLab = anno_tf$geneSymbol,
+    # boxedLabels = TRUE,
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 10,
+    colCustom = keyvals,
+    xlim = c(-5.1, 5.1),
+    ylim = c(0, 101),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("DE genes:",l),
+    # sub = "SVF",
+    pCutoff = 10^(-50),
+    FCcutoff = 2.5,
+   shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2.5','p-adj < 0.05',
+                   'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+evr
+
+#ggsave(file="figures/Vulcano_rtest.pdf",
+#       width = 12,
+#       height = 12)
+
+```
+
+### all
+```{r}
+
+
+ga <- ggarrange(evb,
+                evd+rremove("ylab"),
+                evr+rremove("ylab"),
+                ncol = 3, nrow = 1,common.legend = TRUE, legend = "bottom",
+                widths = c(1.05,1,1))
+
+
+ggsave(ga, file="figures/Vulcano_all.pdf",
+       width = 12,
+       height = 8)
+
+# + ggplot2::coord_cartesian(xlim=c(-10, 10))
+# ggplot2::coord_cartesian(xlim=c(-5, 5)
+
+
+
+
+# with ggplot
+ggplot(as.data.frame(resLFC_WT_BL_vs.pcry_BL),aes(log2FoldChange,-log(padj))) +
+  geom_point() +
+  geom_point(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rownames(top_WT_BL_vs.pcry_BL),]), colour = "blue") + 
+  geom_point(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rocs,]), colour = "red") +
+  geom_text_repel(data = as.data.frame(resLFC_WT_BL_vs.pcry_BL[rocs,]), aes(label=anno[rocs,"id.symbol"]),colour = "red",hjust=-0.5, vjust=-1) +
+  xlim(-5,5)
+getwd()
+ggsave("graphs/Vulcano ROCs-2.pdf",
+       width = 10,
+       height = 6)
+
+## enhanced vulcano
+library(airway)
+  library(magrittr)
+
+ library('DESeq2')
+
+  dds <- DESeqDataSet(airway, design = ~ cell + dex)
+  dds <- DESeq(dds, betaPrior=FALSE)
+  res <- results(dds,
+    contrast = c('dex','trt','untrt'))
+  res <- lfcShrink(dds,
+    contrast = c('dex','trt','untrt'), res=res, type = 'normal')
+ EnhancedVolcano(res,
+    lab = rownames(res),
+    x = 'log2FoldChange',
+    y = 'pvalue')
+ 
+ 
+
+```
 
 
 
@@ -883,6 +1254,7 @@ ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcount
 
 ```
 
+<<<<<<< HEAD
 ## Volcanos
 ### dark
 ```{r, eval=FALSE}
@@ -1152,6 +1524,10 @@ library(airway)
  
 
 ```
+=======
+
+
+>>>>>>> 2fc42e34b5b7a0257788ecd80cb44f6b3e7c1d94
 
 
 
