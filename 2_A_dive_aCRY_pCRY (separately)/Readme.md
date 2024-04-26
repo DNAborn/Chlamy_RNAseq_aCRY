@@ -17,63 +17,11 @@ Kelterborn
   - [Volcanos](#volcanos)
 - [Export](#export)
 
-BiocManager::install(“ggalt”) \# , type=“source”
+BiocManager::install()
 
 # Load System
 
 ## -R_libraries
-
-``` r
-library(patchwork)
-library(PCAtools)
-library(stringr)
-library(R.utils)
-library(RColorBrewer)
-library(sessioninfo)
-library(data.table)
-library(plyr)
-library(tidyverse)
-library(tximeta)
-library(tximport)
-library(curl)
-library(AnnotationHub)
-library(DESeq2)
-library(EnhancedVolcano)
-library(pheatmap)
-library(writexl)
-library(biomaRt)
-library(ape)
-library(kableExtra)
-library(knitr)
-
-library(stringr)
-library(R.utils)
-library(RColorBrewer)
-
-library(sessioninfo)
-library(data.table)
-library(plyr)
-library(tidyverse)
-library(tximeta)
-library(tximport)
-library(curl)
-library(DESeq2)
-
-library(SummarizedExperiment)
-library(GenomicRanges)
-library(ape)
-
-library(viridis)
-
-library(ggpubr)
-library(vsn)
-library(stringr)
-library(R.utils)
-library(RColorBrewer)
-
-
-# library(wget)
-```
 
 ## -R_folders
 
@@ -1242,7 +1190,7 @@ sessionInfo()
     ## [39] RColorBrewer_1.1-3          R.utils_2.12.3             
     ## [41] R.oo_1.26.0                 R.methodsS3_1.8.2          
     ## [43] stringr_1.5.1               PCAtools_2.14.0            
-    ## [45] ggrepel_0.9.5               ggplot2_3.5.0              
+    ## [45] ggrepel_0.9.5               ggplot2_3.5.1              
     ## [47] patchwork_1.2.0            
     ## 
     ## loaded via a namespace (and not attached):

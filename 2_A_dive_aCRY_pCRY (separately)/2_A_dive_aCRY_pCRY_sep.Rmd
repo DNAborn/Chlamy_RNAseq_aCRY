@@ -24,11 +24,11 @@ knitr::opts_chunk$set(echo = T,
 ```
 
 
-BiocManager::install("ggalt") # , type="source"
+BiocManager::install() 
 
 # Load System
 ## -R_libraries
-```{r r_libraries, imnclude=FALSE}
+```{r r_libraries, echo=FALSE}
 library(patchwork)
 library(PCAtools)
 library(stringr)
@@ -253,9 +253,9 @@ rownames(sampleDistMatrix) <- vsd$clientName
 # colnames(sampleDistMatrix) <- NULL
 colData(vsd)$treatment
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-anno_col <- as.data.frame(colData(vsd)[,c("treatment","genotype","experiment")])
+anno_col <- as.data.frame(colData(vsd)[,c("treatment","genotype")])
 anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"),
-                    genotype = c("green4","orchid"))
+                    genotype = c("green4","tan2"))
 names(anno_colors$treatment) <- levels(anno_col$treatment)
 names(anno_colors$genotype) <- levels(anno_col$genotype)
 
@@ -422,7 +422,7 @@ group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A9
 # group.colors <- c("grey10","grey40","grey80","royalblue4","royalblue2", "lightblue2",  "darkred","brown2","salmon1")
 
 anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","yellow1","gold"
-                    genotype = c("green4","orchid","tan2"))
+                    genotype = c("green4","tan2","orchid"))
 
 
 group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056","tan2","brown","orangered")
@@ -430,7 +430,7 @@ group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056",
 
 
 ## Plot Counts
-```{r plot_counts, echo=FALSE}
+```{r plot_counts, echo=FALSE, fig.width=12}
 dds <- dds_list[[1]]
 for (dds in dds_list){
 # TF genes
