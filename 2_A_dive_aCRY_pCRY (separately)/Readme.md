@@ -15,14 +15,6 @@ Kelterborn
   - [Plot Counts](#plot-counts)
   - [Make results](#make-results)
   - [Volcanos](#volcanos)
-- [—————————](#section)
-- [COPY & PASTE from pCRY](#copy--paste-from-pcry)
-  - [Make results](#make-results-1)
-  - [Colours](#colours)
-  - [PCA (Panel B)](#pca-panel-b)
-  - [Counts](#counts)
-  - [Volcanos](#volcanos-1)
-  - [Heatmap](#heatmap)
 - [Export](#export)
 
 BiocManager::install(“ggalt”) \# , type=“source”
@@ -85,151 +77,13 @@ library(RColorBrewer)
 
 ## -R_folders
 
-``` r
-# Linux Workstation
-ifelse(Sys.info()["sysname"]== "Linux",
-       s <- "/mnt/s",
-    ifelse(Sys.info()["sysname"]== "Darwin",
-       s <- "/mnt/s",
-       s <- "S:"))
-```
-
-    ##  sysname 
-    ## "/mnt/s"
-
-``` r
-dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
-# list.files(dir) %>% head()
-gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
-# list.files(gitdir) %>% head()
-
-# Macbook
-scriptdir <- rstudioapi::getSourceEditorContext()$path
-gitdir <- scriptdir %>% dirname() %>% dirname()
-
-if(Sys.info()["sysname"]== "Linux"){
-  s <- "/mnt/s"
-  dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")} else {
-    if(Sys.info()["sysname"]== "Darwin"){
-       s <- "/mnt/s"
-       dir <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq aCRY"} else {
-       s <- "S:" 
-       dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")}}
-```
-
 # 1. Load aCRY & pCRY
 
 ## - Tximeta files
 
-``` r
-# Annotation file
-load(file=paste(dir,"anno.RDS", sep="/"))
-
-# Seq 1 (pcry)
-ifelse(Sys.info()["sysname"]== "Linux",
-       tximeta_pcry_file <- dir %>% dirname() %>% paste(.,"P3044/tximeta.txm",sep="/"),
-    ifelse(Sys.info()["sysname"]== "Darwin",
-       tximeta_pcry_file <- "/Users/simonkelterborn/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044/tximeta.txm",
-       tximeta_pcry_file <- "S:/AG/AG-Scholz-NGS/Daten/Simon/P3044/tximeta.txm"))
-```
-
-    ##                                                 sysname 
-    ## "/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/P3044/tximeta.txm"
-
-``` r
-load(file=tximeta_pcry_file)
-
-colData(gse)$treatment <- colData(gse)$treatment %>% str_replace(pattern="D", replacement = "dark") %>%
-  str_replace(pattern="BL", replacement = "blue") %>%
-  str_replace(pattern="R", replacement = "red") %>% factor(levels = c("dark","blue","red"))
-
-colData(gse)$condition <- paste(colData(gse)$genotype,colData(gse)$treatment,sep="_") %>% factor(levels=c("WT_dark","pcry_dark","WT_blue","pcry_blue","WT_red","pcry_red"))
-
-names(colData(gse)) <- c("names","clientId","filename","clientName","genotype","treatment","condition","replicate","lane","RNA_conc","mappingrates")
-colData(gse)$experiment <- "pcry"
-gse_pcry <- gse
-
-# Seq 2 (acry + cia5)
-load(file=paste(dir,"tximeta.RDS", sep="/"))
-gse_acry <- gse[,colData(gse)$experiment=="acry"]
-colData(gse_acry) <- colData(gse_acry) %>% droplevels()
-colData(gse_acry)$genotype <- colData(gse_acry)$genotype %>% relevel(ref="WT")
-
-colData(gse_acry)$treatment <- colData(gse_acry)$treatment %>% str_replace(pattern="D", replacement = "dark") %>%
-  str_replace(pattern="BL", replacement = "blue") %>%
-  str_replace(pattern="R", replacement = "red") %>% factor(levels = c("dark","blue","red"))
-
-colData(gse_acry)$condition <- paste(colData(gse_acry)$genotype,colData(gse_acry)$treatment,sep="_") %>% factor(levels=c("WT_dark","acry_dark","WT_blue","acry_blue","WT_red","acry_red"))
-```
-
 ## Run Deseq2
 
-``` r
-# design <- ~condition
-exp <- c("acry","pcry")
-gse_list <- list(gse_acry,gse_pcry)
-names(gse_list) <- exp
-dds_list <- list()
-i <- 1
-for (e in names(gse_list)){
- gse <- gse_list[[e]]
- design <- ~genotype+treatment+genotype:treatment
-dds <- DESeqDataSet(gse, design=design)
-colData(dds) %>% head() %>% kable()
-
-##########################################\n
-# filter all rows with rowsum = 0 ####\n
-par(mfrow=c(1,2))
-hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10))
-hist(counts(dds), breaks=1000000, ylim = c(0,100000), xlim = c(0,10))
-# -> dip at log(counts(dds)=2-3)
-par(mfrow=c(1,1))
-
-# min counts
-# at least 5 counts in 3 samples
-keep.sn <- rowSums(counts(dds) >= 5) >= 3
-keep.sn %>% summary()
-dds <- dds[keep.sn,]
-
-dds <- estimateSizeFactors(dds)
-dds
-head(assays(dds)[["counts"]])[1:5,1:5]
-length(rownames(counts(dds)))
-
-# remove outlier
-# outliner <- c("WTdark1")
-# colData(dds)[outliner,]
-# keep <- colnames(dds) %>% .[!str_detect(.,outliner)]
-# dds <- dds[,keep]
-
-
-###########\n
-# run DESeq
-dds <- DESeq(dds)
-
-plotDispEsts(dds)
-resultsNames(dds)
-DESeq2::plotMA(dds)
-
-plotCounts(dds, gene = "Cre01.g000150", intgroup = "condition", col=colData(dds)$condition)
-
-assign(paste("dds",e,sep="_"),dds)
-dds_list[[e]] <- dds
-}
-```
-
 ![](Readme_files/figure-gfm/dds_acry_pcry-1.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-2.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-3.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-4.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-5.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-6.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-7.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-8.png)<!-- -->
-
-``` r
-###############\n
-# save dds #####
-
-# save(dds_list, file = paste(dir,"dds_list.RDS",sep="/"), compress = FALSE)
-# save(dds, file = paste(dir,"dds_acry_pcry.RDS",sep="/"), compress = FALSE)
-# save(dds, file = paste(dir,"dds_acry.RDS",sep="/"), compress = FALSE)
-# load(paste(dir,"dds.RDS",sep="/"))
-# dds
-```
 
 # 2. Pre-Analysis
 
@@ -243,7 +97,7 @@ msdp3 <- lapply(lapply(ntd_list,assay,normalized =TRUE),meanSdPlot)
 msdp4 <- lapply(lapply(rld_list,assay,normalized =TRUE),meanSdPlot)
 ```
 
-<img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-1.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-2.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-3.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-4.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-5.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-6.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-7.png" width="25%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-8.png" width="25%" />
+<img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-1.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-2.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-3.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-4.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-5.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-6.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-7.png" width="50%" /><img src="Readme_files/figure-gfm/pre_trans_fig, figures-side-8.png" width="50%" />
 
 ### - Check sample distance
 
@@ -261,123 +115,9 @@ msdp4 <- lapply(lapply(rld_list,assay,normalized =TRUE),meanSdPlot)
 
 ## Colors
 
-``` r
-# colours
-Greys <- brewer.pal(9, name="Greys")[c(7,5)]
-Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
-colours <- c(Greys,Paired)
-group.colors <- colours
-group.colors <- c("#525252", "#969696", "#1F78B4", "#A6CEE3", "#E31A1C", "#FB9A99")
-# group.colors <- c("grey10","grey40","grey80","royalblue4","royalblue2", "lightblue2",  "darkred","brown2","salmon1")
-
-anno_colors <- list(treatment = c("grey30","skyblue1","lightcoral"), #,"ivory","yellow1","gold"
-                    genotype = c("green4","orchid","tan2"))
-
-
-group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056","tan2","brown","orangered")
-```
-
 ## Plot Counts
 
-``` r
-dds <- dds_list[[1]]
-for (dds in dds_list){
-# TF genes
-
-goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
-anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
-anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
-anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
-summary(anno_tf$gene_id %in% rownames(dds))
-anno_tf[!anno_tf$gene_id %in% rownames(dds),]
-anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
-
-# Combined counts table TFs
-
-goi <- anno_tf
-l <- nrow(goi)
-all_counts <- {}
-for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
-  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
-  d$sample <- rownames(d)
-  rownames(d) <- {}
-  all_counts <- bind_rows(all_counts,d)
-  }
-
-all_counts$Gene
-levels(all_counts$condition)
-all_counts$Gene <- factor(all_counts$Gene)
-levels(all_counts$Gene)
-
-all_counts$Gene <- factor(all_counts$Gene, levels = c("CON1", "ROC40", "CRB1" ,  "QER4" , "ROC110",  "QER7" ,"ROC114" , "ROC75", "CCM1" , "ROC55" , "LCR1",  "QER6" , "ROC66",    "ROC15")  )
-levels(all_counts$Gene)
-
-max_val <- 1.0*max(all_counts$count)
-
-# Plot
-gcounts_tf1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
-  geom_boxplot(fatten = 1) +
-  scale_fill_manual(values = group.colors) +
-  scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
-gcounts_tf1 %>% print()
-
-# ggsave(paste(figures,"2023_12_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
-# width = 12,
-# height = 8)
-
-
-## Phot genes all-in-one
-goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1") #"HKR2" "DCRY2", 
-
-anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
-rownames(anno_phot) <- anno_phot$geneSymbol
-anno_phot <- anno_phot[goi_phot,]
-
-# Combined counts table TFs
-
-goi <- anno_phot
-l <- nrow(goi)
-all_counts <- {}
-for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
-  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
-  d$sample <- rownames(d)
-  rownames(d) <- {}
-  all_counts <- bind_rows(all_counts,d)
-  }
-
-all_counts$Gene
-levels(all_counts$condition)
-levels(all_counts$Gene)
-
-all_counts$Gene <- factor(all_counts$Gene)
-levels(all_counts$Gene)
-
-all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
-levels(all_counts$Gene)
-
-
-# Plot
-max_val <- 1.0*max(all_counts$count)
-gcounts_phot1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
-  geom_boxplot(fatten = 1) +
-  scale_fill_manual(values = group.colors) +
-  scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
-gcounts_phot1 %>% print()
-
-print(gcounts_tf1 / gcounts_phot1 & plot_annotation(title = colData(dds)$experiment[1]))
-
-}
-```
-
 ![](Readme_files/figure-gfm/plot_counts-1.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-2.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-3.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-4.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-5.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-6.png)<!-- -->
-
-``` r
-# ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
-#   width = 12,
-#   height = 8)
-```
 
 ## Make results
 
@@ -643,11 +383,11 @@ library(airway)
     y = 'pvalue')
 ```
 
-# —————————
+#### —————————
 
-# COPY & PASTE from pCRY
+#### COPY & PASTE from pCRY
 
-## Make results
+#### Make results
 
 ### combine L2FC with padj
 
@@ -693,7 +433,7 @@ figures <- paste(outdir,"figures",sep="/")
 dir.create(figures)
 ```
 
-## Colours
+### Colours
 
 ``` r
 Greys <- brewer.pal(9, name="Greys")[c(7,5)]
@@ -701,7 +441,7 @@ Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
 colours <- c(Greys,Paired)
 ```
 
-## PCA (Panel B)
+### PCA (Panel B)
 
 ``` r
 library("PCAtools")
@@ -798,7 +538,7 @@ pairsplot(p,
     margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm'))
 ```
 
-## Counts
+### Counts
 
 ``` r
 # TF genes
@@ -900,7 +640,7 @@ ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcount
   height = 8)
 ```
 
-## Volcanos
+### Volcanos
 
 ### dark
 
@@ -1162,7 +902,7 @@ library(airway)
     y = 'pvalue')
 ```
 
-## Heatmap
+### Heatmap
 
 ### plot heatmap
 

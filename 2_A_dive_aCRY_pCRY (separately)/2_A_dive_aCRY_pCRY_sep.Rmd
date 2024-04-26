@@ -28,7 +28,7 @@ BiocManager::install("ggalt") # , type="source"
 
 # Load System
 ## -R_libraries
-```{r r_libraries}
+```{r r_libraries, imnclude=FALSE}
 library(patchwork)
 library(PCAtools)
 library(stringr)
@@ -82,7 +82,7 @@ library(RColorBrewer)
 ```
 
 ## -R_folders
-```{r r_folders}
+```{r r_folders, include = FALSE}
 
 # Linux Workstation
 ifelse(Sys.info()["sysname"]== "Linux",
@@ -113,7 +113,7 @@ if(Sys.info()["sysname"]== "Linux"){
 
 # 1. Load aCRY & pCRY
 ## - Tximeta files
-```{r get_tximeta_files}
+```{r get_tximeta_files, include=FALSE}
 
 # Annotation file
 load(file=paste(dir,"anno.RDS", sep="/"))
@@ -154,7 +154,7 @@ colData(gse_acry)$condition <- paste(colData(gse_acry)$genotype,colData(gse_acry
 
 
 ## Run Deseq2
-```{r dds_acry_pcry}
+```{r dds_acry_pcry, echo=FALSE}
 
 # design <- ~condition
 exp <- c("acry","pcry")
@@ -171,7 +171,7 @@ colData(dds) %>% head() %>% kable()
 ##########################################\n
 # filter all rows with rowsum = 0 ####\n
 par(mfrow=c(1,2))
-hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10))
+hist(log(counts(dds)), breaks=100, ylim = c(0,11000), xlim = c(0,10), main = colData(dds)$experiment[1]) 
 hist(counts(dds), breaks=1000000, ylim = c(0,100000), xlim = c(0,10))
 # -> dip at log(counts(dds)=2-3)
 par(mfrow=c(1,1))
@@ -198,11 +198,12 @@ length(rownames(counts(dds)))
 # run DESeq
 dds <- DESeq(dds)
 
-plotDispEsts(dds)
+plotDispEsts(dds, main = colData(dds)$experiment[1])
 resultsNames(dds)
-DESeq2::plotMA(dds)
+DESeq2::plotMA(dds, main=colData(dds)$experiment[1])
 
-plotCounts(dds, gene = "Cre01.g000150", intgroup = "condition", col=colData(dds)$condition)
+ROC40 <- "Cre06.g275350"
+plotCounts(dds, gene = ROC40, intgroup = "condition", col=colData(dds)$treatment, main = paste("ROC40 in Δ",colData(dds)$experiment[1],sep = ""))
 
 assign(paste("dds",e,sep="_"),dds)
 dds_list[[e]] <- dds
@@ -232,7 +233,7 @@ rld_list <- lapply(dds_list,rlog, blind=FALSE)
 
 ```
 
-```{r pre_trans_fig, figures-side, fig.show="hold", out.width="25%"}
+```{r pre_trans_fig, figures-side, fig.show="hold", out.width="50%"}
 # load(file = paste(dir,"rlog_list.RDS",sep="/"))
 msdp1 <- lapply(lapply(dds_list,assay,normalized =TRUE),meanSdPlot)
 msdp2 <- lapply(lapply(vsd_list,assay,normalized =TRUE),meanSdPlot)
@@ -242,7 +243,7 @@ msdp4 <- lapply(lapply(rld_list,assay,normalized =TRUE),meanSdPlot)
 ```
 
 ### - Check sample distance
-```{r pre_sample_dist, fig.height=6, out.width="100%", eval=TRUE, include=TRUE, echo=FALSE}
+```{r pre_sample_dist, fig.height=4, out.width="100%", eval=TRUE, include=TRUE, echo=FALSE}
 vsd <- vsd_list[[1]]
 for (vsd in vsd_list){
 sampleDists <- dist(t(assay(vsd)))
@@ -275,7 +276,7 @@ pheatmap(sampleDistMatrix,
 
 
 ### - Perform principal component analysis
-```{r pca, warning = FALSE, fig.show="hold", out.width="80%", fig.height=7, eval=TRUE, include=TRUE, echo=FALSE}
+```{r pca, warning = FALSE, fig.show="hold", out.width="80%", fig.height=5, eval=TRUE, include=TRUE, echo=FALSE}
 # transform data
 # load(file=paste(data,"deseq2.dds", sep="/"))
 
@@ -411,7 +412,7 @@ load %>% print()
 
 # 3. Results
 ## Colors
-```{r}
+```{r colors, echo=FALSE}
 # colours
 Greys <- brewer.pal(9, name="Greys")[c(7,5)]
 Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
@@ -429,7 +430,7 @@ group.colours2 <- c("#00B500","#007E56","#805B00","#FF00AB","#8024AB","#FF0056",
 
 
 ## Plot Counts
-```{r plot_counts}
+```{r plot_counts, echo=FALSE}
 dds <- dds_list[[1]]
 for (dds in dds_list){
 # TF genes
@@ -516,10 +517,25 @@ gcounts_phot1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
   scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
 gcounts_phot1 %>% print()
 
-print(gcounts_tf1 / gcounts_phot1 & plot_annotation(title = colData(dds)$experiment[1]))
+# print(gcounts_tf1 / gcounts_phot1 & plot_annotation(title = colData(dds)$experiment[1]))
+
+
+
+
+# single gene
+    d <- plotCounts(dds, gene=ROC40, intgroup=c("condition","experiment","genotype","treatment","clientName"), main=s,returnData=TRUE)
+
+gcounts <- ggplot(d, aes(x = treatment, y = count, fill=condition, color=condition)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
+  geom_text_repel(aes(label=clientName)) +
+    scale_fill_manual(values=group.colors) +
+    scale_color_manual(values=group.colors) +
+    scale_y_continuous(trans = "log2") +
+    labs(title = paste("ROC40"," in Δ",colData(dds)$experiment[1],sep = ""))
+gcounts %>% print()
 
 }
-
 
 # ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
 #   width = 12,
@@ -898,9 +914,9 @@ library(airway)
 
 
 
-# ---------------------------
-# COPY & PASTE from pCRY
-## Make results
+#### ---------------------------
+#### COPY & PASTE from pCRY
+#### Make results
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 outdir <- "C:/Users/kelterbs/OneDrive - Charité - Universitätsmedizin Berlin/NGS (RNA-Seq & CRISPR)/Chlamy RNA-Seq P3044"
 setwd(outdir)
@@ -1043,7 +1059,7 @@ dir.create(figures)
 
 ```
 
-## Colours
+### Colours
 ```{r, eval=FALSE}
 Greys <- brewer.pal(9, name="Greys")[c(7,5)]
 Paired <- brewer.pal(12, name="Paired")[c(2,1,6,5)]
@@ -1051,7 +1067,7 @@ colours <- c(Greys,Paired)
 ```
 
 
-## PCA (Panel B)
+### PCA (Panel B)
 ```{r, eval=FALSE}
 library("PCAtools")
 library(ggalt)
@@ -1153,7 +1169,7 @@ pairsplot(p,
 
 
 
-## Counts
+### Counts
 ```{r, eval=FALSE}
 
 # TF genes
@@ -1256,7 +1272,7 @@ ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcount
 
 ```
 
-## Volcanos
+### Volcanos
 ### dark
 ```{r, eval=FALSE}
 
@@ -1527,8 +1543,7 @@ library(airway)
 ```
 
 
-## Heatmap
-
+### Heatmap
 
 ### plot heatmap
 ```{r, eval=FALSE}
