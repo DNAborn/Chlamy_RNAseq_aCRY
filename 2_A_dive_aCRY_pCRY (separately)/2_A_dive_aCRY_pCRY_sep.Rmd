@@ -188,10 +188,10 @@ head(assays(dds)[["counts"]])[1:5,1:5]
 length(rownames(counts(dds)))
 
 # remove outlier
-# outliner <- c("WTdark1")
-# colData(dds)[outliner,]
-# keep <- colnames(dds) %>% .[!str_detect(.,outliner)]
-# dds <- dds[,keep]
+outliner <- c("WTdark3")
+colData(dds)[outliner,]
+keep <- colnames(dds) %>% .[!str_detect(.,outliner)]
+dds <- dds[,keep]
 
 
 ###########\n

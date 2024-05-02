@@ -1145,8 +1145,8 @@ write.table(Exp_design,file.path(outdir,"Exp_design.csv"), sep=",",  col.names=F
 sessionInfo()
 ```
 
-    ## R version 4.3.3 (2024-02-29)
-    ## Platform: x86_64-pc-linux-gnu (64-bit)
+    ## R version 4.4.0 (2024-04-24)
+    ## Platform: x86_64-pc-linux-gnu
     ## Running under: Ubuntu 22.04.4 LTS
     ## 
     ## Matrix products: default
@@ -1214,7 +1214,7 @@ sessionInfo()
     ##  [35] farver_2.1.1                  ScaledMatrix_1.10.0          
     ##  [37] ash_1.0-15                    GenomicAlignments_1.38.2     
     ##  [39] jsonlite_1.8.8                systemfonts_1.0.6            
-    ##  [41] tools_4.3.3                   progress_1.2.3               
+    ##  [41] tools_4.4.0                   progress_1.2.3               
     ##  [43] Rcpp_1.0.12                   glue_1.7.0                   
     ##  [45] Rttf2pt1_1.3.12               gridExtra_2.3                
     ##  [47] SparseArray_1.2.4             xfun_0.43                    
@@ -1235,16 +1235,16 @@ sessionInfo()
     ##  [77] tzdb_0.4.0                    reshape2_1.4.4               
     ##  [79] rjson_0.2.21                  nlme_3.1-163                 
     ##  [81] cachem_1.0.8                  KernSmooth_2.23-22           
-    ##  [83] BiocVersion_3.18.1            parallel_4.3.3               
+    ##  [83] BiocVersion_3.18.1            parallel_4.4.0               
     ##  [85] extrafont_0.19                AnnotationDbi_1.64.1         
     ##  [87] restfulr_0.0.15               pillar_1.9.0                 
-    ##  [89] grid_4.3.3                    vctrs_0.6.5                  
+    ##  [89] grid_4.4.0                    vctrs_0.6.5                  
     ##  [91] promises_1.3.0                BiocSingular_1.18.0          
     ##  [93] car_3.1-2                     beachmat_2.18.1              
     ##  [95] xtable_1.8-4                  extrafontdb_1.0              
     ##  [97] evaluate_0.23                 GenomicFeatures_1.54.4       
     ##  [99] cli_3.6.2                     locfit_1.5-9.9               
-    ## [101] compiler_4.3.3                Rsamtools_2.18.0             
+    ## [101] compiler_4.4.0                Rsamtools_2.18.0             
     ## [103] rlang_1.1.3                   crayon_1.5.2                 
     ## [105] ggsignif_0.6.4                labeling_0.4.3               
     ## [107] affy_1.80.0                   stringi_1.8.3                
