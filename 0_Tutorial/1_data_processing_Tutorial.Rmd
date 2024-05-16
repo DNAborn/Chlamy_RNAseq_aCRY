@@ -1,0 +1,1173 @@
+---
+title: "RNAseq aCRY processing"
+author: "Kelterborn"
+date: "2024-03-15"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+always_allow_html: true
+editor_options: 
+  chunk_output_type: console
+knit: (function(input_file, encoding) {
+    rmarkdown::render(input_file,output_file= 'README.md')
+        })
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+```
+
+
+# 0. Prepare System
+## Download RStudio & R
+https://posit.co/download/rstudio-desktop/
+
+
+##  -install BiocManager
+```{r}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(version = "3.18")
+```
+
+## -update Packages
+```{r}
+BiocManager::install()
+```
+
+## -install new packages
+```{r}
+BiocManager::install("PCAtools")
+
+```
+
+
+## -R_libraries
+```{r r_libraries}
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(AnnotationHub)
+library(DESeq2) # Main RNA-Seq Package
+library(EnhancedVolcano)
+library(pheatmap)
+library(writexl)
+library(biomaRt)
+library(ape)
+library(kableExtra)
+library(knitr)
+
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+library(DESeq2)
+
+library(SummarizedExperiment)
+library(GenomicRanges)
+library(ape)
+
+library(viridis)
+library(patchwork)
+library("ggpubr")
+library(vsn)
+library(stringr)
+library(R.utils)
+library(RColorBrewer)
+library(PCAtools)
+
+library(readxl)
+
+library(sessioninfo)
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(tximeta)
+library(tximport)
+library(curl)
+
+
+# library(wget)
+
+```
+
+## -R_folders
+```{r r_folders}
+
+# Server
+server <- "/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq"
+list.files(server)
+
+# for test folder
+dir <- "/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/test" # Working directory
+quantdir <- "/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/test/quants" # quant is the output of the mapping
+figuredir <- "/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/test/figures"
+
+
+```
+
+## -Connect to Linux machine (Enno))
+```{r, eval=FALSE}
+# run in terminal (mac)
+# run in cmd.exe (Windows)
+
+ssh -Y student@141.20.64.235
+# Password: StudentExpBP
+
+# activate salmon
+conda activate /home/student/conda_salmon
+
+# select server
+cd /ExpBP/Chlamyland/RNA_seq
+cd test
+
+```
+
+## -Linux folders
+```{bash linux_folders, eval=FALSE}
+
+# fastqdir=
+# fastqdir2=
+
+# dir="
+
+# quantdir="$dir/quants";
+
+# indexdir="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/chlamy_index_v6.1";
+
+```
+
+# 1. Raw data processing
+## 1a. Download data (AWS CLI)
+
+The Raw data for your project has also been uploaded completely. Please find the data download guide attached.
+Index in AWS: bmkdatarelease-37/delivery_20240313120107785
+Access key ID: AKIA45O7KHZWJCKW62VE
+Secret Access Key: 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
+Web log-in link: https://sctrack.sendcloud.net/track/click2/eNpFj8FOxDAMRP8lgls2jR0aNzf2O1YoSlOzVNs6qOkKBOLfyS4HJGsO1jzP-BT60A9aKa2AwDobPBI5H58GCD4ChIAQsamp-QA2hggY0frDLGO5ymQfljnJ-VOex7msabvwZnJZTRalrVZv-_5eH92x64aBArQwR9RuzWeZxaSPatKavorcmC4XqWXhO_ialsq3VmgNODR9b4JX__s2TI5Hytxqkwcm5JYw4EgJJ57Q_blq3reUL6ayTHkp18kI70p__-j7i9qFl18qJUo2.html
+Username:delivery_20240313120107785
+Password:Pwd2024@x4S416
+
+## -Download via command line in linux
+```{bash download data, eval=FALSE}
+
+# install aws
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws --version
+
+aws configure
+AWS Access Key ID [None]: AKIA45O7KHZWJCKW62VE
+AWS Secret Access Key [None]: 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
+Default region name [None]: eu-north-1
+Default output format [None]: table
+
+fastq="/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/fastq"
+cd $fastq
+
+# test
+aws s3api get-object --bucket bmkdatarelease-37 --key delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/sampleName_clientId.txt sampleName_clientId.txt
+
+# all files
+aws s3 cp s3://bmkdatarelease-37/delivery_20240313120107785/BMK231214-BU327-ZX01-0201/BMK_DATA_20240313120107_1/Data/rawdata/ . --recursive
+
+```
+
+### check md5
+```{bash md5, eval=FALSE}
+cd $fastqdir
+ls
+# 1 file
+md5sum Unknown_BU327-002T0008_1.fq.gz
+
+# Check downloads
+
+# Path to the text file containing the MD5 sums
+md5_file="data_md5.txt"
+
+# Function to check the MD5 sum of a file
+check_md5() {
+    file_name=$1
+    expected_sum=$2
+
+    md5_sum=$(md5sum "$file_name" | awk '{print $1}')
+    if [[ $md5_sum == $expected_sum ]]; then
+        echo "$file_name: MD5 sum is correct."
+    else
+        echo "$file_name: MD5 sum is incorrect."
+    fi
+}
+
+# Read the MD5 sums from the text file and check them
+while IFS= read -r line; do
+    file_name=$(echo "$line" | awk '{print $2}')
+    expected_sum=$(echo "$line" | awk '{print $1}')
+    if [[ -f $file_name ]]; then
+        check_md5 "$file_name" "$expected_sum"
+    else
+        echo "$file_name: File not found."
+    fi
+done < "$md5_file" | tee -a $log
+
+```
+
+
+
+## 1b. Fastqc
+
+## Salmon Mapping
+### Make index
+```{bash make_index}
+
+# Instructions
+# https://salmon.readthedocs.io/en/latest/salmon.html
+
+cd /ExpBP/Chlamyland/RNA_seq
+cd test
+
+salmon index -t gentrome_chlamy.v6.1.fa.gz -i Chlamy_index_Olga  -k 31 -p 10
+
+# --decoys decoys_chlamy_v6.1.txt
+
+```
+
+
+
+### 1c. Mapping / Quantifying
+```{bash mapping, eval=FALSE}
+
+conda activate /home/student/conda_salmon
+cd /ExpBP/Chlamyland/RNA_seq
+cd test
+
+# test folder
+quantdir="/ExpBP/Chlamyland/RNA_seq/test/quants"
+indexdir="/ExpBP/Chlamyland/RNA_seq/test/Chlamy_index_Olga"
+fasta="/ExpBP/Chlamyland/RNA_seq/test/fastq"
+
+# "Real" data Chlamy_RNASeq_aCRY
+quantdir="/ExpBP/Chlamyland/RNA_seq/Chlamy_RNASeq_aCRY/quants_v2"
+indexdir="/ExpBP/Chlamyland/RNA_seq/test/Chlamy_index_Olga"
+fasta="/ExpBP/Chlamyland/RNA_seq/Chlamy_RNASeq_aCRY/fastq"
+
+# go to fastq folder
+fastqfiles=$(\ls *_1.fq.gz)
+
+echo "${fastqfiles:0:100}";
+
+cd $fasta
+# files: Unknown_BU327-002T0001_1.fq.gz;
+for fn in $fastqfiles;
+do
+bfn=$(echo "`basename ${fn}`");
+dfn=$(echo "`dirname ${fn}`");
+
+samp=$(echo "$bfn" | sed 's/_1.fq.gz//');
+R1=$(echo $fasta"/"$bfn);
+R2=$(echo "$R1" | sed 's/_1/_2/');
+echo "Processing Sample: $samp";
+echo $R1
+echo $R2
+
+outquant=${quantdir}/${samp}_quant
+echo $outquant
+echo $indexdir
+
+salmon quant -i $indexdir -l A \
+  -1 $R1 \
+  -2 $R2 \
+  -p 15 --validateMappings --gcBias -o $outquant
+
+done
+
+# code end
+
+
+# test if file is there
+if [ -e $R1 ]
+then
+    echo "ok"
+else
+    echo "nok"
+fi
+
+```
+
+
+# 2. Process Data
+## 2a. Sample names
+```{r sample_table}
+# Get Sample table
+# Filenames
+
+quantdir # defined above
+
+f <- list.files(path = quantdir)
+files <- as.factor(str_remove(f,pattern ="_quant"))
+ 
+# short form
+sample <- str_remove(files,pattern ="Unknown_")
+sample
+
+# condition
+Samplepath <- filePath(path="/Users/olga/Desktop/RNA-Seq Simon/Chlamy/Server/aCRY/", file="sample_table.xlsx")
+Samplefile <- read_xlsx(Samplepath)
+samplename <- Samplefile$clientName
+Samplefile$treatment
+Samplefile$condition <- paste(Samplefile$genotype, Samplefile$treatment, sep="_") %>% factor(levels = c("WT_dark","acry_dark","WT_blue","acry_blue","WT_red","acry_red","WT_3HL","WT_16HL","cia5_16HL"))
+Samplefile$treatment <- Samplefile$treatment %>% factor(levels = c("dark","blue","red","light","3HL","16HL"))
+# Make table
+sample.table <- data.frame(Samplefile[,-3])
+sample.table %>% kable()
+
+sample.table <- data.frame(lapply(sample.table, factor))
+
+# Check the updated structure of the data frame
+str(sample.table)
+
+```
+
+## 2b. Mapping Rates
+```{r mapping_rates}
+
+samplelist <- {}
+mappingrates <- {}
+for (i in list.files(path = quantdir)){
+print(i)
+si <- paste("",str_sub(i,11,-7),sep = "")
+si
+samplelist <- c(samplelist,si)
+f <- readLines(paste(quantdir,i,"logs/salmon_quant.log", sep="/"))
+line <- grep("Mapping rate = ",f,value=TRUE)
+sl <- str_length(line)
+sl
+notime <- substring(line,30,sl)
+notime
+manual <- substring(line,sl-7,sl-1)
+val <- as.numeric(str_extract(notime,"[0-9.]+"))
+val
+valr<-round(val, digits=2)
+print(paste("Mapping rate of ",si," is: ",valr," %"))
+mappingrates <- c(mappingrates,valr)
+}
+sample.table$mappingrates <- mappingrates
+# Make table
+
+m.table <- data.frame(sample.table,mappingrates) # here used earlier only for columns [1:2,], otherwise for the whole table use sample.table
+```
+
+### Plot mapping rates
+```{r plot_mappingrates}
+
+# Plot
+par(mar=c(2,4,0,0)+.1) # set margins for figure
+plot(m.table$mappingrates)
+# -> boring
+
+# increase margin for longer names
+par(mar=c(2,5,2,2)+.1)
+# barplot(height=mappingrates, names=samplename, horiz=T, las=1)
+
+xx <- barplot(height=mappingrates, cex.names=0.5, names=samplename[2], horiz=T, las=1, xlim=c(0,100))
+text(x = mappingrates, y = xx, label = mappingrates, pos = 4, cex = 0.5, col = "red")
+
+par(mar=c(4,4,4,4)+.1)
+
+```
+
+## 2c. Tximeta
+combine counts from different transcripts (splice variants) to gene level
+
+```{r tximeta}
+
+example.quant <- paste(quantdir,list.files(quantdir)[1],"quant.sf",sep="/")
+
+list.files(quantdir)[1]
+file.exists(example.quant)
+
+# first file:
+example.table <- read.table(example.quant, header=T)
+head(example.table)
+dim(example.table)
+basename(example.quant)
+dirname(example.quant)
+basename(dirname(example.quant))
+
+# generate file list & prepare variables
+files={}
+for (i in list.dirs(path = quantdir, full.names = TRUE, recursive = FALSE)) {
+files <- c(files,paste(i,"/quant.sf",sep=""))
+}
+head(files)
+length(files)
+
+dirfiles <- dirname(files)
+head(dirfiles)
+head(basename(dirfiles))
+run <- basename(dirfiles)
+dirdir <- dirname(dirfiles)
+head(dirdir)
+
+tximeta_files <- file.path(dirdir, run, "quant.sf") 
+file.exists(tximeta_files)
+file.exists(files)
+
+# names as working sample names
+# see 'm.table' at mapping rates
+coldata <- data.frame(files, names = run, stringsAsFactors=FALSE)
+coldata <- data.frame(coldata,sample.table[1:2,])
+coldata %>% head() %>% kable()
+
+# load tximeta
+# with linked Transcriptome
+## Chlamy
+
+indexDir="/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/test/Chlamy_index_Olga" # salmon index
+fastaPath="/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.0.hardmasked.fa.gz" # genomic fasta
+gtfPath="/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.gene.gff3.gz"
+  
+file.exists(indexDir, fastaPath, gtfPath)
+
+makeLinkedTxome(indexDir=indexDir,
+                source="Phytozome",
+                organism="Chlamydomonas reinhardtii",
+                release="v6.1",
+                genome="CreinhardtiiCC_4532_707",
+                fasta=fastaPath,
+                gtf=gtfPath,
+                write=FALSE)
+
+gtfdata <- readLines(gtfPath)
+head(gtfdata, n=10)
+
+# gene_name info sind in gff3 abder nicht in se?
+coldata_Cre <- filter(coldata, species == "Cre")
+se <- tximeta(coldata_Cre, useHub=T)
+se
+
+
+library(SummarizedExperiment)
+
+# Column infos = Sample infos -> colData(se)
+colData(se) %>% head() %>% kable()
+
+# Row Infos = Gene Infos -> mcols(se)
+mcols(se) %>% head() %>% kable()
+
+# rename Samples
+rownames(colData(se)) <- colData(se)$clientName
+
+# Gene length
+rowRanges(se) %>% head() %>% kable()
+
+head(assays(se)[["counts"]]) %>% kable()
+# counts. THE DATA
+
+# Mapping infos:
+names(metadata(se)[["quantInfo"]])
+# str(metadata(se)[["quantInfo"]]) # Infos from Salmon Mapping
+metadata(se)[["quantInfo"]]$percent_mapped
+metadata(se)[["quantInfo"]]$num_processed
+
+par(mfrow=c(1,2))
+barplot(metadata(se)[["quantInfo"]]$percent_mapped, main="Mapping Rate")
+barplot(metadata(se)[["quantInfo"]]$num_processed/1000000, main="Mio. Reads")
+par(mfrow=c(1,1))
+
+edb <- retrieveDb(se)
+class(edb)
+genes(edb)
+columns(edb)
+
+se.exons <- addExons(se)
+rowRanges(se.exons)[[1]]
+gse <- summarizeToGene(se)
+rowRanges(gse)
+
+head(assays(gse)[["counts"]])[1:5,1:5]
+head(assays(gse)[["abundance"]])[1:5,1:5]
+head(assays(gse)[["length"]])[1:5,1:5]
+
+#### add gene symbol
+columns(retrieveDb(se))
+edb
+metadata(se)$txomeInfo$source
+
+TXNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, keytype = "GENEID", column = "TXNAME", multiVals="first"))
+# select()' returned 1:many mapping between keys and columns = 1 gene has many transcripts...
+TXNAME.list <- (mapIds(edb,keys = mcols(gse)$gene_id, column = "TXNAME", keytype = "GENEID", multiVals="list"))
+head(TXNAME.list)
+# info is already there
+CDSID <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSID", keytype = "GENEID", multiVals="first"))
+head(CDSID)
+# ?
+CDSNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSNAME", keytype = "GENEID", multiVals="first"))
+head(CDSNAME)
+# same as gene_id
+EXONNAME <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "EXONNAME", keytype = "GENEID", multiVals="first"))
+head(EXONNAME)
+TXTYPE <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "TXTYPE", keytype = "GENEID", multiVals="first"))
+head(TXTYPE)
+# no useful info... no gene Symbol!!
+
+# add CDSID
+mcols(gse)$CDSID <- as.character(mapIds(edb,keys = mcols(gse)$gene_id, column = "CDSID", keytype = "GENEID", multiVals="first"))
+
+
+colnames(mcols(gse))
+head(rownames(gse))
+
+getwd()
+save(gse,file=paste(dir,"tximeta_test.RDS", sep="/"))
+# gse <- 1
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
+
+```
+
+### -Add gene info from Master annotation
+
+Use other files from Phytozome database: CreinhardtiiCC_4532_707_v6.1.master_annotation_table.tsv
+
+```{r anno}
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(ape)
+
+
+# more gene info from master_annotation_table
+annopath <- file.path("/Volumes/biopro3/ExpBP/Chlamyland/RNA_seq/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.master_annotation_table.tsv")
+
+anno <- read.delim2(annopath, header = T, sep = "\t",)
+head(anno)[1:5,] %>% kable()
+
+# search for genes
+anno[str_detect(anno[["locusName_4532"]],"Cre01.g000050"),]
+anno[str_detect(anno[["geneSymbol"]],"HKR"),]
+anno[str_detect(anno[["previousIdentifiers"]],"HKR"),]
+anno[str_detect(anno[["geneSymbol"]],"COP"),]
+anno[str_detect(anno[["previousIdentifiers"]],"COP1"),]
+anno[str_detect(anno[["geneSymbol"]],"cop"),]
+anno[str_detect(anno[["geneSymbol"]],"PLAP6"),]
+anno[str_detect(anno[["geneSymbol"]],"COQ3"),]
+anno[str_detect(anno[["geneSymbol"]],"PCRY"),]
+anno[str_detect(anno[["geneSymbol"]],"CRY"),]
+anno[str_detect(anno[["geneSymbol"]],"CRY-DASH"),]
+anno[str_detect(anno[["previousIdentifiers"]],"CRY-DASH"),]
+
+dim(anno)
+
+# Remove "_4532"
+anno$gene_id <- str_remove(anno$locusName_4532,pattern = "_4532")
+rownames(anno) <- anno$gene_id
+
+# convert previousIdentifiers to list
+anno$previousIdentifiers_list <- strsplit(anno$previousIdentifiers, "#")
+head(anno)
+anno$previousIdentifiers_list[1]
+
+# polish "previousIdentifiers"
+# remove Cre & g-numbers
+head(anno$previousIdentifiers)
+tail(anno$previousIdentifiers)
+prev.symbols <-  
+  str_replace_all(anno$previousIdentifiers,pattern="Cre\\d+.g\\d+.t\\d+.\\d+", replacement="?") %>% 
+  str_replace_all(pattern="Cre...g\\d+", replacement="?") %>% 
+  str_replace_all(pattern="g\\d+.t\\d+", replacement="?") %>% 
+  str_remove_all(pattern="\\?") %>%
+  str_remove_all("^#|#$| ") %>% str_remove_all("^#|#$") %>% str_remove_all("^#|#$|^0") %>% 
+  str_replace_all(pattern="##","#") %>% str_replace_all(pattern="##","#")
+prev.symbols[str_detect(prev.symbols,"#")] %>% head(n=20)
+prev.symbols[str_detect(prev.symbols,"0")] %>% head(n=20)
+prev.symbols[str_detect(prev.symbols,"Cre")] %>% head(n=20)
+tail(anno$previousIdentifiers[str_detect(anno$previousIdentifiers,"Cre")])
+
+
+anno$prev.symbols <- prev.symbols
+head(anno)[1:5,1:9] %>% kable()
+
+# Make colum with gene symbol or prev.symbol or Gene id
+anno$combname <- anno$geneSymbol
+
+summary(anno$combname)
+summary(anno$combname=="")
+summary(anno$combname==" ")
+summary(is.na(anno$combname))
+summary(anno$combname=="0")
+
+# replace "" with prev.symbol
+summary(anno$combname=="")
+  length(anno$combname[anno$combname==""])
+  length(str_split(
+  anno$prev.symbols[anno$combname==""],pattern ="#", simplify = T)[,1])
+anno$combname[anno$combname==""] <- str_split(
+  anno$prev.symbols[anno$combname==""],pattern ="#", simplify = T)[,1]
+summary(anno$combname=="")
+
+anno$combname[anno$combname==""] <- anno$gene_id[anno$combname==""]
+summary(anno$combname=="")
+subset(anno,anno$combname=="")
+
+summary(duplicated(anno$combname))
+# some duplicates
+
+colnames(anno)[which(names(anno) == "combname")] <- "id.symbol"
+
+
+summary(anno$geneSymbol!="")
+# 4408 gene Symbols
+summary(anno$previousIdentifiers!="")
+# all (!) 17712 genes have "previousIdentifiers"
+summary(anno$prev.symbols!="")
+# 7236 have alternative/old symbols
+summary(anno$id.symbol)
+
+dim(anno)
+
+# anno[1:10,1:10]
+
+# save(anno, file = paste(dir,"anno.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"anno.RDS",sep="/"))
+
+```
+
+
+### -add anno data into gse ####
+```{r anno_gse}
+
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
+# load(file=paste(dir,"/anno.RDS", sep="/"))
+anno[1:3,1:8] %>% kable()
+
+# Remove "_4532"
+mcols(gse)$gene_id2 <- mcols(gse)[,"gene_id"]
+mcols(gse)$gene_id <- str_remove(mcols(gse)[,"gene_id2"], pattern = "_4532")
+rownames(gse) <- mcols(gse)$gene_id
+
+summary(anno$gene_id %in% mcols(gse)$gene_id)
+summary(mcols(gse)$gene_id %in% anno$gene_id)
+
+# choose info
+gsetable <- as.data.frame(mcols(gse)[,c("gene_id","gene_id2")])
+
+anno_join <- anno[,c("gene_id", "geneSymbol", "id.symbol","prev.symbols", "previousIdentifiers", "previousIdentifiers_list", "Description", "Comments", "TargetP", "Predalgo")]
+anno_join %>% head() %>% kable()
+
+class(anno_join)
+dim(anno_join)
+
+# any duplicated:
+summary(duplicated(anno$gene_id))
+
+new <- plyr::join(gsetable,anno_join, by = "gene_id", type = "left")
+dim(new)
+head(new) %>% kable()
+
+new2 <- left_join(gsetable,anno_join,by = "gene_id")
+dim(new2)
+head(new2) %>% kable()
+
+mcols(gse) <- left_join(as.data.frame(mcols(gse)),anno_join,by = "gene_id")
+mcols(gse) %>% head() %>% kable()
+
+save(gse,file=paste(dir,"tximeta_test.RDS",sep="/"))
+```
+
+
+## 2c. DESeq2 Analysis
+
+```{r deseq2}
+getwd()
+# load(file=paste(dir,"tximeta.RDS", sep="/"))
+
+colData(gse) %>% head() %>% kable()
+mcols(gse) %>% head() %>% kable()
+
+gse_acry <- gse[,colData(gse)$experiment=="acry"]
+colData(gse_acry) <- colData(gse_acry) %>% droplevels()
+colData(gse_acry)$genotype <- colData(gse_acry)$genotype %>% relevel(ref="WT")
+
+gse_cia5 <- gse[,colData(gse)$experiment=="cia5"]
+colData(gse_cia5) <- colData(gse_cia5) %>% droplevels()
+colData(gse_cia5)$genotype <- colData(gse_cia5)$genotype %>% relevel(ref="WT")
+
+```
+
+### Deseq2 acry
+```{r dds_acry}
+design <- ~condition
+# design <- ~genotype+treatment+genotype:treatment
+colData(gse)
+dds <- DESeqDataSet(gse, design=~ 1)
+dds <- DESeqDataSet(gse, design=design)
+
+colData(dds) %>% head() %>% kable()
+
+
+
+##########################################\n
+# filter all rows with rowsum = 0 ####
+par(mfrow=c(1,2))
+hist(log(counts(dds)), breaks=100)
+hist(counts(dds), breaks=1000000)
+# -> dip at log(counts(dds)=2-3)
+par(mfrow=c(1,1))
+
+# min counts
+# at least 5 counts in 3 samples
+keep.sn <- rowSums(counts(dds) >= 5) >= 3
+keep.sn %>% summary()
+dds <- dds[keep.sn,]
+
+dds <- estimateSizeFactors(dds)
+dds
+head(assays(dds)[["counts"]])[1:5,1:5]
+length(rownames(counts(dds)))
+
+# add metadata
+# colData(dds)$strain <- factor(colData(dds)$strain)
+
+# ## combine technical replicates #####
+# colData(dds)
+# dds <- collapseReplicates(dds, dds$sampleid,dds$lane)
+# colData(dds)
+# dds$runsCollapsed
+# colnames(dds)
+# matchFirstLevel <- dds$sampleid == levels(factor(dds$sampleid))[1]
+# all(rowSums(counts(dds[,matchFirstLevel])) == counts(dds[,1]))
+
+###########
+# run DESeq
+dds <- DESeq(dds)
+DESeq2::plotMA(dds)
+
+plotCounts(dds, gene = "Cre01.g000150", intgroup = "condition")
+
+head(mcols(dds)$geneSymbol)
+
+anno[str_detect(anno[["geneSymbol"]],"CRY-DASH"),]
+# no hit
+g <- anno[str_detect(anno[["previousIdentifiers"]],"CRY-DASH1"),"gene_id"]
+g
+plotCounts(dds, gene = g, intgroup = "condition")
+g <- anno[str_detect(anno[["geneSymbol"]],"PCRY"),"gene_id"]
+plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
+g <- anno[str_detect(anno[["geneSymbol"]],"ACRY"),"gene_id"]
+plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
+g <- anno[str_detect(anno[["geneSymbol"]],"ROC15"),"gene_id"]
+plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
+g <- anno[str_detect(anno[["geneSymbol"]],"ROC40"),"gene_id"]
+plotCounts(dds, gene = g, intgroup = "condition", col=dds$genotype, main =anno[g,"geneSymbol"])
+
+
+# search genes
+anno[str_detect(anno[["geneSymbol"]],"CRY"),1:9] %>% kable()
+
+anno[str_detect(anno[["geneSymbol"]],"ROC"),1:9] %>% kable()
+anno[str_detect(anno[["previousIdentifiers"]],"CRY"),1:9] %>% kable()
+
+
+###############
+# save dds #####
+
+# save(dds, file = paste(dir,"dds_23design.RDS",sep="/"), compress = FALSE)
+# save(dds, file = paste(dir,"dds_acry.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"dds.RDS",sep="/"))
+# dds
+
+```
+
+### Deseq2 cia5
+```{r}
+design <- ~genotype
+dds <- DESeqDataSet(gse_cia5, design=design)
+colData(dds) %>% head() %>% kable()
+
+## filter all rows with rowsum = 0 ####
+par(mfrow=c(1,2))
+hist(log(counts(dds)), breaks=100, ylim = c(0,4000), xlim = c(0,10))
+hist(counts(dds), breaks=300000, ylim = c(0,10000), xlim = c(0,10))
+# -> dip at log(counts(dds)=2-3)
+par(mfrow=c(1,1))
+
+# min counts
+# at least 5 counts in 3 samples
+keep.sn <- rowSums(counts(dds) >= 5) >= 3
+keep.sn %>% summary()
+dds <- dds[keep.sn,]
+
+dds <- estimateSizeFactors(dds)
+dds
+head(assays(dds)[["counts"]])[1:5,1:5]
+length(rownames(counts(dds)))
+
+colData(dds) %>% head() %>% kable()
+
+# run DESeq
+dds <- DESeq(dds)
+
+# qc check
+DESeq2::plotMA(dds)
+plotDispEsts(dds)
+
+# counts
+plotCounts(dds, gene = "Cre01.g000150", intgroup = "genotype", col=colData(dds)$genotype)
+
+save(dds, file = paste(dir,"dds_cia5.RDS",sep="/"), compress = FALSE)
+
+```
+
+
+
+# 3. Pre-Analysis
+### load data
+```{r}
+load(file=paste(dir,"dds_cia5.RDS", sep="/"))
+load(file=paste(dir,"dds_acry.RDS", sep="/"))
+load(file=paste(dir,"anno.RDS", sep="/"))
+
+```
+
+### - Data transformations
+```{r pre_trans, eval=TRUE, include=FALSE, echo=FALSE}
+vsd <- vst(dds, blind=FALSE) #Variance stabilized transformation
+ntd <- normTransform(dds)
+rld <- rlog(dds, blind=FALSE) #regularized logarithm
+```
+
+```{r pre_trans_fig, figures-side, fig.show="hold", out.width="33%"}
+# load(file=paste(data,"rlog.rld", sep="/"))
+meanSdPlot(assay(ntd))
+meanSdPlot(assay(vsd))
+meanSdPlot(assay(rld))
+
+```
+
+### - Check sample distance
+```{r pre_sample_dist, fig.height=6, out.width="100%", eval=TRUE, include=TRUE, echo=FALSE}
+sampleDists <- dist(t(assay(vsd)))
+
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- vsd$clientName
+# colnames(sampleDistMatrix) <- NULL
+colData(vsd)$treatment
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+anno_col <- as.data.frame(colData(vsd)[,c("treatment","genotype")])
+anno_colors <- list(treatment = c("grey20","skyblue1","lightcoral"), #,"ivory","yellow1","gold"
+                    genotype = c("grey","seagreen3","tan2"))
+
+names(anno_colors$treatment) <- levels(anno_col$treatment)
+names(anno_colors$genotype) <- levels(anno_col$genotype)
+
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         annotation_col=anno_col,
+         annotation_colors = anno_colors,
+         show_colnames     = FALSE,
+         col=viridis(20),
+         cutree_rows = 6,
+         cutree_cols = 6,
+         fontsize_row = 5)
+
+
+```
+
+
+### - Perform principal component analysis
+```{r pca, warning = FALSE, fig.show="hold", out.width="80%", fig.height=7, eval=TRUE, include=TRUE, echo=FALSE}
+# transform data
+# load(file=paste(data,"deseq2.dds", sep="/"))
+vst_dat <- assay(vst(dds))
+
+### PCA with top 500 genes with highest row variance 
+pcaData <- plotPCA(vsd, intgroup=colnames(colData(vsd)), returnData=TRUE)
+# levels(pcaData$genotype)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+g1 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "treatment") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_color_manual(values = anno_colors$treatment)
+
+g2 <- ggplot(pcaData, aes(PC1, PC2, color=genotype, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "genotype") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+  scale_color_manual(values = anno_colors$genotype)
+
+g3 <- ggplot(pcaData, aes(PC1, PC2, color=condition, shape=genotype)) +
+  geom_point(size=5, alpha=0.7) +
+  labs(title = "condition") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+  # coord_fixed()
+  scale_color_viridis_d(option ="viridis") 
+
+
+((g1+g2) / (g3)) + plot_layout(guides = "collect", axis_titles="collect")
+
+
+
+
+
+```
+
+
+###### -- Advanced PCA
+```{r pca_advanced, warning = FALSE, fig.show="hold", out.width="80%", fig.height=6, eval=TRUE, include=TRUE, echo=FALSE}
+# transform data
+# calculate PCA (all data)
+## https://www.bioconductor.org/packages/devel/bioc/vignettes/PCAtools/inst/doc/PCAtools.html#modify-bi-plots
+
+# p <- pca(vst_dat, metadata = colData(dds))
+# vst <- assay(vst(dds))
+p <- pca(vst_dat, metadata = colData(dds), removeVar = 0.1)
+
+# check different PCAs
+p1 <- pairsplot(p,colby = 'treatment', colkey = anno_colors$treatment,title = 'treatment',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # -> PC1 = treatment
+
+p2 <- pairsplot(p,colby = 'genotype', colkey = anno_colors$genotype,title = 'genotype',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # -> PC1&3 = genotype
+
+p4 <- pairsplot(p,colby = 'condition', colkey = viridis(length(levels(colData(dds)$condition))),title = 'condition',titleLabSize = 15,trianglelabSize = 6,
+                hline = 0, vline = 0,gridlines.major = FALSE, gridlines.minor = FALSE,
+                plotaxes = FALSE,margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm')) # PC1 & PC3 = condition
+
+(p1+p2) / (p4)
+
+# Determine optimum number of PCs to retain
+elbow <- findElbowPoint(p$variance)
+elbow
+
+# plot Scree
+# find explaining PCs
+# horn <- parallelPCA(vst_dat)
+# horn$n = 2
+# warnings()
+
+horn <- list()
+horn$n <- 2
+
+screeplot(p,
+    components = getComponents(p, 1:20),
+    vline = c(horn$n, elbow)) +
+    geom_label(aes(x = horn$n + 1, y = 30,
+      label = 'Horn\'s=2', vjust = -1, size = 8)) +
+    geom_label(aes(x = elbow + 1, y = 50,
+      label = 'Elbow=4', vjust = -1, size = 8))
+
+bi <- biplot(p,x="PC3",y="PC1",
+    lab = p$metadata$condition,
+    colby = 'condition',colkey = viridis(length(levels(colData(dds)$condition))),
+    hline = 0, vline = 0,
+    encircle = TRUE, encircleFill = TRUE,
+    labSize = 3, legendIconSize = 4.0,
+    legendPosition = 'bottom',
+    sizeLoadingsNames = 3,
+    axisLabSize = 10,
+    captionLabSize = 1)
+
+bi <- bi +theme(panel.background = element_rect(fill='transparent'))
+
+pairs <- pairsplot(p,
+    components = getComponents(p, c(1:7)),
+    triangle = TRUE, trianglelabSize = 6,
+    hline = 0, vline = 0,
+    pointSize = 2,
+    gridlines.major = FALSE, gridlines.minor = FALSE,
+    colby = 'condition', colkey = viridis(length(levels(colData(dds)$condition))),
+    plotaxes = FALSE,
+    margingaps = unit(c(-0.01, -0.01, -0.01, -0.01), 'cm'))
+
+layout <- c(
+  area(t = 1, l = 1, b = 6, r = 6),
+  area(t = 5, l = 1, b = 7, r = 3)
+)
+pairs + bi + 
+  plot_layout(design = layout)
+
+# pairs + inset_element(bi, left = 0, bottom = 0, right = 0.5, top = 0.5)
+
+plotloadings(p,
+             components = getComponents(p)[1:7],
+             col = viridis(3),
+             labSize = 3)
+
+
+```
+
+
+### - Plot example counts
+#### cia5
+
+```{r example_counts, fig.show="hold", out.width="50%", eval=FALSE, include=TRUE, echo=FALSE}
+
+load(file=paste(dir,"dds_cia5.RDS", sep="/"))
+
+## cia5
+
+# plap6
+PLAP6 <- "Cre03.g188700"
+d <- plotCounts(dds,gene = PLAP6, intgroup= c("treatment","genotype","condition"), returnData=TRUE)
+
+resultsNames(dds)
+res <- results(dds,contrast = c("genotype","cia5","WT"))
+res["Cre03.g188700",]
+ggplot(d, aes(x = genotype, y = count, fill=genotype, color=genotype)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=genotype),position=position_dodge(width=0.75), alpha=1) +
+   # scale_fill_manual(values=cols[c(1,5)]) +
+  #  scale_color_manual(values=cols[c(1,5)]) +
+   scale_y_continuous(trans = "log2") +
+  scale_fill_manual(values = c("grey30","salmon")) + 
+  scale_color_manual(values = c("grey30","salmon")) + 
+    labs(title = paste("PLAP6 (",PLAP6,")",sep=""))
+  assign(paste("gcounts_",ig,sep=""),gcounts)
+  
+  gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+# ggsave(paste(outdir,"graphs/2023_11_counts_tfs_aio_log2.pdf",sep="/"), plot = gcounts,
+#   width = 18,
+#   height = 10)
+
+
+
+goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "DCRY2", "PHOT1", "UVR8", "HKR1") #"HKR2"
+
+anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+# Get Count data
+i <- 1
+l <- length(goi_phot)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=anno_phot[i,"gene_id"], intgroup=c("condition","genotype","treatment"), main=anno_phot[i,"id.symbol"],returnData=TRUE)
+  d$Gene <- rep(anno_phot[i,"id.symbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  # rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+
+# TF genes
+
+goi_tf <- c("CCM1","LCR1", "HY5", "PHOT1", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
+anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
+summary(anno_tf$gene_id %in% rownames(dds))
+anno_tf[!anno_tf$gene_id %in% rownames(dds),]
+anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+
+# Combined counts table TFs
+
+goi <- anno_tf
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","treatment","genotype"),col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+all_counts$Gene <- factor(all_counts$Gene, levels = anno_tf$geneSymbol[c(9,6,8,7,15,2,1,4,3,5,13,11,14,10,12)])
+levels(all_counts$Gene)
+
+# colours
+# group.colors <- rep(anno_colors$treatment, each = 2)
+group.colors <- rep(anno_colors$treatment, each = 2)[c(1:6,7,9,11)]
+names(group.colors) <- colData(dds)$condition %>% levels()
+anno_colors$condition <- group.colors
+
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  scale_y_continuous(trans = "log2")
+gcounts
+
+cols = brewer.pal(n=9,name = 'Paired')
+
+gcounts <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition, color=condition)) +
+  geom_boxplot(color="black") +
+  geom_point(position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  scale_y_continuous(trans = "log2")
+gcounts
+
+gcounts2 <- ggplot(all_counts, aes(x = condition, y = count, fill=Gene)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(trans = "log2")
+gcounts2
+
+gcounts3 <- ggplot(all_counts[all_counts$Gene=="ROC40",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
+  geom_boxplot(color="black") +
+  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=anno_colors$treatment) +
+  scale_color_manual(values=anno_colors$treatment) +
+  scale_y_continuous(trans = "log2") +
+  labs(title = "ROC40") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+gcounts3
+
+gcounts4 <- ggplot(all_counts[all_counts$Gene=="ROC114",], aes(x = condition, y = count, fill=treatment, color=treatment)) +
+  geom_boxplot(color="black") +
+  geom_point(shape=21,color="black",aes(fill=treatment),position=position_dodge(width=0.75), alpha=1) +
+  scale_fill_manual(values=anno_colors$treatment) +
+  scale_color_manual(values=anno_colors$treatment) +
+  scale_y_continuous(trans = "log2") +
+  labs(title = "ROC114") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+gcounts4
+
+
+```
+
+```{r}
+sessionInfo()
+```
+
+
