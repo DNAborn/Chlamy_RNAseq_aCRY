@@ -111,6 +111,22 @@ if(Sys.info()["sysname"]== "Linux"){
 
 ```
 
+
+## -R functions
+```{r r_functions}
+getresults_SK <- function(contrast,nres){
+r1 <- results(dds, contrast = contrast)
+r1$symbol <- mcols(dds)$symbol
+assign(paste("res",nres,sep="."),r1)
+r1 <- list(r1)
+names(r1) <- nres
+r1
+}
+```
+
+
+
+
 # 1. Load aCRY & pCRY
 ## - Tximeta files
 ```{r get_tximeta_files, include=FALSE}
@@ -548,35 +564,86 @@ gcounts %>% print()
 ## Make results
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 
-res_list_list <- list()
-for (dds in dds_list) {
-
 design(dds)
 resultsNames(dds)
 cbind(resultsNames(dds),c(rep(0,resultsNames(dds) %>% length())))
 
+#    [,1]                       [,2]
+# [1,] "Intercept"                "0" 
+# [2,] "treatment_BL_vs_D"        "0" 
+# [3,] "treatment_R_vs_D"         "0" 
+# [4,] "genotype_pcry_vs_WT"      "0" 
+# [5,] "treatmentBL.genotypepcry" "0" 
+# [6,] "treatmentR.genotypepcry"  "0" 
+
+# assign(paste("res",n,sep="_"),list())
+
+res_list <- list()
+for (i in 1:2) {
+dds <- dds_list[i]
+nlist <- names(dds_list[i])
+c <- resultsNames(dds)
+res_l <- list()
+
 # res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
 
-# Unterschiede zwischen WT und pCRY unter versch. Belichtungen
-res1 <- res_WT_D_vs.pcry_D <- results(dds, contrast=c(0,0,0,1,0,0))
-res1 <- res_WT_D_vs.pcry_D <- results(dds,name = "genotype_pcry_vs_WT")
+# Belichtungseffect für jeden Genotyp
+nres <- "WT_BL.vs.D"
+contrast <- c("treatment_BL_vs_D")
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
-res2 <- res_WT_BL_vs.pcry_BL <- results(dds, contrast=c(0,1,0,0,1,0))
+nres <- paste(nlist,"_BL.vs.D",sep="")
+contrast <- list(c("treatment_BL_vs_D",c[5]))
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
-res3 <- res_WT_R_vs.pcry_R <- results(dds, contrast=c(0,0,1,0,0,1))
+nres <- paste(nlist,"_R.vs.D",sep="")
+contrast <- list(c("treatment_R_vs_D",c[6])))
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
+
+# Unterschiede zwischen WT und pCRY unter gleicher Belichtung
+nres <- paste(nlist,"D.vs.WT_D",sep="_")
+contrast <- c(0,0,0,1,0,0)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+nres <- paste(nlist,"BL.vs.WT_BL",sep="_")
+contrast <- c(0,1,0,0,1,0)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+nres <- paste(nlist,"R.vs.WT_R",sep="_")
+contrast <- c(0,0,1,0,0,1)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+
+# Unterschiede im Belichtungseffekt
+nres <- paste(nlist,"BLvD.vs.WT_BLvD",sep="_")
+contrast <- c(0,0,0,0,1,0)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+nres <- paste(nlist,"RvD.vs.WT_RvD",sep="_")
+contrast <- c(0,0,0,0,0,1)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+## Exotische Kontraste
 # Unterschiede zwischen versch. Belichtungen über beide Genotypen
-# D vs. (BL+R)
-res4 <- res_D_vs._BL_R <-results(dds, contrast=c(0,0,2/6,2/6,1/3,1/3))
+nres <- "BL+R.vs.D"
+contrast <- c(0,0,2/6,2/6,1/3,1/3)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
-# D vs. BL
-res5 <- res_BL_vs._D <- results(dds, contrast=c(0,0,1,0,0.5,0))
+nres <- "BL.vs.D"
+contrast <- c(0,0,1,0,0.5,0)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
-# D vs. R
-res6 <- res_D_vs._R <- results(dds, contrast=c(0,0,0,1,0,0.5))
+nres <- "R.vs.D"
+contrast <- c(0,0,0,1,0,0.5)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
 
 # WT vs. pCRY
-res7 <- res_WT_vs._pcry <- results(dds, contrast=c(0,3,0,0,1,1))
+nres <- paste(nlist,".vs.WT",sep="")
+contrast <- c(0,3,0,0,1,1)
+res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+
+
 
 
 
