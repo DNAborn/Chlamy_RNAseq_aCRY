@@ -113,7 +113,7 @@ if(Sys.info()["sysname"]== "Linux"){
 
 
 ## -R functions
-```{r r_functions}
+```{r f_get_results}
 getresults_SK <- function(contrast,nres){
 r1 <- results(dds, contrast = contrast)
 r1$symbol <- mcols(dds)$symbol
@@ -123,6 +123,157 @@ names(r1) <- nres
 r1
 }
 ```
+
+```{r f_topgenes}
+topgenes_f <- function(res,p=0.5,bM=20,l2FC=1){
+a <- subset(res, padj < p & baseMean > bM & abs(log2FoldChange) > l2FC)
+a <- a[order(a$baseMean, decreasing = T),]
+  a$rank.bm <- seq(1:length(rownames(a)))
+a <- a[order(a$padj, decreasing = F),]
+  a$rank.padj <- seq(1:length(rownames(a)))
+a <- a[order(abs(a$log2FoldChange), decreasing = T),]
+  a$rank.l2FC <- seq(1:length(rownames(a)))
+a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
+  a <- a[order(a$rank.sum),]
+a
+}
+```
+
+```{r f_vulcano}
+
+Vulcano_SK <- function(res,
+                       n=NULL,
+                       list1=NULL,
+                       list2=NULL,
+                       list1.col=NULL,
+                       list2.col=NULL,
+                       list1.n=NULL,
+                       list2.n=NULL,
+                       xlim=NULL,
+                       ylim=NULL,
+                       ...)
+{
+# Name
+n <- names(res)
+# unlist results
+if(is.list(res)){
+  res <- res[[1]]
+}
+# define list 1
+if(is.null(list1) ) {
+  list1 <- topgenes_f(res,p=0.05,bM = 10,l2FC = 1)
+}
+# define list 2
+if(is.null(list2) ) {
+  list2 <- topgenes_f(res,p=0.005,bM = 100,l2FC = 2)
+}
+# list 1 color
+if(is.null(list1.col) ) {
+  list1.col <- "royalblue1"
+}
+# list 2 color
+if(is.null(list2.col) ) {
+  list2.col <- "royalblue4"
+}
+# name list 1
+if(is.null(list1.n) ) {
+  list1.n <- "list1"
+}
+# name list 2
+if(is.null(list2.n) ) {
+  list2.n <- "list2"
+}
+
+# xlim
+if(is.null(xlim) ) {
+  xlim <- abs(c(min(res$log2FoldChange, na.rm=TRUE),
+              max(res$log2FoldChange, na.rm=TRUE))) %>% max()
+}
+
+# ylim
+if(is.null(ylim) ) {
+  ylim <- max(-log10(res$padj), na.rm = TRUE) + 5
+}
+
+# colors
+pcol <- "black"
+lcol <- colours[1+1]
+
+# add symbol
+res$symbol <- mcols(dds_list[[i]])$symbol
+
+# define list groups
+res$isl1 <- rownames(res) %in% rownames(list1)
+res$isl2 <- rownames(res) %in% rownames(list2)
+
+# order results (list 1 on top)
+res <- res[order(abs(res$log2FoldChange), decreasing = T),]
+res <- res[order(res$isl1, decreasing = F),]
+res <- res[order(res$isl2, decreasing = F),]
+
+# change outlier shape
+shape <- 1
+if(!is.null(xlim)){
+shape <- ifelse(abs(res$log2FoldChange) > xlim, 6,16)
+}
+if(!is.null(ylim)){
+shape[res$padj < 10^-ylim] <- 6
+}
+# name shape
+names(shape)[shape == 6] <- 'outlier'
+names(shape)[shape == 16] <- 'in range'
+# move outlier to border
+res$log2FoldChange[res$log2FoldChange > xlim] <- xlim
+res$log2FoldChange[res$log2FoldChange < -xlim] <- -xlim
+res$padj[res$padj < 10^-ylim] <- 10^-ylim
+
+
+# name colors
+keyvals <- ifelse(
+    res$isl2 == TRUE, list2.col,
+    ifelse(
+    res$isl1 == TRUE, list1.col,
+    'grey') ) 
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == list1.col] <- list1.n
+  names(keyvals)[keyvals == list2.col] <- list2.n
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+
+ev_f <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = res$symbol,
+    selectLab  = res$symbol[which(names(keyvals) == list2.n)],
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = FALSE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 100,
+    colCustom = keyvals,
+    xlim = c(-xlim,xlim),
+    ylim = c(0, ylim),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("list1:",nrow(list1),", list2: ",nrow(list2)),
+    # sub = "SVF",
+    # pCutoff = 10^(-60),
+    # FCcutoff = 1,
+    shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2','p-adj < 0.05',
+                    'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol)
+    )
+ev_f
+
+}
+
+```
+
 
 
 
@@ -568,149 +719,151 @@ design(dds)
 resultsNames(dds)
 cbind(resultsNames(dds),c(rep(0,resultsNames(dds) %>% length())))
 
-#    [,1]                       [,2]
-# [1,] "Intercept"                "0" 
-# [2,] "treatment_BL_vs_D"        "0" 
-# [3,] "treatment_R_vs_D"         "0" 
-# [4,] "genotype_pcry_vs_WT"      "0" 
-# [5,] "treatmentBL.genotypepcry" "0" 
-# [6,] "treatmentR.genotypepcry"  "0" 
+#      [,1]                         [,2]
+# [1,] "Intercept"                  "0" 
+# [2,] "genotype_pcry_vs_WT"        "0" 
+# [3,] "treatment_blue_vs_dark"     "0" 
+# [4,] "treatment_red_vs_dark"      "0" 
+# [5,] "genotypepcry.treatmentblue" "0" 
+# [6,] "genotypepcry.treatmentred"  "0" 
 
 # assign(paste("res",n,sep="_"),list())
 
 res_list <- list()
 for (i in 1:2) {
-dds <- dds_list[i]
+dds <- dds_list[[i]]
+
 nlist <- names(dds_list[i])
 c <- resultsNames(dds)
+print(nlist)
 res_l <- list()
+
 
 # res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
 
 # Belichtungseffect für jeden Genotyp
 nres <- "WT_BL.vs.D"
-contrast <- c("treatment_BL_vs_D")
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c("treatment_blue_vs_dark"))
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
+
+nres <- "WT_R.vs.D"
+contrast <- list(c("treatment_red_vs_dark"))
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"_BL.vs.D",sep="")
-contrast <- list(c("treatment_BL_vs_D",c[5]))
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c("treatment_blue_vs_dark",c[5])) # [5,] "genotypepcry.treatmentblue"
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"_R.vs.D",sep="")
-contrast <- list(c("treatment_R_vs_D",c[6])))
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c("treatment_red_vs_dark",c[6])) # [6,] "genotypepcry.treatmentred"  
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 
-# Unterschiede zwischen WT und pCRY unter gleicher Belichtung
+# Unterschiede zwischen WT und ko unter gleicher Belichtung
 nres <- paste(nlist,"D.vs.WT_D",sep="_")
-contrast <- c(0,0,0,1,0,0)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c[2])                # [2,] "genotype_pcry_vs_WT"
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"BL.vs.WT_BL",sep="_")
-contrast <- c(0,1,0,0,1,0)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c[2],c[5])           # [5,] "genotypepcry.treatmentblue"
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"R.vs.WT_R",sep="_")
-contrast <- c(0,0,1,0,0,1)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- list(c[2],c[6])           # [6,] "genotypepcry.treatmentred"  
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 
 # Unterschiede im Belichtungseffekt
 nres <- paste(nlist,"BLvD.vs.WT_BLvD",sep="_")
 contrast <- c(0,0,0,0,1,0)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"RvD.vs.WT_RvD",sep="_")
 contrast <- c(0,0,0,0,0,1)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 ## Exotische Kontraste
 # Unterschiede zwischen versch. Belichtungen über beide Genotypen
 nres <- "BL+R.vs.D"
 contrast <- c(0,0,2/6,2/6,1/3,1/3)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- "BL.vs.D"
 contrast <- c(0,0,1,0,0.5,0)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- "R.vs.D"
 contrast <- c(0,0,0,1,0,0.5)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
-# WT vs. pCRY
+# WT vs. ko
 nres <- paste(nlist,".vs.WT",sep="")
-contrast <- c(0,3,0,0,1,1)
-res_l[[nres]] <- getresults_SK(contrast = contrast, nres = nres)
+contrast <- c(0,1,0,0,1/3,1/3)
+res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
+
+print(length(res_l))
+print(length(res_list))
+print(names(res_list))
+
+res_list[[nlist]] <- res_l
+print(length(res_list))
+print(names(res_list))
+
+    }
 
 
 
+## Make deg & top lists:
+deg_list <- list()
+top_list <- list()
 
+for (i in 1:2) {
+ko <- names(res_list[i])
 
+deg_genes_l <- list()
+deg_genes_l <- lapply(res_list[[i]],topgenes_f) %>%  lapply(.,rownames) 
+names(deg_genes_l) <- paste("deg",names(res_list[[i]]),sep="_")
+deg_list[[ko]] <- deg_genes_l
 
-## Make top lists:
+top_genes_l <- list()
+top_genes_l <- lapply(res_list[[i]],topgenes_f,p=0.01, bM=100, l2FC=2) %>%  lapply(.,rownames) 
+names(top_genes_l) <- paste("top",names(res_list[[i]]),sep="_")
+top_list[[ko]] <- top_genes_l
 
-topgenes <- function(res){
-a <- subset(res, padj < 0.05 & baseMean > 20 & (log2FoldChange < -0.5 | log2FoldChange > 0.5))
-a$id.symbol <- anno[rownames(a),"id.symbol"]
-a$symbol <- anno[rownames(a),"geneSymbol"]
-a <- a[order(a$baseMean, decreasing = T),]
-  a$rank.bm <- seq(1:length(rownames(a)))
-a <- a[order(a$padj, decreasing = F),]
-  a$rank.padj <- seq(1:length(rownames(a)))
-a <- a[order(abs(a$log2FoldChange), decreasing = T),]
-  a$rank.l2FC <- seq(1:length(rownames(a)))
-a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
-  a <- a[order(a$rank.sum),]
-print(a)
 }
 
-top.res1 <- topgenes(res=res1)
-summary(res1)
-top.res2 <- topgenes(res=res2)
-summary(res2)
-top.res3 <- topgenes(res=res3)
-summary(res3)
-top.res4 <- topgenes(res=res4)
-summary(res4)
-top.res5 <- topgenes(res=res5)
-summary(res5)
-top.res6 <- topgenes(res=res6)
-summary(res6)
-top.res7 <- topgenes(res=res7)
-summary(res7)
-
-top.all <- rbind(top.res1,
-         top.res2,
-         top.res3,
-         top.res4,
-         top.res5,
-         top.res6,
-         top.res7)
-top.all <- top.all[order(top.all$rank.sum),]
-head(top.all, n=185) %>% rownames() %>% unique() %>% length()
-top.all <- top.all[unique(rownames(top.all)),]
-
-# top.all <- head(top.all, n=100)
+top_genes_l <- lapply(res_list,topgenes_f,p=0.01, bM=100, l2FC=2) %>%  lapply(.,rownames) 
 
 
-## Shrinkage
-res1_shrink <- lfcShrink(dds, res=res1, type="ashr")
-res2_shrink <- lfcShrink(dds, res=res2, type="ashr")
-res3_shrink <- lfcShrink(dds, res=res3, type="ashr")
-res4_shrink <- lfcShrink(dds, res=res4, type="ashr")
-res5_shrink <- lfcShrink(dds, res=res5, type="ashr")
-res6_shrink <- lfcShrink(dds, res=res6, type="ashr")
-res7_shrink <- lfcShrink(dds, res=res7, type="ashr")
 
+## Make shrinkage
+res_ashr_list <- list()
+for (i in 1:2) {
+ko <- names(res_list[i])
 
+res_ashr_l <- list()
+l <- length(res_list[[i]])
+for (j in 1:l){
+res_ashr_l[[names(res_list[[i]])[j]]] <- lfcShrink(res=res_list[[i]][[j]], dds=dds_list[[i]], type="ashr")
+}
+res_ashr_list[[ko]] <- res_ashr_l
+}
 
 ```
 
 
 ## Volcanos
 ### dark
-```{r, eval=FALSE}
+```{r, eval=TRUE}
+
+
+
+i <- 2
+
+Vulcano_SK(res_ashr_list[[i]]["pcry_BL.vs.WT_BL"],xlim=5,ylim=50)
+
+
+
 
 # dark
 res <- res1_shrink
