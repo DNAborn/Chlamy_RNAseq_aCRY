@@ -76,6 +76,7 @@ library(stringr)
 library(R.utils)
 library(RColorBrewer)
 
+library(VennDiagram)
 
 # library(wget)
 
@@ -94,6 +95,8 @@ dir <- paste(s,"AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY",sep="/")
 # list.files(dir) %>% head()
 gitdir <- paste(dir,"git_Chlamy_RNAseq_aCRY",sep="/")
 # list.files(gitdir) %>% head()
+
+pub_figures <- paste(gitdir,"pub_figures",sep="/")
 
 # Macbook
 scriptdir <- rstudioapi::getSourceEditorContext()$path
@@ -125,8 +128,11 @@ r1
 ```
 
 ```{r f_topgenes}
-topgenes_f <- function(res,p=0.5,bM=20,l2FC=1){
+
+
+topgenes_f <- function(res,p=0.005,bM=10,l2FC=1){
 a <- subset(res, padj < p & baseMean > bM & abs(log2FoldChange) > l2FC)
+if(nrow(a)>0) {
 a <- a[order(a$baseMean, decreasing = T),]
   a$rank.bm <- seq(1:length(rownames(a)))
 a <- a[order(a$padj, decreasing = F),]
@@ -135,11 +141,14 @@ a <- a[order(abs(a$log2FoldChange), decreasing = T),]
   a$rank.l2FC <- seq(1:length(rownames(a)))
 a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
   a <- a[order(a$rank.sum),]
+  }
 a
 }
 ```
 
 ```{r f_vulcano}
+
+# res <- res_ashr_list[[i]][6]
 
 Vulcano_SK <- function(res,
                        n=NULL,
@@ -147,25 +156,35 @@ Vulcano_SK <- function(res,
                        list2=NULL,
                        list1.col=NULL,
                        list2.col=NULL,
+                       ol.col=NULL,
                        list1.n=NULL,
                        list2.n=NULL,
                        xlim=NULL,
                        ylim=NULL,
+                       
                        ...)
 {
 # Name
-n <- names(res)
+if(is.null(n))  {
+  if(is.list(res)){
+      n <- names(res)
+  } else {
+    n <- "results"
+  }
+  }
+  
 # unlist results
 if(is.list(res)){
   res <- res[[1]]
 }
+  
 # define list 1
 if(is.null(list1) ) {
-  list1 <- topgenes_f(res,p=0.05,bM = 10,l2FC = 1)
+  list1 <- topgenes_f(res=res,p=0.05,bM = 10,l2FC = 1) %>% rownames()
 }
 # define list 2
 if(is.null(list2) ) {
-  list2 <- topgenes_f(res,p=0.005,bM = 100,l2FC = 2)
+  list2 <- topgenes_f(res=res, p=0.01, l2FC = 2, bM=10) %>% rownames()
 }
 # list 1 color
 if(is.null(list1.col) ) {
@@ -175,6 +194,14 @@ if(is.null(list1.col) ) {
 if(is.null(list2.col) ) {
   list2.col <- "royalblue4"
 }
+# list ol color
+if(is.null(ol.col) ) {
+  ol.col <- "yellow"
+} 
+
+# calculate overlap
+ol <- calculate.overlap(list(list1,list2))
+
 # name list 1
 if(is.null(list1.n) ) {
   list1.n <- "list1"
@@ -200,16 +227,19 @@ pcol <- "black"
 lcol <- colours[1+1]
 
 # add symbol
-res$symbol <- mcols(dds_list[[i]])$symbol
+res$symbol <- mcols(dds_list[[i]])$geneSymbol
 
 # define list groups
-res$isl1 <- rownames(res) %in% rownames(list1)
-res$isl2 <- rownames(res) %in% rownames(list2)
+res$isl1 <- rownames(res) %in% list1
+res$isl2 <- rownames(res) %in% list2
+res$isol <- rownames(res) %in% ol$a3
 
-# order results (list 1 on top)
+# order results (list ol on top)
 res <- res[order(abs(res$log2FoldChange), decreasing = T),]
 res <- res[order(res$isl1, decreasing = F),]
 res <- res[order(res$isl2, decreasing = F),]
+res <- res[order(res$isol, decreasing = F),]
+
 
 # change outlier shape
 shape <- 1
@@ -230,12 +260,15 @@ res$padj[res$padj < 10^-ylim] <- 10^-ylim
 
 # name colors
 keyvals <- ifelse(
-    res$isl2 == TRUE, list2.col,
+  res$isol == TRUE, ol.col,
+    ifelse(
+  res$isl2 == TRUE, list2.col,
     ifelse(
     res$isl1 == TRUE, list1.col,
-    'grey') ) 
+    'grey') ) )
 
 keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == ol.col] <- "overlap"
   names(keyvals)[keyvals == list1.col] <- list1.n
   names(keyvals)[keyvals == list2.col] <- list2.n
   names(keyvals)[keyvals == 'grey'] <- 'other'
@@ -244,7 +277,7 @@ ev_f <- EnhancedVolcano(res,
     x = 'log2FoldChange',
     y = 'padj',
     lab = res$symbol,
-    selectLab  = res$symbol[which(names(keyvals) == list2.n)],
+    selectLab  = res$symbol[which(names(keyvals) == list2.n | names(keyvals) ==list1.n | names(keyvals) =="overlap")],
     labSize = 3,
     drawConnectors = TRUE,
     boxedLabels = FALSE,
@@ -257,7 +290,7 @@ ev_f <- EnhancedVolcano(res,
     ylim = c(0, ylim),
     ylab = "Padj (-log10)",
     title = n,
-    subtitle = paste("list1:",nrow(list1),", list2: ",nrow(list2)),
+    subtitle = paste("list1:",length(list1),", list2: ",length(list2)),
     # sub = "SVF",
     # pCutoff = 10^(-60),
     # FCcutoff = 1,
@@ -266,7 +299,13 @@ ev_f <- EnhancedVolcano(res,
     legendLabels=c('Not sig.','|L2F| > 2','p-adj < 0.05',
                     'p-adj & L2F'),
     legendPosition = 'bottom',
-    col=c('grey', pcol, pcol, pcol)
+    col=c('grey', pcol, pcol, pcol),
+    legendLabSize = 8,
+    legendIconSize = 2.0,
+    axisLabSize = 8,
+    titleLabSize = 8,
+    subtitleLabSize = 8,
+    captionLabSize = 8
     )
 ev_f
 
@@ -691,29 +730,35 @@ gcounts_phot1 %>% print()
 
 # single gene
     d <- plotCounts(dds, gene=ROC40, intgroup=c("condition","experiment","genotype","treatment","clientName"), main=s,returnData=TRUE)
+    colnames(d)[1] <- "counts"
 
-gcounts <- ggplot(d, aes(x = treatment, y = count, fill=condition, color=condition)) +
+gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
     geom_boxplot(color="black") +
     geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
-  geom_text_repel(aes(label=clientName)) +
+  # geom_text_repel(aes(label=clientName)) +
     scale_fill_manual(values=group.colors) +
     scale_color_manual(values=group.colors) +
     scale_y_continuous(trans = "log2") +
-    labs(title = paste("ROC40"," in Δ",colData(dds)$experiment[1],sep = ""))
+    labs(title = paste("ROC40"," in ",colData(dds)$experiment[1],sep = "")) +
+ theme(axis.text.x = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
+
 gcounts %>% print()
 
 }
 
-# ggsave(paste(figures,"2023_12_counts_phots_aio_log2.pdf",sep="/"), plot = gcounts,
-#   width = 12,
-#   height = 8)
+# ggsave(paste(pub_figures,"ROC40.pdf",sep="/"), plot = gcounts,
+#   width = 5,
+#   height = 4)
 
 ```
 
 
 
 ## Make results
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
+```{r, eval=TRUE, include=FALSE, echo=FALSE}
 
 design(dds)
 resultsNames(dds)
@@ -832,9 +877,6 @@ top_list[[ko]] <- top_genes_l
 
 }
 
-top_genes_l <- lapply(res_list,topgenes_f,p=0.01, bM=100, l2FC=2) %>%  lapply(.,rownames) 
-
-
 
 ## Make shrinkage
 res_ashr_list <- list()
@@ -853,28 +895,188 @@ res_ashr_list[[ko]] <- res_ashr_l
 
 
 ## Volcanos
-### dark
-```{r, eval=TRUE}
+
+### Volcanos 2.0
+#### top genes
+```{r top_volcano2}
 
 
+i <- 1
+ev1_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    xlim=5,ylim=10,
+                    list2.col = "black",list1.col = "grey35")
+ev1_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    xlim=5,ylim=10,
+                    list2.col = "royalblue4",list1.col = "royalblue1")
+ev1_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    xlim=5,ylim=10,
+                    list2.col = "firebrick4",list1.col = "firebrick1")
 
 i <- 2
+ev2_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    xlim=5,ylim=50,
+                    list2.col = "black",list1.col = "grey35")
+ev2_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    xlim=5,ylim=50,
+                    list2.col = "royalblue4",list1.col = "royalblue1")
+ev2_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    xlim=5,ylim=50,
+                    list2.col = "firebrick4",list1.col = "firebrick1")
 
-Vulcano_SK(res_ashr_list[[i]]["pcry_BL.vs.WT_BL"],xlim=5,ylim=50)
+ev1_d+ev1_b+ev1_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+ev2_d+ev2_b+ev2_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
 
 
+# ga <- ggarrange(evb,
+#                 evd+rremove("ylab"),
+#                 evr+rremove("ylab"),
+#                 ncol = 3, nrow = 2,common.legend = TRUE, legend = "bottom",
+#                 widths = c(1.05,1,1))
+# 
+# 
+# ggsave(ga, file="figures/Vulcano_all.pdf",
+#        width = 12,
+#        height = 8)
+
+
+
+
+```
+
+
+#### interaction in D-D, Bl-Bl,R-R
+```{r vsvs_volcano2}
+
+i <- 1
+ev1_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+ev1_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+ev1_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+
+i <- 2
+ev2_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev2_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev2_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+
+ev1_d+ev1_b+ev1_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+ev2_d+ev2_b+ev2_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+
+```
+
+
+#### interaction in BL-D, R-D
+```{r vsvs2_volcano2}
+
+deg_list[[1]][8:9] %>% names()
+
+i <- 1
+ev1.1 <- Vulcano_SK(res=res_ashr_list[[i]][1],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5, ylim=50)
+ev1.2 <- Vulcano_SK(res=res_ashr_list[[i]][2],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev1.3 <- Vulcano_SK(res=res_ashr_list[[i]][3],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev1.4 <- Vulcano_SK(res=res_ashr_list[[i]][4],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+
+i <- 2
+ev2.1 <- Vulcano_SK(res=res_ashr_list[[i]][1],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.2 <- Vulcano_SK(res=res_ashr_list[[i]][2],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.3 <- Vulcano_SK(res=res_ashr_list[[i]][3],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.4 <- Vulcano_SK(res=res_ashr_list[[i]][4],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+
+ev1.1 + ev1.2 + ev1.3 + ev1.4 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+ev2.1 + ev2.2 + ev2.3 + ev2.4 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+ev1.1 + ev1.2 + ev2.1 + ev2.2 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+
+```
+
+
+
+### dark
+```{r, eval=FALSE}
 
 
 # dark
-res <- res1_shrink
+res <- res_ashr_list[[i]][[5]]
 n <- 'WT vs. pCRY in dark'
 nf <- 'figures/Volcano_dark.png'
-l <- nrow(top.res1)
+l <- nrow(top_list[[i]][['pCRY_D.vs.WT_D']])
 pcol <- "black"
 lcol <- colours[1+1]
 
 
-rownames(res) <- mcols(dds)$id.symbol
+rownames(res) <- mcols(dds_list[[i]])$id.symbol
 res <- res[!is.na(res$padj),]
 res <- res[!is.na(res$log2FoldChange),]
 

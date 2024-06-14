@@ -6,6 +6,7 @@ Kelterborn
 - [Load System](#load-system)
   - [-R_libraries](#-r_libraries)
   - [-R_folders](#-r_folders)
+  - [-R functions](#-r-functions)
 - [1. Load aCRY & pCRY](#1-load-acry--pcry)
   - [- Tximeta files](#--tximeta-files)
   - [Run Deseq2](#run-deseq2)
@@ -24,6 +25,201 @@ BiocManager::install()
 ## -R_libraries
 
 ## -R_folders
+
+## -R functions
+
+``` r
+getresults_SK <- function(contrast,nres){
+r1 <- results(dds, contrast = contrast)
+r1$symbol <- mcols(dds)$symbol
+assign(paste("res",nres,sep="."),r1)
+r1 <- list(r1)
+names(r1) <- nres
+r1
+}
+```
+
+``` r
+topgenes_f <- function(res,p=0.005,bM=10,l2FC=1){
+a <- subset(res, padj < p & baseMean > bM & abs(log2FoldChange) > l2FC)
+if(nrow(a)>0) {
+a <- a[order(a$baseMean, decreasing = T),]
+  a$rank.bm <- seq(1:length(rownames(a)))
+a <- a[order(a$padj, decreasing = F),]
+  a$rank.padj <- seq(1:length(rownames(a)))
+a <- a[order(abs(a$log2FoldChange), decreasing = T),]
+  a$rank.l2FC <- seq(1:length(rownames(a)))
+a$rank.sum <- a$rank.l2FC+a$rank.bm+a$rank.padj
+  a <- a[order(a$rank.sum),]
+  }
+a
+}
+```
+
+``` r
+# res <- res_ashr_list[[i]][6]
+
+Vulcano_SK <- function(res,
+                       n=NULL,
+                       list1=NULL,
+                       list2=NULL,
+                       list1.col=NULL,
+                       list2.col=NULL,
+                       ol.col=NULL,
+                       list1.n=NULL,
+                       list2.n=NULL,
+                       xlim=NULL,
+                       ylim=NULL,
+                       
+                       ...)
+{
+# Name
+if(is.null(n))  {
+  if(is.list(res)){
+      n <- names(res)
+  } else {
+    n <- "results"
+  }
+  }
+  
+# unlist results
+if(is.list(res)){
+  res <- res[[1]]
+}
+  
+# define list 1
+if(is.null(list1) ) {
+  list1 <- topgenes_f(res=res,p=0.05,bM = 10,l2FC = 1) %>% rownames()
+}
+# define list 2
+if(is.null(list2) ) {
+  list2 <- topgenes_f(res=res, p=0.01, l2FC = 2, bM=10) %>% rownames()
+}
+# list 1 color
+if(is.null(list1.col) ) {
+  list1.col <- "royalblue1"
+}
+# list 2 color
+if(is.null(list2.col) ) {
+  list2.col <- "royalblue4"
+}
+# list ol color
+if(is.null(ol.col) ) {
+  ol.col <- "yellow"
+} 
+
+# calculate overlap
+ol <- calculate.overlap(list(list1,list2))
+
+# name list 1
+if(is.null(list1.n) ) {
+  list1.n <- "list1"
+}
+# name list 2
+if(is.null(list2.n) ) {
+  list2.n <- "list2"
+}
+
+# xlim
+if(is.null(xlim) ) {
+  xlim <- abs(c(min(res$log2FoldChange, na.rm=TRUE),
+              max(res$log2FoldChange, na.rm=TRUE))) %>% max()
+}
+
+# ylim
+if(is.null(ylim) ) {
+  ylim <- max(-log10(res$padj), na.rm = TRUE) + 5
+}
+
+# colors
+pcol <- "black"
+lcol <- colours[1+1]
+
+# add symbol
+res$symbol <- mcols(dds_list[[i]])$geneSymbol
+
+# define list groups
+res$isl1 <- rownames(res) %in% list1
+res$isl2 <- rownames(res) %in% list2
+res$isol <- rownames(res) %in% ol$a3
+
+# order results (list ol on top)
+res <- res[order(abs(res$log2FoldChange), decreasing = T),]
+res <- res[order(res$isl1, decreasing = F),]
+res <- res[order(res$isl2, decreasing = F),]
+res <- res[order(res$isol, decreasing = F),]
+
+
+# change outlier shape
+shape <- 1
+if(!is.null(xlim)){
+shape <- ifelse(abs(res$log2FoldChange) > xlim, 6,16)
+}
+if(!is.null(ylim)){
+shape[res$padj < 10^-ylim] <- 6
+}
+# name shape
+names(shape)[shape == 6] <- 'outlier'
+names(shape)[shape == 16] <- 'in range'
+# move outlier to border
+res$log2FoldChange[res$log2FoldChange > xlim] <- xlim
+res$log2FoldChange[res$log2FoldChange < -xlim] <- -xlim
+res$padj[res$padj < 10^-ylim] <- 10^-ylim
+
+
+# name colors
+keyvals <- ifelse(
+  res$isol == TRUE, ol.col,
+    ifelse(
+  res$isl2 == TRUE, list2.col,
+    ifelse(
+    res$isl1 == TRUE, list1.col,
+    'grey') ) )
+
+keyvals[is.na(keyvals)] <- 'grey'
+  names(keyvals)[keyvals == ol.col] <- "overlap"
+  names(keyvals)[keyvals == list1.col] <- list1.n
+  names(keyvals)[keyvals == list2.col] <- list2.n
+  names(keyvals)[keyvals == 'grey'] <- 'other'
+
+ev_f <- EnhancedVolcano(res,
+    x = 'log2FoldChange',
+    y = 'padj',
+    lab = res$symbol,
+    selectLab  = res$symbol[which(names(keyvals) == list2.n | names(keyvals) ==list1.n | names(keyvals) =="overlap")],
+    labSize = 3,
+    drawConnectors = TRUE,
+    boxedLabels = FALSE,
+    widthConnectors = 0.5,
+    colConnectors = lcol,
+    pointSize = 4.0,
+    max.overlaps = 100,
+    colCustom = keyvals,
+    xlim = c(-xlim,xlim),
+    ylim = c(0, ylim),
+    ylab = "Padj (-log10)",
+    title = n,
+    subtitle = paste("list1:",length(list1),", list2: ",length(list2)),
+    # sub = "SVF",
+    # pCutoff = 10^(-60),
+    # FCcutoff = 1,
+    shapeCustom =shape,
+    # pointSize = c(ifelse(rownames(res_WT_D_vs.WT_BL) %in% rownames(top_WT_BL_vs.pcry_BL), 8, 1)),
+    legendLabels=c('Not sig.','|L2F| > 2','p-adj < 0.05',
+                    'p-adj & L2F'),
+    legendPosition = 'bottom',
+    col=c('grey', pcol, pcol, pcol),
+    legendLabSize = 8,
+    legendIconSize = 2.0,
+    axisLabSize = 8,
+    titleLabSize = 8,
+    subtitleLabSize = 8,
+    captionLabSize = 8
+    )
+ev_f
+
+}
+```
 
 # 1. Load aCRY & pCRY
 
@@ -71,19 +267,202 @@ msdp4 <- lapply(lapply(rld_list,assay,normalized =TRUE),meanSdPlot)
 
 ## Volcanos
 
+### Volcanos 2.0
+
+#### top genes
+
+``` r
+i <- 1
+ev1_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    xlim=5,ylim=10,
+                    list2.col = "black",list1.col = "grey35")
+ev1_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    xlim=5,ylim=10,
+                    list2.col = "royalblue4",list1.col = "royalblue1")
+ev1_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    xlim=5,ylim=10,
+                    list2.col = "firebrick4",list1.col = "firebrick1")
+
+i <- 2
+ev2_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    xlim=5,ylim=50,
+                    list2.col = "black",list1.col = "grey35")
+ev2_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    xlim=5,ylim=50,
+                    list2.col = "royalblue4",list1.col = "royalblue1")
+ev2_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    xlim=5,ylim=50,
+                    list2.col = "firebrick4",list1.col = "firebrick1")
+
+ev1_d+ev1_b+ev1_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/top_volcano2-1.png)<!-- -->
+
+``` r
+ev2_d+ev2_b+ev2_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/top_volcano2-2.png)<!-- -->
+
+``` r
+# ga <- ggarrange(evb,
+#                 evd+rremove("ylab"),
+#                 evr+rremove("ylab"),
+#                 ncol = 3, nrow = 2,common.legend = TRUE, legend = "bottom",
+#                 widths = c(1.05,1,1))
+# 
+# 
+# ggsave(ga, file="figures/Vulcano_all.pdf",
+#        width = 12,
+#        height = 8)
+```
+
+#### interaction in D-D, Bl-Bl,R-R
+
+``` r
+i <- 1
+ev1_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+ev1_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+ev1_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=10)
+
+i <- 2
+ev2_d <- Vulcano_SK(res=res_ashr_list[[i]][5],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev2_b <- Vulcano_SK(res=res_ashr_list[[i]][6],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev2_r <- Vulcano_SK(res=res_ashr_list[[i]][7],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+
+ev1_d+ev1_b+ev1_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/vsvs_volcano2-1.png)<!-- -->
+
+``` r
+ev2_d+ev2_b+ev2_r  +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/vsvs_volcano2-2.png)<!-- -->
+
+#### interaction in BL-D, R-D
+
+``` r
+deg_list[[1]][8:9] %>% names()
+```
+
+    ## [1] "deg_acry_BLvD.vs.WT_BLvD" "deg_acry_RvD.vs.WT_RvD"
+
+``` r
+i <- 1
+ev1.1 <- Vulcano_SK(res=res_ashr_list[[i]][1],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5, ylim=50)
+ev1.2 <- Vulcano_SK(res=res_ashr_list[[i]][2],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev1.3 <- Vulcano_SK(res=res_ashr_list[[i]][3],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+ev1.4 <- Vulcano_SK(res=res_ashr_list[[i]][4],
+                    list1=top_list[[i]][[8]], list2=top_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=50)
+
+i <- 2
+ev2.1 <- Vulcano_SK(res=res_ashr_list[[i]][1],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.2 <- Vulcano_SK(res=res_ashr_list[[i]][2],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.3 <- Vulcano_SK(res=res_ashr_list[[i]][3],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+ev2.4 <- Vulcano_SK(res=res_ashr_list[[i]][4],
+                    list1=deg_list[[i]][[8]], list2=deg_list[[i]][[9]],
+                    list1.n="blue", list2.n="red",
+                    list1.col = "royalblue1",list2.col = "firebrick1",ol.col="orchid",
+                    xlim=5,ylim=100)
+
+ev1.1 + ev1.2 + ev1.3 + ev1.4 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/vsvs2_volcano2-1.png)<!-- -->
+
+``` r
+ev2.1 + ev2.2 + ev2.3 + ev2.4 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/vsvs2_volcano2-2.png)<!-- -->
+
+``` r
+ev1.1 + ev1.2 + ev2.1 + ev2.2 +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'bottom', axis.title=element_text(size=8))
+```
+
+![](Readme_files/figure-gfm/vsvs2_volcano2-3.png)<!-- -->
+
 ### dark
 
 ``` r
 # dark
-res <- res1_shrink
+res <- res_ashr_list[[i]][[5]]
 n <- 'WT vs. pCRY in dark'
 nf <- 'figures/Volcano_dark.png'
-l <- nrow(top.res1)
+l <- nrow(top_list[[i]][['pCRY_D.vs.WT_D']])
 pcol <- "black"
 lcol <- colours[1+1]
 
 
-rownames(res) <- mcols(dds)$id.symbol
+rownames(res) <- mcols(dds_list[[i]])$id.symbol
 res <- res[!is.na(res$padj),]
 res <- res[!is.na(res$log2FoldChange),]
 
@@ -1164,97 +1543,99 @@ sessionInfo()
     ## tzcode source: system (glibc)
     ## 
     ## attached base packages:
-    ## [1] stats4    stats     graphics  grDevices utils     datasets  methods  
-    ## [8] base     
+    ## [1] grid      stats4    stats     graphics  grDevices utils     datasets 
+    ## [8] methods   base     
     ## 
     ## other attached packages:
-    ##  [1] vsn_3.70.0                  ggpubr_0.6.0               
-    ##  [3] viridis_0.6.5               viridisLite_0.4.2          
-    ##  [5] knitr_1.46                  kableExtra_1.4.0           
-    ##  [7] ape_5.8                     biomaRt_2.58.2             
-    ##  [9] writexl_1.5.0               pheatmap_1.0.12            
-    ## [11] EnhancedVolcano_1.20.0      DESeq2_1.42.1              
-    ## [13] SummarizedExperiment_1.32.0 Biobase_2.62.0             
-    ## [15] MatrixGenerics_1.14.0       matrixStats_1.3.0          
-    ## [17] GenomicRanges_1.54.1        GenomeInfoDb_1.38.8        
-    ## [19] IRanges_2.36.0              S4Vectors_0.40.2           
-    ## [21] AnnotationHub_3.10.1        BiocFileCache_2.10.2       
-    ## [23] dbplyr_2.5.0                BiocGenerics_0.48.1        
-    ## [25] curl_5.2.1                  tximport_1.30.0            
-    ## [27] tximeta_1.20.3              lubridate_1.9.3            
-    ## [29] forcats_1.0.0               dplyr_1.1.4                
-    ## [31] purrr_1.0.2                 readr_2.1.5                
-    ## [33] tidyr_1.3.1                 tibble_3.2.1               
-    ## [35] tidyverse_2.0.0             plyr_1.8.9                 
-    ## [37] data.table_1.15.4           sessioninfo_1.2.2          
-    ## [39] RColorBrewer_1.1-3          R.utils_2.12.3             
-    ## [41] R.oo_1.26.0                 R.methodsS3_1.8.2          
-    ## [43] stringr_1.5.1               PCAtools_2.14.0            
-    ## [45] ggrepel_0.9.5               ggplot2_3.5.1              
-    ## [47] patchwork_1.2.0            
+    ##  [1] VennDiagram_1.7.3           futile.logger_1.4.3        
+    ##  [3] vsn_3.72.0                  ggpubr_0.6.0               
+    ##  [5] viridis_0.6.5               viridisLite_0.4.2          
+    ##  [7] knitr_1.47                  kableExtra_1.4.0           
+    ##  [9] ape_5.8                     biomaRt_2.60.0             
+    ## [11] writexl_1.5.0               pheatmap_1.0.12            
+    ## [13] EnhancedVolcano_1.22.0      DESeq2_1.44.0              
+    ## [15] SummarizedExperiment_1.34.0 Biobase_2.64.0             
+    ## [17] MatrixGenerics_1.16.0       matrixStats_1.3.0          
+    ## [19] GenomicRanges_1.56.0        GenomeInfoDb_1.40.1        
+    ## [21] IRanges_2.38.0              S4Vectors_0.42.0           
+    ## [23] AnnotationHub_3.12.0        BiocFileCache_2.12.0       
+    ## [25] dbplyr_2.5.0                BiocGenerics_0.50.0        
+    ## [27] curl_5.2.1                  tximport_1.32.0            
+    ## [29] tximeta_1.22.1              lubridate_1.9.3            
+    ## [31] forcats_1.0.0               dplyr_1.1.4                
+    ## [33] purrr_1.0.2                 readr_2.1.5                
+    ## [35] tidyr_1.3.1                 tibble_3.2.1               
+    ## [37] tidyverse_2.0.0             plyr_1.8.9                 
+    ## [39] data.table_1.15.4           sessioninfo_1.2.2          
+    ## [41] RColorBrewer_1.1-3          R.utils_2.12.3             
+    ## [43] R.oo_1.26.0                 R.methodsS3_1.8.2          
+    ## [45] stringr_1.5.1               PCAtools_2.16.0            
+    ## [47] ggrepel_0.9.5               ggplot2_3.5.1              
+    ## [49] patchwork_1.2.0            
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] later_1.3.2                   BiocIO_1.12.0                
-    ##   [3] bitops_1.0-7                  filelock_1.0.3               
-    ##   [5] preprocessCore_1.64.0         XML_3.99-0.16.1              
-    ##   [7] lifecycle_1.0.4               rstatix_0.7.2                
-    ##   [9] MASS_7.3-60                   lattice_0.22-5               
-    ##  [11] ensembldb_2.26.0              backports_1.4.1              
-    ##  [13] magrittr_2.0.3                limma_3.58.1                 
-    ##  [15] rmarkdown_2.26                yaml_2.3.8                   
-    ##  [17] httpuv_1.6.15                 cowplot_1.1.3                
-    ##  [19] DBI_1.2.2                     maps_3.4.2                   
-    ##  [21] abind_1.4-5                   zlibbioc_1.48.2              
-    ##  [23] AnnotationFilter_1.26.0       RCurl_1.98-1.14              
-    ##  [25] rappdirs_0.3.3                GenomeInfoDbData_1.2.11      
-    ##  [27] irlba_2.3.5.1                 dqrng_0.3.2                  
-    ##  [29] svglite_2.1.3                 DelayedMatrixStats_1.24.0    
-    ##  [31] codetools_0.2-19              DelayedArray_0.28.0          
-    ##  [33] xml2_1.3.6                    tidyselect_1.2.1             
-    ##  [35] farver_2.1.1                  ScaledMatrix_1.10.0          
-    ##  [37] ash_1.0-15                    GenomicAlignments_1.38.2     
-    ##  [39] jsonlite_1.8.8                systemfonts_1.0.6            
-    ##  [41] tools_4.4.0                   progress_1.2.3               
-    ##  [43] Rcpp_1.0.12                   glue_1.7.0                   
-    ##  [45] Rttf2pt1_1.3.12               gridExtra_2.3                
-    ##  [47] SparseArray_1.2.4             xfun_0.43                    
-    ##  [49] withr_3.0.0                   BiocManager_1.30.22          
-    ##  [51] fastmap_1.1.1                 fansi_1.0.6                  
-    ##  [53] digest_0.6.35                 rsvd_1.0.5                   
-    ##  [55] timechange_0.3.0              R6_2.5.1                     
-    ##  [57] mime_0.12                     colorspace_2.1-0             
-    ##  [59] RSQLite_2.3.6                 hexbin_1.28.3                
-    ##  [61] utf8_1.2.4                    generics_0.1.3               
-    ##  [63] rtracklayer_1.62.0            prettyunits_1.2.0            
-    ##  [65] httr_1.4.7                    S4Arrays_1.2.1               
-    ##  [67] pkgconfig_2.0.3               gtable_0.3.5                 
-    ##  [69] blob_1.2.4                    XVector_0.42.0               
-    ##  [71] htmltools_0.5.8.1             carData_3.0-5                
-    ##  [73] ProtGenerics_1.34.0           scales_1.3.0                 
-    ##  [75] png_0.1-8                     rstudioapi_0.16.0            
-    ##  [77] tzdb_0.4.0                    reshape2_1.4.4               
-    ##  [79] rjson_0.2.21                  nlme_3.1-163                 
-    ##  [81] cachem_1.0.8                  KernSmooth_2.23-22           
-    ##  [83] BiocVersion_3.18.1            parallel_4.4.0               
-    ##  [85] extrafont_0.19                AnnotationDbi_1.64.1         
-    ##  [87] restfulr_0.0.15               pillar_1.9.0                 
-    ##  [89] grid_4.4.0                    vctrs_0.6.5                  
-    ##  [91] promises_1.3.0                BiocSingular_1.18.0          
-    ##  [93] car_3.1-2                     beachmat_2.18.1              
-    ##  [95] xtable_1.8-4                  extrafontdb_1.0              
-    ##  [97] evaluate_0.23                 GenomicFeatures_1.54.4       
-    ##  [99] cli_3.6.2                     locfit_1.5-9.9               
-    ## [101] compiler_4.4.0                Rsamtools_2.18.0             
-    ## [103] rlang_1.1.3                   crayon_1.5.2                 
-    ## [105] ggsignif_0.6.4                labeling_0.4.3               
-    ## [107] affy_1.80.0                   stringi_1.8.3                
-    ## [109] BiocParallel_1.36.0           ggalt_0.4.0                  
-    ## [111] munsell_0.5.1                 Biostrings_2.70.3            
-    ## [113] lazyeval_0.2.2                proj4_1.0-14                 
-    ## [115] Matrix_1.6-5                  hms_1.1.3                    
-    ## [117] sparseMatrixStats_1.14.0      bit64_4.0.5                  
-    ## [119] KEGGREST_1.42.0               statmod_1.5.0                
-    ## [121] shiny_1.8.1.1                 highr_0.10                   
-    ## [123] interactiveDisplayBase_1.40.0 broom_1.0.5                  
-    ## [125] memoise_2.0.1                 affyio_1.72.0                
-    ## [127] bit_4.0.5
+    ##   [1] BiocIO_1.14.0             bitops_1.0-7             
+    ##   [3] filelock_1.0.3            preprocessCore_1.66.0    
+    ##   [5] XML_3.99-0.16.1           lifecycle_1.0.4          
+    ##   [7] httr2_1.0.1               mixsqp_0.3-54            
+    ##   [9] rstatix_0.7.2             MASS_7.3-61              
+    ##  [11] lattice_0.22-6            ensembldb_2.28.0         
+    ##  [13] backports_1.5.0           magrittr_2.0.3           
+    ##  [15] limma_3.60.2              rmarkdown_2.27           
+    ##  [17] yaml_2.3.8                cowplot_1.1.3            
+    ##  [19] DBI_1.2.3                 maps_3.4.2               
+    ##  [21] abind_1.4-5               zlibbioc_1.50.0          
+    ##  [23] AnnotationFilter_1.28.0   RCurl_1.98-1.14          
+    ##  [25] rappdirs_0.3.3            GenomeInfoDbData_1.2.12  
+    ##  [27] irlba_2.3.5.1             dqrng_0.4.1              
+    ##  [29] svglite_2.1.3             DelayedMatrixStats_1.26.0
+    ##  [31] codetools_0.2-20          DelayedArray_0.30.1      
+    ##  [33] xml2_1.3.6                tidyselect_1.2.1         
+    ##  [35] UCSC.utils_1.0.0          farver_2.1.2             
+    ##  [37] ScaledMatrix_1.12.0       ash_1.0-15               
+    ##  [39] GenomicAlignments_1.40.0  jsonlite_1.8.8           
+    ##  [41] systemfonts_1.1.0         tools_4.4.0              
+    ##  [43] progress_1.2.3            Rcpp_1.0.12              
+    ##  [45] glue_1.7.0                Rttf2pt1_1.3.12          
+    ##  [47] gridExtra_2.3             SparseArray_1.4.8        
+    ##  [49] xfun_0.44                 withr_3.0.0              
+    ##  [51] formatR_1.14              BiocManager_1.30.23      
+    ##  [53] fastmap_1.2.0             fansi_1.0.6              
+    ##  [55] truncnorm_1.0-9           digest_0.6.35            
+    ##  [57] rsvd_1.0.5                timechange_0.3.0         
+    ##  [59] R6_2.5.1                  colorspace_2.1-0         
+    ##  [61] RSQLite_2.3.7             hexbin_1.28.3            
+    ##  [63] utf8_1.2.4                generics_0.1.3           
+    ##  [65] rtracklayer_1.64.0        prettyunits_1.2.0        
+    ##  [67] httr_1.4.7                S4Arrays_1.4.1           
+    ##  [69] pkgconfig_2.0.3           gtable_0.3.5             
+    ##  [71] blob_1.2.4                XVector_0.44.0           
+    ##  [73] htmltools_0.5.8.1         carData_3.0-5            
+    ##  [75] ProtGenerics_1.36.0       scales_1.3.0             
+    ##  [77] png_0.1-8                 ashr_2.2-63              
+    ##  [79] lambda.r_1.2.4            rstudioapi_0.16.0        
+    ##  [81] tzdb_0.4.0                reshape2_1.4.4           
+    ##  [83] rjson_0.2.21              nlme_3.1-165             
+    ##  [85] cachem_1.1.0              KernSmooth_2.23-24       
+    ##  [87] BiocVersion_3.19.1        parallel_4.4.0           
+    ##  [89] extrafont_0.19            AnnotationDbi_1.66.0     
+    ##  [91] restfulr_0.0.15           pillar_1.9.0             
+    ##  [93] vctrs_0.6.5               BiocSingular_1.20.0      
+    ##  [95] car_3.1-2                 beachmat_2.20.0          
+    ##  [97] extrafontdb_1.0           evaluate_0.24.0          
+    ##  [99] invgamma_1.1              GenomicFeatures_1.56.0   
+    ## [101] cli_3.6.2                 locfit_1.5-9.9           
+    ## [103] compiler_4.4.0            futile.options_1.0.1     
+    ## [105] Rsamtools_2.20.0          rlang_1.1.4              
+    ## [107] crayon_1.5.2              SQUAREM_2021.1           
+    ## [109] ggsignif_0.6.4            labeling_0.4.3           
+    ## [111] affy_1.82.0               stringi_1.8.4            
+    ## [113] BiocParallel_1.38.0       ggalt_0.4.0              
+    ## [115] txdbmaker_1.0.0           munsell_0.5.1            
+    ## [117] Biostrings_2.72.1         lazyeval_0.2.2           
+    ## [119] proj4_1.0-14              Matrix_1.7-0             
+    ## [121] hms_1.1.3                 sparseMatrixStats_1.16.0 
+    ## [123] bit64_4.0.5               KEGGREST_1.44.0          
+    ## [125] statmod_1.5.0             highr_0.11               
+    ## [127] broom_1.0.6               memoise_2.0.1            
+    ## [129] affyio_1.74.0             bit_4.0.5
