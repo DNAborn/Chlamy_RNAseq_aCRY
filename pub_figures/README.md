@@ -7,6 +7,9 @@ figures_manuscript
 - [Fig 2: Counts](#fig-2-counts)
 - [Fig 3: Volcanos](#fig-3-volcanos)
 - [Fig 4: Overlaps](#fig-4-overlaps)
+  - [Fig 4a: Venns](#fig-4a-venns)
+  - [Fig 4b: groups](#fig-4b-groups)
+- [Fig. 3: Grouping](#fig-3-grouping)
 
 BiocManager::install()
 
@@ -412,22 +415,23 @@ height = 6)
 
 # Fig 4: Overlaps
 
+## Fig 4a: Venns
+
 ``` r
+fig <- "Fig4"
+
 res_list[["pcry"]] %>% names()
 #  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
 DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
              blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
              red =res_list$pcry$pcry_R.vs.WT_R %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )))
+DEGs <- lapply(DEGs,data.frame)
+DEGs_genes <- lapply(DEGs,rownames)
 
-
-venn.ol <- calculate.overlap(DEGs)
-# names_res_MO_XX_padj05_abs05 %>% unique()
-
-summary(names_res_MO_XX_padj05_abs05)
-
+venn.ol <- calculate.overlap(DEGs_genes)
 venn.ol %>% lapply(length)
 
-input_list <- list(XX=names_res_MO_XX_padj05_abs05,XY=names_res_MO_XY_padj05_abs05)
+input_list <- DEGs_genes
 
 plt <- venn.diagram(
     x = input_list,
@@ -437,15 +441,39 @@ plt <- venn.diagram(
     fontfamily ="Arial",
     lwd = 2,
     lty = 'blank',
-    fill = cols2[c(1,2)],
+    fill = group.colors[c(2,4,6)],
     category.names = paste0(names(input_list),"\n(",lapply(input_list,length),")"),
-    cat.col=cols2d[c(1,2)],
+#    cat.col=cols2d[c(1,2)],
     cat.fontface = "bold",
     cat.fontfamily = "arial",
-    cat.pos = c(+30,-30),
-    cat.dist = c(0.12, 0.12),
+#    cat.pos = c(+30,-30),
+#    cat.dist = c(0.12, 0.12),
     disable.logging = TRUE
 )
 
-wrap_elements(plt) + plot_annotation(caption = paste0("Total differentially expressed genes: ",deg_table %>% nrow()))
+wrap_elements(plt) + plot_annotation(caption = paste0("pCRY"))
+```
+
+## Fig 4b: groups
+
+# Fig. 3: Grouping
+
+``` r
+p_new2 <- ggplot(deg_table, aes(x=XX.log2FC, y=XY.log2FC,color=group, fill=group)) + 
+  geom_polygon(data = xyup, aes(x=x,y=y),color=cols2l[2],fill=cols2l[2], alpha=0.2) +
+  geom_polygon(data = xydo, aes(x=x,y=y),color=cols2l[2],fill=cols2l[2], alpha=0.8) +
+  geom_polygon(data = xxdo, aes(x=x,y=y),color=cols2l[1],fill=cols2l[1], alpha=0.8) +
+  geom_polygon(data = xxup, aes(x=x,y=y),color=cols2l[1],fill=cols2l[1], alpha=0.2) +
+  annotate("text", x= text$x,y= text$y,label = paste(text$label,text$size,sep="\n"), color=text$color,size=3 , fontface="bold") +
+  geom_hline(yintercept = 0, linewidth = 0.1) + 
+  geom_vline(xintercept = 0, linewidth = 0.1) +
+  geom_point(shape=21) + 
+  scale_color_manual(values=alpha(c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],rep(colsp,2),rep(colsap,2)),0.8)) +
+  scale_fill_manual(values=alpha(c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],rep(colsp,2),rep(colsap,2)),0.3)) +
+#  scale_color_manual(values = text$color) +
+  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+
+p_new2 + scale_fill_manual(values=c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],alpha(c(rep(colsp,2),rep(colsap,2)),0.3))) 
 ```
