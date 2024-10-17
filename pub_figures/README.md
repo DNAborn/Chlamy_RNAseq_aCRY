@@ -409,7 +409,7 @@ volcanos_all
 
 ``` r
 ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos.pdf",sep=""), plot = volcanos_all,
-width = 8,
+width = 10,
 height = 6)
 ```
 
@@ -455,6 +455,11 @@ wrap_elements(plt) + plot_annotation(caption = paste0("pCRY"))
 ```
 
 ## Fig 4b: groups
+
+``` r
+res_
+DEGs_comb <- bind_cols(DEGs[[1]],DEGs[[2]],DEGs[[3]])
+```
 
 # Fig. 3: Grouping
 

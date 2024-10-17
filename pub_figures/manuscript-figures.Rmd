@@ -264,7 +264,7 @@ height = 5)
 
 
 # Fig 3: Volcanos
-```{r volcanos, fig.height=8 }
+```{r volcanos, fig.height=6, fig.width=10}
 
 fig <- "Fig3"
 
@@ -456,7 +456,7 @@ volcanos_all <- volcano_dark + volcano_blue + volcano_red +
 volcanos_all
 
 ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos.pdf",sep=""), plot = volcanos_all,
-width = 8,
+width = 10,
 height = 6)
 
 ```
@@ -502,11 +502,14 @@ wrap_elements(plt) + plot_annotation(caption = paste0("pCRY"))
 
 ```
 
-## Fig 4b: groups
-```{r groups}
+## Fig 4b: Groups
+```{r groups, eval=FALSE}
 
-res_
-DEGs_comb <- bind_cols(DEGs[[1]],DEGs[[2]],DEGs[[3]])
+res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
+             blue = res_list$pcry$pcry_BL.vs.WT_BL,
+             red =res_list$pcry$pcry_R.vs.WT_R) %>% lapply(data.frame)
+
+DEGs_comb <- bind_cols(res_core[[1]][],res_core[[2]],res_core[[3]])
 
 
 ```
