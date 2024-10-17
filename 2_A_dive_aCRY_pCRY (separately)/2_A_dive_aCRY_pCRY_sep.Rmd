@@ -758,7 +758,7 @@ gcounts %>% print()
 
 
 ## Make results
-```{r, eval=TRUE, include=FALSE, echo=FALSE}
+```{r results, eval=TRUE, include=FALSE, echo=FALSE}
 
 design(dds)
 resultsNames(dds)
