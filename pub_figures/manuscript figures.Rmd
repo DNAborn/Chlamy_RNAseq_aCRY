@@ -1,0 +1,508 @@
+---
+title: "figures_manuscript"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+    toc_depth: 2
+knit: (function(input_file, encoding) {
+    rmarkdown::render(input_file,output_file= 'README.md')
+        })
+date: "2024-10-17"
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r knit, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      error=FALSE,
+                      warning=FALSE,
+                      message=FALSE,
+                      dpi=300)
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+```
+
+BiocManager::install()
+
+# run prepare_data scripts
+```{r run_start_up, include=FALSE, results='hide'}
+library(knitr)
+source(purl("/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/git_Chlamy_RNAseq_aCRY/2_A_dive_aCRY_pCRY (separately)/2_A_dive_aCRY_pCRY_sep.Rmd", output = tempfile()), local = knitr::knit_global())
+       
+futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+
+```
+
+
+# Fig 1: PCA
+```{r 1_pca, fig.show='hold', out.width="50%", dpi=300, results='hide'}
+
+fig <- "Fig1"
+
+# group
+for (dds in dds_list) {
+vsd <- vst(dds, blind=FALSE)
+# colData(dds)
+### PCA with top 500 genes with highest row variance 
+pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+
+g1 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
+  geom_hline(yintercept = 0, linewidth = 0.1) + 
+  geom_vline(xintercept = 0, linewidth = 0.1) +
+  geom_point(size=4, stroke = 1) +
+  scale_shape_manual(values = c(16,21)) + 
+  labs(title = "PCA plot") +
+  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
+  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_color_manual(values = anno_colors$treatment) +
+  # coord_fixed() +
+  scale_x_reverse() +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+}
+
+# pCRY
+dds <- dds_list[["pcry"]]
+vsd <- vst(dds, blind=FALSE)
+
+pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+g1 <- ggplot(pcaData, aes(PC2, PC1, color=treatment, shape=genotype)) +
+  geom_hline(yintercept = 0, linewidth = 0.1) + 
+  geom_vline(xintercept = 0, linewidth = 0.1) +
+  geom_point(size=4, stroke = 1) +
+  scale_shape_manual(values = c(16,21)) + 
+  labs(title = "PCA plot: pCRY") +
+  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
+  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_color_manual(values = anno_colors$treatment) +
+  # coord_fixed() +
+  scale_x_reverse() +
+  scale_y_reverse() +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+g1
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_PCA.pdf",sep=""), plot = g1,
+width = 6,
+height = 6)
+
+# aCRY
+dds <- dds_list[["acry"]]
+vsd <- vst(dds, blind=FALSE)
+pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+g2 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
+  geom_hline(yintercept = 0, linewidth = 0.1) + 
+  geom_vline(xintercept = 0, linewidth = 0.1) +
+  geom_point(size=4, stroke = 1) +
+  scale_shape_manual(values = c(16,21)) + 
+  labs(title = "PCA plot: aCRY") +
+  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
+  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  scale_color_manual(values = anno_colors$treatment) +
+  # coord_fixed() +
+  scale_x_reverse() +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+g2
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_PCA.pdf",sep=""), plot = g2,
+width = 6,
+height = 6)
+
+
+
+```
+
+
+# Fig 2: Counts
+```{r Counts, echo=FALSE, fig.width=10}
+
+fig <- "Fig2"
+
+dds <- dds_list[[1]]
+for (dds in dds_list){
+# TF genes
+
+goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC114", "ROC55", "CON1", "CRB1")
+anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+anno_tf <- subset(anno,geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+anno_tf[,c("gene_id", "geneSymbol","id.symbol")]
+summary(anno_tf$gene_id %in% rownames(dds))
+anno_tf[!anno_tf$gene_id %in% rownames(dds),]
+anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+
+# Combined counts table TFs
+
+goi <- anno_tf
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+all_counts$Gene <- factor(all_counts$Gene)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene, levels = c("CON1", "ROC40", "CRB1" ,  "QER4" , "ROC110",  "QER7" ,"ROC114" , "ROC75", "CCM1" , "ROC55" , "LCR1",  "QER6" , "ROC66",    "ROC15")  )
+levels(all_counts$Gene)
+
+max_val <- 1.0*max(all_counts$count)
+
+# Plot
+gcounts_tf1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  labs(title = "ROC genes") + 
+  theme_bw() +
+  removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts$Gene))-1,1)+.5,color="grey") +
+  scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
+gcounts_tf1 %>% print()
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Counts_ROCs.pdf",sep=""), plot = gcounts_tf1,
+width = 12,
+height = 8)
+
+
+## Phot genes all-in-one
+goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1") #"HKR2" "DCRY2", 
+
+anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
+rownames(anno_phot) <- anno_phot$geneSymbol
+anno_phot <- anno_phot[goi_phot,]
+
+# Combined counts table TFs
+
+goi <- anno_phot
+l <- nrow(goi)
+all_counts <- {}
+for (i in 1:l){
+  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
+  d$Gene <- rep(goi[i,"geneSymbol"],length(rownames(d)))
+  d$sample <- rownames(d)
+  rownames(d) <- {}
+  all_counts <- bind_rows(all_counts,d)
+  }
+
+all_counts$Gene
+levels(all_counts$condition)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene)
+levels(all_counts$Gene)
+
+all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
+levels(all_counts$Gene)
+
+
+# Plot
+max_val <- 1.0*max(all_counts$count)
+gcounts_phot1 <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
+  geom_boxplot(fatten = 1) +
+  scale_fill_manual(values = group.colors) +
+  labs(title = "Photoreceptor genes") + 
+  theme_bw() +
+  removeGrid(x=T, y=T) +
+  geom_vline(xintercept=seq(1,length(levels(all_counts$Gene))-1,1)+.5,color="grey") +
+  scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
+gcounts_phot1 %>% print()
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Counts_Phots.pdf",sep=""), plot = gcounts_phot1,
+width = 12,
+height = 8)
+
+# print(gcounts_tf1 / gcounts_phot1 & plot_annotation(title = colData(dds)$experiment[1]))
+
+
+
+
+# single gene
+    d <- plotCounts(dds, gene=ROC40, intgroup=c("condition","experiment","genotype","treatment","clientName"), main=s,returnData=TRUE)
+    colnames(d)[1] <- "counts"
+
+gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
+  # geom_text_repel(aes(label=clientName)) +
+    scale_fill_manual(values=group.colors) +
+    scale_color_manual(values=group.colors) +
+    scale_y_continuous(trans = "log2") +
+    theme_bw() +
+  removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts$treatment))-1,1)+.5,color="grey") +
+
+    labs(title = paste("ROC40"," in ",colData(dds)$experiment[1],sep = "")) +
+ theme(axis.text.x = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
+
+gcounts %>% print()
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Counts_ROC40.pdf",sep=""), plot = gcounts,
+width = 6,
+height = 5)
+}
+
+# ggsave(paste(pub_figures,"ROC40.pdf",sep="/"), plot = gcounts,
+#   width = 5,
+#   height = 4)
+
+```
+
+
+# Fig 3: Volcanos
+```{r volcanos, fig.height=8 }
+
+fig <- "Fig3"
+
+dds <- dds_list[["pcry"]]
+
+res_ashr_list %>% names()
+res_ashr_list[[1]] %>% names()
+
+res <- res_ashr_list$pcry$pcry_R.vs.WT_R
+res_n <- res_list$pcry$pcry_R.vs.WT_R
+
+# of shrinked results
+total <- subset(res, padj< 0.05) %>% nrow()
+up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# of "true" results
+total <- subset(res_n, padj< 0.05) %>% nrow()
+up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# points outside the grid
+subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
+#                 baseMean log2FoldChange     lfcSE      pvalue        padj
+#               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
+# Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
+# Cre17.g802135   46.8587       36.40049   7.35075 1.00156e-08 7.64096e-06
+
+res["Cre16.g681750","padj"] <- 10^-50
+res["Cre17.g802135","log2FoldChange"] <- 6
+
+mcols(dds_list[["pcry"]]) %>% nrow()
+res %>% nrow()
+
+volcano_red <- EnhancedVolcano(res,
+    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
+    x = 'log2FoldChange',
+    y = 'padj',
+    col=c("grey","grey","grey",group.colors[5]),
+    title = "red-light, pCRY vs. WT",
+    titleLabSize = 12,
+    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
+#    subtitle = {},
+    subtitleLabSize = 10,
+    caption = NULL,
+    xlim = c(-7,7),
+    ylim = c(0,50),
+    pCutoff = 0.05,
+    FCcutoff = 1,
+    maxoverlapsConnectors = 40,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = "grey70",
+    legendLabels=c('ns','ns','ns',
+      'padj < 0.05 & Log2FC > 1'),
+    labSize = 4,
+    axisLabSize = 12,
+    legendLabSize = 12,
+    legendIconSize = 4,
+    gridlines.major = FALSE,
+    gridlines.minor = FALSE,
+    pointSize = 3
+)
+# volcano_red
+
+
+# blue
+
+res_ashr_list %>% names()
+res_ashr_list[[1]] %>% names()
+
+res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
+res_n <- res_list$pcry$pcry_BL.vs.WT_BL
+
+# of "true" results
+total <- subset(res_n, padj< 0.05) %>% nrow()
+up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# points outside the grid
+
+pmax <- 10^-50
+l2FCmax <- 6
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
+res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
+# res[res$padj < pmax,]$padj <- pmax
+
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+mcols(dds_list[["pcry"]]) %>% nrow()
+res %>% nrow()
+
+volcano_blue <- EnhancedVolcano(res,
+    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
+    x = 'log2FoldChange',
+    y = 'padj',
+    col=c("grey","grey","grey",group.colors[3]),
+    title = "blue-light, pCRY vs. WT",
+    titleLabSize = 12,
+    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
+#    subtitle = {},
+    subtitleLabSize = 10,
+    caption = NULL,
+    xlim = c(-7,7),
+    ylim = c(0,50),
+    pCutoff = 0.05,
+    FCcutoff = 1,
+    maxoverlapsConnectors = 40,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = "grey70",
+    legendLabels=c('ns','ns','ns',
+      'padj < 0.05 & Log2FC > 1'),
+    labSize = 4,
+    axisLabSize = 12,
+    legendLabSize = 12,
+    legendIconSize = 4,
+    gridlines.major = FALSE,
+    gridlines.minor = FALSE,
+    pointSize = 3
+)
+# volcano_blue
+
+
+# dark
+
+res_ashr_list %>% names()
+res_ashr_list[[2]] %>% names()
+
+res <- res_ashr_list$pcry$pcry_D.vs.WT_D
+res_n <- res_list$pcry$pcry_D.vs.WT_D
+
+# of "true" results
+total <- subset(res_n, padj< 0.05) %>% nrow()
+up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# points outside the grid
+
+pmax <- 10^-50
+l2FCmax <- 6
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
+res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
+res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
+
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+mcols(dds_list[["pcry"]]) %>% nrow()
+res %>% nrow()
+
+volcano_dark <- EnhancedVolcano(res,
+    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
+    x = 'log2FoldChange',
+    y = 'padj',
+    col=c("grey","grey","grey",group.colors[1]),
+    title = "dark, pCRY vs. WT",
+    titleLabSize = 12,
+    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
+#    subtitle = {},
+    subtitleLabSize = 10,
+    caption = NULL,
+    xlim = c(-7,7),
+    ylim = c(0,50),
+    pCutoff = 0.05,
+    FCcutoff = 1,
+    maxoverlapsConnectors = 40,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = "grey70",
+    legendLabels=c('ns','ns','ns',
+      'padj < 0.05 & Log2FC > 1'),
+    labSize = 4,
+    axisLabSize = 12,
+    legendLabSize = 12,
+    legendIconSize = 4,
+    gridlines.major = FALSE,
+    gridlines.minor = FALSE,
+    pointSize = 3
+)
+# volcano_dark
+
+volcanos_all <- volcano_dark + volcano_blue + volcano_red +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'none', axis.title=element_text(size=12))
+volcanos_all
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos.pdf",sep=""), plot = volcanos_all,
+width = 8,
+height = 6)
+
+```
+
+# Fig 4: Overlaps
+```{r overlap, eval=FALSE}
+fig <- "Fig4"
+
+res_list[["pcry"]] %>% names()
+#  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
+DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
+             blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
+             red =res_list$pcry$pcry_R.vs.WT_R %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )))
+DEGs <- lapply(DEGs,data.frame)
+
+venn.ol <- calculate.overlap(DEGs)
+# names_res_MO_XX_padj05_abs05 %>% unique()
+
+summary(names_res_MO_XX_padj05_abs05)
+
+venn.ol %>% lapply(length)
+
+input_list <- list(XX=names_res_MO_XX_padj05_abs05,XY=names_res_MO_XY_padj05_abs05)
+
+plt <- venn.diagram(
+    x = input_list,
+    inverted=TRUE,
+    # total.population = TRUE,
+    filename = NULL,
+    fontfamily ="Arial",
+    lwd = 2,
+    lty = 'blank',
+    fill = cols2[c(1,2)],
+    category.names = paste0(names(input_list),"\n(",lapply(input_list,length),")"),
+    cat.col=cols2d[c(1,2)],
+    cat.fontface = "bold",
+    cat.fontfamily = "arial",
+    cat.pos = c(+30,-30),
+    cat.dist = c(0.12, 0.12),
+    disable.logging = TRUE
+)
+
+wrap_elements(plt) + plot_annotation(caption = paste0("Total differentially expressed genes: ",deg_table %>% nrow()))
+
+
+```
+
+
+

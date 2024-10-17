@@ -9,7 +9,7 @@ output:
     toc_depth: 2
 always_allow_html: true
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 knit: (function(input_file, encoding) {
     rmarkdown::render(input_file,output_file= 'Readme.md')
         })
@@ -29,6 +29,7 @@ BiocManager::install()
 # Load System
 ## -R_libraries
 ```{r r_libraries, echo=FALSE}
+library(ggExtra)
 library(patchwork)
 library(PCAtools)
 library(stringr)
@@ -355,6 +356,34 @@ colData(gse_acry)$treatment <- colData(gse_acry)$treatment %>% str_replace(patte
 
 colData(gse_acry)$condition <- paste(colData(gse_acry)$genotype,colData(gse_acry)$treatment,sep="_") %>% factor(levels=c("WT_dark","acry_dark","WT_blue","acry_blue","WT_red","acry_red"))
 
+
+```
+
+### -change wrong aCRY sample
+```{r correct_acry, eval=TRUE}
+
+gse_acry
+mcols(gse_acry)
+colData(gse_acry)
+
+colData(gse_acry)[c("aCRYdark1","WTdark1"),]
+
+colData(gse_acry)$Samplename_new <- colData(gse_acry)$clientName
+colData(gse_acry)$Samplename_new[colData(gse_acry)$clientName == "aCRYdark1"] <- "WTdark1"
+colData(gse_acry)$group[colData(gse_acry)$clientName == "aCRYdark1"] <- "WTdark"
+colData(gse_acry)$genotype[colData(gse_acry)$clientName == "aCRYdark1"] <- "WT"
+colData(gse_acry)$treatment[colData(gse_acry)$clientName == "aCRYdark1"] <- "dark"
+colData(gse_acry)$condition[colData(gse_acry)$clientName == "aCRYdark1"] <- "WT_dark"
+
+colData(gse_acry)$Samplename_new[colData(gse_acry)$clientName == "WTdark1"] <- "aCRYdark1"
+colData(gse_acry)$group[colData(gse_acry)$clientName == "WTdark1"] <- "aCRYdark"
+colData(gse_acry)$genotype[colData(gse_acry)$clientName == "WTdark1"] <- "acry"
+colData(gse_acry)$treatment[colData(gse_acry)$clientName == "WTdark1"] <- "dark"
+colData(gse_acry)$condition[colData(gse_acry)$clientName == "WTdark1"] <- "acry_dark"
+
+colData(gse_acry)[c("aCRYdark1","WTdark1"),]
+
+rownames(colData(gse_acry)) <- colData(gse_acry)$Samplename_new
 
 ```
 
@@ -1327,6 +1356,8 @@ library(airway)
     lab = rownames(res),
     x = 'log2FoldChange',
     y = 'pvalue')
+ 
+ 
  
  
 

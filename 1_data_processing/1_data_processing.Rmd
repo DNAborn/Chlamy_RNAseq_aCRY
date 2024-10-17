@@ -384,7 +384,7 @@ head(gtfdata, n=10)
 
 # gene_name info sind in gff3 abder nicht in se?
 coldata_Cre <- filter(coldata, species == "Cre")
-se <- tximeta(coldata_Cre, useHub=T)
+se <- tximeta(coldata_Cre, useHub=F)
 se
 
 library(SummarizedExperiment)

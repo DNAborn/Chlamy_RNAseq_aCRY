@@ -225,6 +225,217 @@ ev_f
 
 ## - Tximeta files
 
+### -change wrong aCRY sample
+
+``` r
+gse_acry
+```
+
+    ## class: RangedSummarizedExperiment 
+    ## dim: 17616 17 
+    ## metadata(7): tximetaInfo quantInfo ... txdbInfo assignRanges
+    ## assays(3): counts abundance length
+    ## rownames(17616): Cre01.g000050 Cre01.g000100 ... CreMt.g802343
+    ##   CreMt.g802344
+    ## rowData names(13): gene_id tx_ids ... TargetP Predalgo
+    ## colnames(17): aCRYred1 aCRYred2 ... aCRYdark1 aCRYdark2
+    ## colData names(12): names filename ... condition mappingrates
+
+``` r
+mcols(gse_acry)
+```
+
+    ## DataFrame with 17616 rows and 13 columns
+    ##                     gene_id
+    ##                 <character>
+    ## Cre01.g000050 Cre01.g000050
+    ## Cre01.g000100 Cre01.g000100
+    ## Cre01.g000150 Cre01.g000150
+    ## Cre01.g000200 Cre01.g000200
+    ## Cre01.g000250 Cre01.g000250
+    ## ...                     ...
+    ## CreMt.g802340 CreMt.g802340
+    ## CreMt.g802341 CreMt.g802341
+    ## CreMt.g802342 CreMt.g802342
+    ## CreMt.g802343 CreMt.g802343
+    ## CreMt.g802344 CreMt.g802344
+    ##                                                                           tx_ids
+    ##                                                                           <list>
+    ## Cre01.g000050                                               Cre01.g000050_4532.1
+    ## Cre01.g000100     Cre01.g000100_4532.1,Cre01.g000100_4532.2,Cre01.g000100_4532.3
+    ## Cre01.g000150 Cre01.g000150_4532.1,Cre01.g000150_4532.2,Cre01.g000150_4532.3,...
+    ## Cre01.g000200     Cre01.g000200_4532.2,Cre01.g000200_4532.3,Cre01.g000200_4532.1
+    ## Cre01.g000250                                               Cre01.g000250_4532.1
+    ## ...                                                                          ...
+    ## CreMt.g802340                                               CreMt.g802340_4532.1
+    ## CreMt.g802341                                               CreMt.g802341_4532.1
+    ## CreMt.g802342                                               CreMt.g802342_4532.1
+    ## CreMt.g802343                                               CreMt.g802343_4532.1
+    ## CreMt.g802344                                               CreMt.g802344_4532.1
+    ##                     CDSID           gene_id2  geneSymbol     id.symbol
+    ##               <character>        <character> <character>   <character>
+    ## Cre01.g000050           1 Cre01.g000050_4532       RWP14         RWP14
+    ## Cre01.g000100          15 Cre01.g000100_4532             Cre01.g000100
+    ## Cre01.g000150          31 Cre01.g000150_4532        ZRT2          ZRT2
+    ## Cre01.g000200       11362 Cre01.g000200_4532             Cre01.g000200
+    ## Cre01.g000250       11368 Cre01.g000250_4532                      SNR1
+    ## ...                   ...                ...         ...           ...
+    ## CreMt.g802340      274513 CreMt.g802340_4532        cox1          cox1
+    ## CreMt.g802341      274514 CreMt.g802341_4532        nad2          nad2
+    ## CreMt.g802342      274515 CreMt.g802342_4532        nad6          nad6
+    ## CreMt.g802343      274516 CreMt.g802343_4532        nad1          nad1
+    ## CreMt.g802344      274517 CreMt.g802344_4532         rtl           rtl
+    ##                   prev.symbols    previousIdentifiers
+    ##                    <character>            <character>
+    ## Cre01.g000050            RWP14            g4.t1#RWP14
+    ## Cre01.g000100                                   g5.t1
+    ## Cre01.g000150           CrZIP2           CrZIP2#g6.t1
+    ## Cre01.g000200                                   g7.t1
+    ## Cre01.g000250             SNR1            SNR1#g8.t1#
+    ## ...                        ...                    ...
+    ## CreMt.g802340 801495#ChrepMp04 CreMt.g000600#801495..
+    ## CreMt.g802341 801491#ChrepMp05 CreMt.g000700#801491..
+    ## CreMt.g802342 801500#ChrepMp06 CreMt.g000800#801500..
+    ## CreMt.g802343 801499#ChrepMp07 CreMt.g001600#801499..
+    ## CreMt.g802344 801489#ChrepMp08 CreMt.g001900#801489..
+    ##                     previousIdentifiers_list            Description
+    ##                                       <list>            <character>
+    ## Cre01.g000050                    g4.t1,RWP14 RWP-RK transcription..
+    ## Cre01.g000100                          g5.t1                       
+    ## Cre01.g000150                   CrZIP2,g6.t1 Zinc-nutrition respo..
+    ## Cre01.g000200                          g7.t1 Esterase, SGNH hydro..
+    ## Cre01.g000250                     SNR1,g8.t1 Predicted SNARE-asso..
+    ## ...                                      ...                    ...
+    ## CreMt.g802340 CreMt.g000600,801495,ChrepMp04 cytochrome oxidase s..
+    ## CreMt.g802341 CreMt.g000700,801491,ChrepMp05 NADH dehydrogenase s..
+    ## CreMt.g802342 CreMt.g000800,801500,ChrepMp06 NADH dehydrogenase s..
+    ## CreMt.g802343 CreMt.g001600,801499,ChrepMp07 NADH dehydrogenase s..
+    ## CreMt.g802344 CreMt.g001900,801489,ChrepMp08 reverse transcriptas..
+    ##                             Comments                TargetP
+    ##                          <character>            <character>
+    ## Cre01.g000050 putative RWP-RK doma.. Chloroplast (RC 5 sc..
+    ## Cre01.g000100                        Other (RC 5 on #1 pr..
+    ## Cre01.g000150 Similarity to ZIP Su.. Mitochondrion (RC 4 ..
+    ## Cre01.g000200                        Mitochondrion (RC 2 ..
+    ## Cre01.g000250                        Mitochondrion (RC 1 ..
+    ## ...                              ...                    ...
+    ## CreMt.g802340                                              
+    ## CreMt.g802341                                              
+    ## CreMt.g802342                                              
+    ## CreMt.g802343                                              
+    ## CreMt.g802344 May play a role in r..                       
+    ##                             Predalgo
+    ##                          <character>
+    ## Cre01.g000050 Chloroplast (score 1..
+    ## Cre01.g000100 Other (score - on #1..
+    ## Cre01.g000150 Chloroplast (score 0..
+    ## Cre01.g000200 Mitochondrion (score..
+    ## Cre01.g000250 Mitochondrion (score..
+    ## ...                              ...
+    ## CreMt.g802340                       
+    ## CreMt.g802341                       
+    ## CreMt.g802342                       
+    ## CreMt.g802343                       
+    ## CreMt.g802344
+
+``` r
+colData(gse_acry)
+```
+
+    ## DataFrame with 17 rows and 12 columns
+    ##                            names               filename clientId clientName
+    ##                      <character>               <factor> <factor>   <factor>
+    ## aCRYred1  Unknown_BU327-002T00.. Unknown_BU327-002T0001      1.1   aCRYred1
+    ## aCRYred2  Unknown_BU327-002T00.. Unknown_BU327-002T0002      1.2   aCRYred2
+    ## aCRYred3  Unknown_BU327-002T00.. Unknown_BU327-002T0003      1.3   aCRYred3
+    ## WTred1    Unknown_BU327-002T00.. Unknown_BU327-002T0004      2.1   WTred1  
+    ## WTred2    Unknown_BU327-002T00.. Unknown_BU327-002T0005      2.2   WTred2  
+    ## ...                          ...                    ...      ...        ...
+    ## WTdark1   Unknown_BU327-002T00.. Unknown_BU327-002T0013     DK.1  WTdark1  
+    ## WTdark2   Unknown_BU327-002T00.. Unknown_BU327-002T0014     DK.2  WTdark2  
+    ## WTdark3   Unknown_BU327-002T00.. Unknown_BU327-002T0015     DK.3  WTdark3  
+    ## aCRYdark1 Unknown_BU327-002T00.. Unknown_BU327-002T0016     DA.1  aCRYdark1
+    ## aCRYdark2 Unknown_BU327-002T00.. Unknown_BU327-002T0017     DA.2  aCRYdark2
+    ##              group  species genotype treatment replicate experiment condition
+    ##           <factor> <factor> <factor>  <factor>  <factor>   <factor>  <factor>
+    ## aCRYred1   aCRYred      Cre     acry       red         1       acry  acry_red
+    ## aCRYred2   aCRYred      Cre     acry       red         2       acry  acry_red
+    ## aCRYred3   aCRYred      Cre     acry       red         3       acry  acry_red
+    ## WTred1     WTred        Cre     WT         red         1       acry  WT_red  
+    ## WTred2     WTred        Cre     WT         red         2       acry  WT_red  
+    ## ...            ...      ...      ...       ...       ...        ...       ...
+    ## WTdark1   WTdark        Cre     WT        dark         1       acry WT_dark  
+    ## WTdark2   WTdark        Cre     WT        dark         2       acry WT_dark  
+    ## WTdark3   WTdark        Cre     WT        dark         3       acry WT_dark  
+    ## aCRYdark1 aCRYdark      Cre     acry      dark         1       acry acry_dark
+    ## aCRYdark2 aCRYdark      Cre     acry      dark         2       acry acry_dark
+    ##           mappingrates
+    ##              <numeric>
+    ## aCRYred1         69.74
+    ## aCRYred2         67.08
+    ## aCRYred3         69.49
+    ## WTred1           73.55
+    ## WTred2           75.63
+    ## ...                ...
+    ## WTdark1          65.00
+    ## WTdark2          69.97
+    ## WTdark3          81.10
+    ## aCRYdark1        68.83
+    ## aCRYdark2        54.60
+
+``` r
+colData(gse_acry)[c("aCRYdark1","WTdark1"),]
+```
+
+    ## DataFrame with 2 rows and 12 columns
+    ##                            names               filename clientId clientName
+    ##                      <character>               <factor> <factor>   <factor>
+    ## aCRYdark1 Unknown_BU327-002T00.. Unknown_BU327-002T0016     DA.1  aCRYdark1
+    ## WTdark1   Unknown_BU327-002T00.. Unknown_BU327-002T0013     DK.1  WTdark1  
+    ##              group  species genotype treatment replicate experiment condition
+    ##           <factor> <factor> <factor>  <factor>  <factor>   <factor>  <factor>
+    ## aCRYdark1 aCRYdark      Cre     acry      dark         1       acry acry_dark
+    ## WTdark1   WTdark        Cre     WT        dark         1       acry WT_dark  
+    ##           mappingrates
+    ##              <numeric>
+    ## aCRYdark1        68.83
+    ## WTdark1          65.00
+
+``` r
+colData(gse_acry)$Samplename_new <- colData(gse_acry)$clientName
+colData(gse_acry)$Samplename_new[colData(gse_acry)$clientName == "aCRYdark1"] <- "WTdark1"
+colData(gse_acry)$group[colData(gse_acry)$clientName == "aCRYdark1"] <- "WTdark"
+colData(gse_acry)$genotype[colData(gse_acry)$clientName == "aCRYdark1"] <- "WT"
+colData(gse_acry)$treatment[colData(gse_acry)$clientName == "aCRYdark1"] <- "dark"
+colData(gse_acry)$condition[colData(gse_acry)$clientName == "aCRYdark1"] <- "WT_dark"
+
+colData(gse_acry)$Samplename_new[colData(gse_acry)$clientName == "WTdark1"] <- "aCRYdark1"
+colData(gse_acry)$group[colData(gse_acry)$clientName == "WTdark1"] <- "aCRYdark"
+colData(gse_acry)$genotype[colData(gse_acry)$clientName == "WTdark1"] <- "acry"
+colData(gse_acry)$treatment[colData(gse_acry)$clientName == "WTdark1"] <- "dark"
+colData(gse_acry)$condition[colData(gse_acry)$clientName == "WTdark1"] <- "acry_dark"
+
+colData(gse_acry)[c("aCRYdark1","WTdark1"),]
+```
+
+    ## DataFrame with 2 rows and 13 columns
+    ##                            names               filename clientId clientName
+    ##                      <character>               <factor> <factor>   <factor>
+    ## aCRYdark1 Unknown_BU327-002T00.. Unknown_BU327-002T0016     DA.1  aCRYdark1
+    ## WTdark1   Unknown_BU327-002T00.. Unknown_BU327-002T0013     DK.1  WTdark1  
+    ##              group  species genotype treatment replicate experiment condition
+    ##           <factor> <factor> <factor>  <factor>  <factor>   <factor>  <factor>
+    ## aCRYdark1 WTdark        Cre     WT        dark         1       acry WT_dark  
+    ## WTdark1   aCRYdark      Cre     acry      dark         1       acry acry_dark
+    ##           mappingrates Samplename_new
+    ##              <numeric>       <factor>
+    ## aCRYdark1        68.83      WTdark1  
+    ## WTdark1          65.00      aCRYdark1
+
+``` r
+rownames(colData(gse_acry)) <- colData(gse_acry)$Samplename_new
+```
+
 ## Run Deseq2
 
 ![](Readme_files/figure-gfm/dds_acry_pcry-1.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-2.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-3.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-4.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-5.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-6.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-7.png)<!-- -->![](Readme_files/figure-gfm/dds_acry_pcry-8.png)<!-- -->
@@ -1524,9 +1735,9 @@ write.table(Exp_design,file.path(outdir,"Exp_design.csv"), sep=",",  col.names=F
 sessionInfo()
 ```
 
-    ## R version 4.4.0 (2024-04-24)
+    ## R version 4.4.1 (2024-06-14)
     ## Platform: x86_64-pc-linux-gnu
-    ## Running under: Ubuntu 22.04.4 LTS
+    ## Running under: Ubuntu 22.04.5 LTS
     ## 
     ## Matrix products: default
     ## BLAS/LAPACK: /opt/intel/oneapi/mkl/2024.0/lib/libmkl_rt.so.2;  LAPACK version 3.10.1
@@ -1550,42 +1761,42 @@ sessionInfo()
     ##  [1] VennDiagram_1.7.3           futile.logger_1.4.3        
     ##  [3] vsn_3.72.0                  ggpubr_0.6.0               
     ##  [5] viridis_0.6.5               viridisLite_0.4.2          
-    ##  [7] knitr_1.47                  kableExtra_1.4.0           
-    ##  [9] ape_5.8                     biomaRt_2.60.0             
-    ## [11] writexl_1.5.0               pheatmap_1.0.12            
+    ##  [7] knitr_1.48                  kableExtra_1.4.0           
+    ##  [9] ape_5.8                     biomaRt_2.60.1             
+    ## [11] writexl_1.5.1               pheatmap_1.0.12            
     ## [13] EnhancedVolcano_1.22.0      DESeq2_1.44.0              
     ## [15] SummarizedExperiment_1.34.0 Biobase_2.64.0             
-    ## [17] MatrixGenerics_1.16.0       matrixStats_1.3.0          
-    ## [19] GenomicRanges_1.56.0        GenomeInfoDb_1.40.1        
-    ## [21] IRanges_2.38.0              S4Vectors_0.42.0           
+    ## [17] MatrixGenerics_1.16.0       matrixStats_1.4.1          
+    ## [19] GenomicRanges_1.56.2        GenomeInfoDb_1.40.1        
+    ## [21] IRanges_2.38.1              S4Vectors_0.42.1           
     ## [23] AnnotationHub_3.12.0        BiocFileCache_2.12.0       
     ## [25] dbplyr_2.5.0                BiocGenerics_0.50.0        
-    ## [27] curl_5.2.1                  tximport_1.32.0            
+    ## [27] curl_5.2.3                  tximport_1.32.0            
     ## [29] tximeta_1.22.1              lubridate_1.9.3            
     ## [31] forcats_1.0.0               dplyr_1.1.4                
     ## [33] purrr_1.0.2                 readr_2.1.5                
     ## [35] tidyr_1.3.1                 tibble_3.2.1               
     ## [37] tidyverse_2.0.0             plyr_1.8.9                 
-    ## [39] data.table_1.15.4           sessioninfo_1.2.2          
+    ## [39] data.table_1.16.2           sessioninfo_1.2.2          
     ## [41] RColorBrewer_1.1-3          R.utils_2.12.3             
     ## [43] R.oo_1.26.0                 R.methodsS3_1.8.2          
     ## [45] stringr_1.5.1               PCAtools_2.16.0            
-    ## [47] ggrepel_0.9.5               ggplot2_3.5.1              
-    ## [49] patchwork_1.2.0            
+    ## [47] ggrepel_0.9.6               ggplot2_3.5.1              
+    ## [49] patchwork_1.3.0            
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] BiocIO_1.14.0             bitops_1.0-7             
+    ##   [1] BiocIO_1.14.0             bitops_1.0-9             
     ##   [3] filelock_1.0.3            preprocessCore_1.66.0    
-    ##   [5] XML_3.99-0.16.1           lifecycle_1.0.4          
-    ##   [7] httr2_1.0.1               mixsqp_0.3-54            
+    ##   [5] XML_3.99-0.17             lifecycle_1.0.4          
+    ##   [7] httr2_1.0.5               mixsqp_0.3-54            
     ##   [9] rstatix_0.7.2             MASS_7.3-61              
-    ##  [11] lattice_0.22-6            ensembldb_2.28.0         
+    ##  [11] lattice_0.22-6            ensembldb_2.28.1         
     ##  [13] backports_1.5.0           magrittr_2.0.3           
-    ##  [15] limma_3.60.2              rmarkdown_2.27           
-    ##  [17] yaml_2.3.8                cowplot_1.1.3            
+    ##  [15] limma_3.60.6              rmarkdown_2.28           
+    ##  [17] yaml_2.3.10               cowplot_1.1.3            
     ##  [19] DBI_1.2.3                 maps_3.4.2               
-    ##  [21] abind_1.4-5               zlibbioc_1.50.0          
-    ##  [23] AnnotationFilter_1.28.0   RCurl_1.98-1.14          
+    ##  [21] abind_1.4-8               zlibbioc_1.50.0          
+    ##  [23] AnnotationFilter_1.28.0   RCurl_1.98-1.16          
     ##  [25] rappdirs_0.3.3            GenomeInfoDbData_1.2.12  
     ##  [27] irlba_2.3.5.1             dqrng_0.4.1              
     ##  [29] svglite_2.1.3             DelayedMatrixStats_1.26.0
@@ -1593,49 +1804,50 @@ sessionInfo()
     ##  [33] xml2_1.3.6                tidyselect_1.2.1         
     ##  [35] UCSC.utils_1.0.0          farver_2.1.2             
     ##  [37] ScaledMatrix_1.12.0       ash_1.0-15               
-    ##  [39] GenomicAlignments_1.40.0  jsonlite_1.8.8           
-    ##  [41] systemfonts_1.1.0         tools_4.4.0              
-    ##  [43] progress_1.2.3            Rcpp_1.0.12              
-    ##  [45] glue_1.7.0                Rttf2pt1_1.3.12          
-    ##  [47] gridExtra_2.3             SparseArray_1.4.8        
-    ##  [49] xfun_0.44                 withr_3.0.0              
-    ##  [51] formatR_1.14              BiocManager_1.30.23      
-    ##  [53] fastmap_1.2.0             fansi_1.0.6              
-    ##  [55] truncnorm_1.0-9           digest_0.6.35            
-    ##  [57] rsvd_1.0.5                timechange_0.3.0         
-    ##  [59] R6_2.5.1                  colorspace_2.1-0         
-    ##  [61] RSQLite_2.3.7             hexbin_1.28.3            
-    ##  [63] utf8_1.2.4                generics_0.1.3           
-    ##  [65] rtracklayer_1.64.0        prettyunits_1.2.0        
-    ##  [67] httr_1.4.7                S4Arrays_1.4.1           
-    ##  [69] pkgconfig_2.0.3           gtable_0.3.5             
-    ##  [71] blob_1.2.4                XVector_0.44.0           
-    ##  [73] htmltools_0.5.8.1         carData_3.0-5            
-    ##  [75] ProtGenerics_1.36.0       scales_1.3.0             
-    ##  [77] png_0.1-8                 ashr_2.2-63              
-    ##  [79] lambda.r_1.2.4            rstudioapi_0.16.0        
-    ##  [81] tzdb_0.4.0                reshape2_1.4.4           
-    ##  [83] rjson_0.2.21              nlme_3.1-165             
-    ##  [85] cachem_1.1.0              KernSmooth_2.23-24       
-    ##  [87] BiocVersion_3.19.1        parallel_4.4.0           
-    ##  [89] extrafont_0.19            AnnotationDbi_1.66.0     
-    ##  [91] restfulr_0.0.15           pillar_1.9.0             
-    ##  [93] vctrs_0.6.5               BiocSingular_1.20.0      
-    ##  [95] car_3.1-2                 beachmat_2.20.0          
-    ##  [97] extrafontdb_1.0           evaluate_0.24.0          
-    ##  [99] invgamma_1.1              GenomicFeatures_1.56.0   
-    ## [101] cli_3.6.2                 locfit_1.5-9.9           
-    ## [103] compiler_4.4.0            futile.options_1.0.1     
-    ## [105] Rsamtools_2.20.0          rlang_1.1.4              
-    ## [107] crayon_1.5.2              SQUAREM_2021.1           
-    ## [109] ggsignif_0.6.4            labeling_0.4.3           
-    ## [111] affy_1.82.0               stringi_1.8.4            
-    ## [113] BiocParallel_1.38.0       ggalt_0.4.0              
-    ## [115] txdbmaker_1.0.0           munsell_0.5.1            
-    ## [117] Biostrings_2.72.1         lazyeval_0.2.2           
-    ## [119] proj4_1.0-14              Matrix_1.7-0             
-    ## [121] hms_1.1.3                 sparseMatrixStats_1.16.0 
-    ## [123] bit64_4.0.5               KEGGREST_1.44.0          
-    ## [125] statmod_1.5.0             highr_0.11               
-    ## [127] broom_1.0.6               memoise_2.0.1            
-    ## [129] affyio_1.74.0             bit_4.0.5
+    ##  [39] GenomicAlignments_1.40.0  jsonlite_1.8.9           
+    ##  [41] Formula_1.2-5             systemfonts_1.1.0        
+    ##  [43] tools_4.4.1               progress_1.2.3           
+    ##  [45] Rcpp_1.0.13               glue_1.8.0               
+    ##  [47] Rttf2pt1_1.3.12           gridExtra_2.3            
+    ##  [49] SparseArray_1.4.8         xfun_0.48                
+    ##  [51] withr_3.0.1               formatR_1.14             
+    ##  [53] BiocManager_1.30.25       fastmap_1.2.0            
+    ##  [55] fansi_1.0.6               truncnorm_1.0-9          
+    ##  [57] digest_0.6.37             rsvd_1.0.5               
+    ##  [59] timechange_0.3.0          R6_2.5.1                 
+    ##  [61] colorspace_2.1-1          RSQLite_2.3.7            
+    ##  [63] hexbin_1.28.4             utf8_1.2.4               
+    ##  [65] generics_0.1.3            rtracklayer_1.64.0       
+    ##  [67] prettyunits_1.2.0         httr_1.4.7               
+    ##  [69] S4Arrays_1.4.1            pkgconfig_2.0.3          
+    ##  [71] gtable_0.3.5              blob_1.2.4               
+    ##  [73] XVector_0.44.0            htmltools_0.5.8.1        
+    ##  [75] carData_3.0-5             ProtGenerics_1.36.0      
+    ##  [77] scales_1.3.0              png_0.1-8                
+    ##  [79] ashr_2.2-63               lambda.r_1.2.4           
+    ##  [81] rstudioapi_0.17.0         tzdb_0.4.0               
+    ##  [83] reshape2_1.4.4            rjson_0.2.23             
+    ##  [85] nlme_3.1-166              cachem_1.1.0             
+    ##  [87] KernSmooth_2.23-24        BiocVersion_3.19.1       
+    ##  [89] parallel_4.4.1            extrafont_0.19           
+    ##  [91] AnnotationDbi_1.66.0      restfulr_0.0.15          
+    ##  [93] pillar_1.9.0              vctrs_0.6.5              
+    ##  [95] BiocSingular_1.20.0       car_3.1-3                
+    ##  [97] beachmat_2.20.0           extrafontdb_1.0          
+    ##  [99] evaluate_1.0.1            invgamma_1.1             
+    ## [101] GenomicFeatures_1.56.0    cli_3.6.3                
+    ## [103] locfit_1.5-9.10           compiler_4.4.1           
+    ## [105] futile.options_1.0.1      Rsamtools_2.20.0         
+    ## [107] rlang_1.1.4               crayon_1.5.3             
+    ## [109] SQUAREM_2021.1            ggsignif_0.6.4           
+    ## [111] labeling_0.4.3            affy_1.82.0              
+    ## [113] stringi_1.8.4             BiocParallel_1.38.0      
+    ## [115] ggalt_0.4.0               txdbmaker_1.0.1          
+    ## [117] munsell_0.5.1             Biostrings_2.72.1        
+    ## [119] lazyeval_0.2.2            proj4_1.0-14             
+    ## [121] Matrix_1.7-0              hms_1.1.3                
+    ## [123] sparseMatrixStats_1.16.0  bit64_4.5.2              
+    ## [125] KEGGREST_1.44.1           statmod_1.5.0            
+    ## [127] highr_0.11                broom_1.0.7              
+    ## [129] memoise_2.0.1             affyio_1.74.0            
+    ## [131] bit_4.5.0
