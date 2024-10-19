@@ -463,7 +463,7 @@ height = 6)
 
 # Fig 4: Overlaps
 ## Fig 4a: Venns
-```{r overlap, eval=FALSE}
+```{r overlap, eval=TRUE}
 fig <- "Fig4"
 
 res_list[["pcry"]] %>% names()
@@ -497,7 +497,7 @@ plt <- venn.diagram(
     disable.logging = TRUE
 )
 
-wrap_elements(plt) + plot_annotation(caption = paste0("pCRY"))
+wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
 
 
 ```
@@ -509,13 +509,66 @@ res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
              blue = res_list$pcry$pcry_BL.vs.WT_BL,
              red =res_list$pcry$pcry_R.vs.WT_R) %>% lapply(data.frame)
 
-DEGs_comb <- bind_cols(res_core[[1]][],res_core[[2]],res_core[[3]])
+DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6)])
+colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
+
+DEGs_genes["dark"]
+blue_red_genes <- unlist(DEGs_genes[c("blue","red")]) %>% unique()
+
+non-sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
+
+DEGs_comb$sig
+
+gg_all <- ggplot(DEGs_comb, aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
+  geom_point(shape=21) +
+  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
+  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
+  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+  geom_text_repel() +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_all
+
+gg_br <- ggplot(DEGs_comb[blue_red_genes,], aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
+  geom_point(shape=21) +
+  geom_text_repel() +
+  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_br
+
+red_specific <- DEGs_comb %>% subset(l2FC.blue < 1 & l2FC.blue > -1 & (l2FC.red > 0.5 | l2FC.red < -0.5) & padj.red < 0.05) %>% arrange(l2FC.red)
+
+goi <- "Cre03.g192050"
+
+
+# single gene
+d <- plotCounts(dds, gene=goi, intgroup=c("condition","experiment","genotype","treatment"), main=s,returnData=TRUE)
+colnames(d)[1] <- "counts"
+
+gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
+  # geom_text_repel(aes(label=clientName)) +
+    scale_fill_manual(values=group.colors) +
+    scale_color_manual(values=group.colors) +
+    scale_y_continuous(trans = "log2") +
+    theme_bw() +
+    removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts$treatment))-1,1)+.5,color="grey") +
+    labs(title = paste(mcols(dds)[goi,]$symbol," in ",colData(dds)$experiment[1],sep = "")) +
+    theme(axis.text.x = element_text(size = 10, face = "bold"),
+    axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+    axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
+gcounts
+
 
 
 ```
 
 
-# Fig. 3: Grouping
+# Fig. X
 ```{r 3_groups, eval=FALSE, fig.show='hold', fig.width=6, fig.height=4, dpi=300, out.width="50%"}
 
 

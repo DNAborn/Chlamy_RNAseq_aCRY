@@ -8,8 +8,8 @@ figures_manuscript
 - [Fig 3: Volcanos](#fig-3-volcanos)
 - [Fig 4: Overlaps](#fig-4-overlaps)
   - [Fig 4a: Venns](#fig-4a-venns)
-  - [Fig 4b: groups](#fig-4b-groups)
-- [Fig. 3: Grouping](#fig-3-grouping)
+  - [Fig 4b: Groups](#fig-4b-groups)
+- [Fig. X](#fig-x)
 
 BiocManager::install()
 
@@ -421,6 +421,15 @@ height = 6)
 fig <- "Fig4"
 
 res_list[["pcry"]] %>% names()
+```
+
+    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
+    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
+    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
+    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
+    ## [13] "pcry.vs.WT"
+
+``` r
 #  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
 DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
              blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
@@ -430,7 +439,30 @@ DEGs_genes <- lapply(DEGs,rownames)
 
 venn.ol <- calculate.overlap(DEGs_genes)
 venn.ol %>% lapply(length)
+```
 
+    ## $a5
+    ## [1] 37
+    ## 
+    ## $a2
+    ## [1] 7
+    ## 
+    ## $a4
+    ## [1] 5
+    ## 
+    ## $a6
+    ## [1] 25
+    ## 
+    ## $a1
+    ## [1] 79
+    ## 
+    ## $a3
+    ## [1] 37
+    ## 
+    ## $a7
+    ## [1] 24
+
+``` r
 input_list <- DEGs_genes
 
 plt <- venn.diagram(
@@ -451,17 +483,74 @@ plt <- venn.diagram(
     disable.logging = TRUE
 )
 
-wrap_elements(plt) + plot_annotation(caption = paste0("pCRY"))
+wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
 ```
 
-## Fig 4b: groups
+![](README_files/figure-gfm/overlap-1.png)<!-- -->
+
+## Fig 4b: Groups
 
 ``` r
-res_
-DEGs_comb <- bind_cols(DEGs[[1]],DEGs[[2]],DEGs[[3]])
+res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
+             blue = res_list$pcry$pcry_BL.vs.WT_BL,
+             red =res_list$pcry$pcry_R.vs.WT_R) %>% lapply(data.frame)
+
+DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6)])
+colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
+
+DEGs_genes["dark"]
+blue_red_genes <- unlist(DEGs_genes[c("blue","red")]) %>% unique()
+
+non-sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
+
+DEGs_comb$sig
+
+gg_all <- ggplot(DEGs_comb, aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
+  geom_point(shape=21) +
+  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
+  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
+  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+  geom_text_repel() +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_all
+
+gg_br <- ggplot(DEGs_comb[blue_red_genes,], aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
+  geom_point(shape=21) +
+  geom_text_repel() +
+  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_br
+
+red_specific <- DEGs_comb %>% subset(l2FC.blue < 1 & l2FC.blue > -1 & (l2FC.red > 0.5 | l2FC.red < -0.5) & padj.red < 0.05) %>% arrange(l2FC.red)
+
+goi <- "Cre03.g192050"
+
+
+# single gene
+d <- plotCounts(dds, gene=goi, intgroup=c("condition","experiment","genotype","treatment"), main=s,returnData=TRUE)
+colnames(d)[1] <- "counts"
+
+gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
+    geom_boxplot(color="black") +
+    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
+  # geom_text_repel(aes(label=clientName)) +
+    scale_fill_manual(values=group.colors) +
+    scale_color_manual(values=group.colors) +
+    scale_y_continuous(trans = "log2") +
+    theme_bw() +
+    removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts$treatment))-1,1)+.5,color="grey") +
+    labs(title = paste(mcols(dds)[goi,]$symbol," in ",colData(dds)$experiment[1],sep = "")) +
+    theme(axis.text.x = element_text(size = 10, face = "bold"),
+    axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+    axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
+gcounts
 ```
 
-# Fig. 3: Grouping
+# Fig. X
 
 ``` r
 p_new2 <- ggplot(deg_table, aes(x=XX.log2FC, y=XY.log2FC,color=group, fill=group)) + 
