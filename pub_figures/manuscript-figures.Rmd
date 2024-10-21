@@ -503,7 +503,7 @@ wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
 ```
 
 ## Fig 4b: Groups
-```{r groups, eval=FALSE}
+```{r groups, eval=TRUE, out.width="50%", fig.show='hold'}
 
 res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
              blue = res_list$pcry$pcry_BL.vs.WT_BL,
@@ -515,7 +515,7 @@ colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","
 DEGs_genes["dark"]
 blue_red_genes <- unlist(DEGs_genes[c("blue","red")]) %>% unique()
 
-non-sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
+non_sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
 
 DEGs_comb$sig
 
@@ -524,14 +524,14 @@ gg_all <- ggplot(DEGs_comb, aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # colo
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
   coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
-  geom_text_repel() +
+  geom_text_repel(size=2, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
 gg_all
 
 gg_br <- ggplot(DEGs_comb[blue_red_genes,], aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
   geom_point(shape=21) +
-  geom_text_repel() +
+  geom_text_repel(size=3) +
   coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
   theme_bw() +
   removeGrid(x=T, y=T)

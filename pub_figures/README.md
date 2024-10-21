@@ -499,25 +499,66 @@ DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6
 colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
 
 DEGs_genes["dark"]
+```
+
+    ## $dark
+    ##   [1] "Cre01.g001700" "Cre01.g004157" "Cre01.g009050" "Cre01.g009101"
+    ##   [5] "Cre01.g026750" "Cre01.g032700" "Cre01.g035350" "Cre01.g042700"
+    ##   [9] "Cre01.g052150" "Cre01.g800076" "Cre01.g800077" "Cre01.g800078"
+    ##  [13] "Cre02.g093600" "Cre02.g095151" "Cre02.g096250" "Cre02.g105250"
+    ##  [17] "Cre02.g108050" "Cre02.g117410" "Cre02.g141695" "Cre02.g141986"
+    ##  [21] "Cre02.g143347" "Cre02.g143352" "Cre03.g163150" "Cre03.g175050"
+    ##  [25] "Cre03.g175100" "Cre03.g199050" "Cre03.g199800" "Cre03.g205950"
+    ##  [29] "Cre04.g214321" "Cre04.g228950" "Cre05.g241202" "Cre05.g246900"
+    ##  [33] "Cre05.g247250" "Cre06.g258600" "Cre06.g263550" "Cre06.g269550"
+    ##  [37] "Cre06.g269650" "Cre06.g270000" "Cre06.g285001" "Cre06.g293100"
+    ##  [41] "Cre06.g295650" "Cre06.g296800" "Cre06.g301750" "Cre06.g800687"
+    ##  [45] "Cre06.g800688" "Cre06.g800711" "Cre07.g325718" "Cre07.g329750"
+    ##  [49] "Cre07.g337100" "Cre07.g800816" "Cre07.g800821" "Cre08.g364351"
+    ##  [53] "Cre09.g398400" "Cre09.g399400" "Cre09.g412700" "Cre09.g800983"
+    ##  [57] "Cre10.g425050" "Cre10.g428433" "Cre10.g435400" "Cre10.g447700"
+    ##  [61] "Cre10.g447850" "Cre10.g458850" "Cre11.g801242" "Cre11.g801313"
+    ##  [65] "Cre12.g486400" "Cre12.g497500" "Cre12.g513650" "Cre12.g514400"
+    ##  [69] "Cre12.g517681" "Cre12.g534945" "Cre12.g542150" "Cre12.g801353"
+    ##  [73] "Cre12.g801361" "Cre12.g801375" "Cre12.g801412" "Cre12.g801442"
+    ##  [77] "Cre13.g572950" "Cre13.g587350" "Cre13.g587400" "Cre13.g588950"
+    ##  [81] "Cre13.g603500" "Cre13.g605500" "Cre13.g801516" "Cre13.g801530"
+    ##  [85] "Cre14.g615550" "Cre14.g626600" "Cre14.g631900" "Cre15.g801759"
+    ##  [89] "Cre15.g801777" "Cre15.g801848" "Cre15.g801853" "Cre16.g657100"
+    ##  [93] "Cre16.g661750" "Cre16.g661850" "Cre16.g677750" "Cre16.g678900"
+    ##  [97] "Cre16.g681351" "Cre16.g681690" "Cre16.g681750" "Cre16.g686285"
+    ## [101] "Cre16.g694250" "Cre17.g696900" "Cre17.g700450" "Cre17.g716350"
+    ## [105] "Cre17.g723000" "Cre17.g724650" "Cre17.g725750" "Cre17.g733850"
+    ## [109] "Cre17.g738300" "Cre17.g802106" "Cre17.g802135" "Cre18.g748097"
+    ## [113] "Cre24.g755897" "Cre24.g755997" "CreCp.g802273" "CreCp.g802274"
+    ## [117] "CreCp.g802288" "CreCp.g802299" "CreCp.g802305" "CreCp.g802306"
+    ## [121] "CreCp.g802310" "CreCp.g802311" "CreCp.g802313" "CreCp.g802317"
+    ## [125] "CreCp.g802321" "CreCp.g802323" "CreCp.g802324" "CreCp.g802330"
+
+``` r
 blue_red_genes <- unlist(DEGs_genes[c("blue","red")]) %>% unique()
 
-non-sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
+non_sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
 
 DEGs_comb$sig
+```
 
+    ## NULL
+
+``` r
 gg_all <- ggplot(DEGs_comb, aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
   geom_point(shape=21) +
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
   coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
-  geom_text_repel() +
+  geom_text_repel(size=2, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
 gg_all
 
 gg_br <- ggplot(DEGs_comb[blue_red_genes,], aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
   geom_point(shape=21) +
-  geom_text_repel() +
+  geom_text_repel(size=3) +
   coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
   theme_bw() +
   removeGrid(x=T, y=T)
@@ -549,6 +590,8 @@ gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condit
     axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
 gcounts
 ```
+
+<img src="README_files/figure-gfm/groups-1.png" width="50%" /><img src="README_files/figure-gfm/groups-2.png" width="50%" /><img src="README_files/figure-gfm/groups-3.png" width="50%" />
 
 # Fig. X
 
