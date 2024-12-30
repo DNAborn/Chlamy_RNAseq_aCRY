@@ -256,11 +256,27 @@ width = 6,
 height = 5)
 }
 
+
+
+gcounts
+
 # ggsave(paste(pub_figures,"ROC40.pdf",sep="/"), plot = gcounts,
 #   width = 5,
 #   height = 4)
 
 ```
+
+# Fig 2x: Explain data
+```{r explain_data, eval=FALSE}
+
+#
+res_list
+
+
+
+```
+
+
 
 
 # Fig 3: Volcanos

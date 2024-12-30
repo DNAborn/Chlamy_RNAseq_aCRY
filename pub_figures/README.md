@@ -5,6 +5,7 @@ figures_manuscript
 - [run prepare_data scripts](#run-prepare_data-scripts)
 - [Fig 1: PCA](#fig-1-pca)
 - [Fig 2: Counts](#fig-2-counts)
+- [Fig 2x: Explain data](#fig-2x-explain-data)
 - [Fig 3: Volcanos](#fig-3-volcanos)
 - [Fig 4: Overlaps](#fig-4-overlaps)
   - [Fig 4a: Venns](#fig-4a-venns)
@@ -98,7 +99,13 @@ height = 6)
 
 # Fig 2: Counts
 
-![](README_files/figure-gfm/Counts-1.png)<!-- -->![](README_files/figure-gfm/Counts-2.png)<!-- -->![](README_files/figure-gfm/Counts-3.png)<!-- -->![](README_files/figure-gfm/Counts-4.png)<!-- -->![](README_files/figure-gfm/Counts-5.png)<!-- -->![](README_files/figure-gfm/Counts-6.png)<!-- -->
+![](README_files/figure-gfm/Counts-1.png)<!-- -->![](README_files/figure-gfm/Counts-2.png)<!-- -->![](README_files/figure-gfm/Counts-3.png)<!-- -->![](README_files/figure-gfm/Counts-4.png)<!-- -->![](README_files/figure-gfm/Counts-5.png)<!-- -->![](README_files/figure-gfm/Counts-6.png)<!-- -->![](README_files/figure-gfm/Counts-7.png)<!-- -->
+
+# Fig 2x: Explain data
+
+``` r
+# res_list@pcry
+```
 
 # Fig 3: Volcanos
 
