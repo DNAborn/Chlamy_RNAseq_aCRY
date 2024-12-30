@@ -104,7 +104,8 @@ height = 6)
 # Fig 2x: Explain data
 
 ``` r
-# res_list@pcry
+#
+res_list
 ```
 
 # Fig 3: Volcanos
