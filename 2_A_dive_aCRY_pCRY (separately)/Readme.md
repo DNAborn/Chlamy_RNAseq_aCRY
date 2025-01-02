@@ -15,6 +15,7 @@ Kelterborn
   - [Colors](#colors)
   - [Plot Counts](#plot-counts)
   - [Make results](#make-results)
+  - [Control results](#control-results)
   - [Volcanos](#volcanos)
 - [Export](#export)
 
@@ -475,6 +476,204 @@ msdp4 <- lapply(lapply(rld_list,assay,normalized =TRUE),meanSdPlot)
 ![](Readme_files/figure-gfm/plot_counts-1.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-2.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-3.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-4.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-5.png)<!-- -->![](Readme_files/figure-gfm/plot_counts-6.png)<!-- -->
 
 ## Make results
+
+## Control results
+
+``` r
+colData(gse_pcry)
+```
+
+    ## DataFrame with 18 rows and 12 columns
+    ##                             names    clientId              filename  clientName
+    ##                       <character> <character>              <factor> <character>
+    ## RNA_01_S20 P3044_RNA_01_S20_L00..  RNA_01_S20 P3044_RNA_01_S20_L005       WT-D1
+    ## RNA_02_S21 P3044_RNA_02_S21_L00..  RNA_02_S21 P3044_RNA_02_S21_L005       WT-D2
+    ## RNA_03_S22 P3044_RNA_03_S22_L00..  RNA_03_S22 P3044_RNA_03_S22_L005       WT-D3
+    ## RNA_04_S23 P3044_RNA_04_S23_L00..  RNA_04_S23 P3044_RNA_04_S23_L005      WT-BL1
+    ## RNA_05_S24 P3044_RNA_05_S24_L00..  RNA_05_S24 P3044_RNA_05_S24_L005      WT-BL2
+    ## ...                           ...         ...                   ...         ...
+    ## RNA_14_S33 P3044_RNA_14_S33_L00..  RNA_14_S33 P3044_RNA_14_S33_L005    pcry-BL2
+    ## RNA_15_S34 P3044_RNA_15_S34_L00..  RNA_15_S34 P3044_RNA_15_S34_L005    pcry-BL3
+    ## RNA_16_S35 P3044_RNA_16_S35_L00..  RNA_16_S35 P3044_RNA_16_S35_L005     pcry-R1
+    ## RNA_17_S36 P3044_RNA_17_S36_L00..  RNA_17_S36 P3044_RNA_17_S36_L005     pcry-R2
+    ## RNA_18_S37 P3044_RNA_18_S37_L00..  RNA_18_S37 P3044_RNA_18_S37_L005     pcry-R3
+    ##            genotype treatment condition replicate        lane  RNA_conc
+    ##            <factor>  <factor>  <factor>  <factor> <character> <numeric>
+    ## RNA_01_S20       WT      dark   WT_dark         1        L005       125
+    ## RNA_02_S21       WT      dark   WT_dark         2        L005       127
+    ## RNA_03_S22       WT      dark   WT_dark         3        L005       132
+    ## RNA_04_S23       WT      blue   WT_blue         1        L005       141
+    ## RNA_05_S24       WT      blue   WT_blue         2        L005       128
+    ## ...             ...       ...       ...       ...         ...       ...
+    ## RNA_14_S33     pcry      blue pcry_blue         2        L005       134
+    ## RNA_15_S34     pcry      blue pcry_blue         3        L005       135
+    ## RNA_16_S35     pcry      red  pcry_red          1        L005       136
+    ## RNA_17_S36     pcry      red  pcry_red          2        L005       141
+    ## RNA_18_S37     pcry      red  pcry_red          3        L005       128
+    ##            mappingrates  experiment
+    ##               <numeric> <character>
+    ## RNA_01_S20        82.62        pcry
+    ## RNA_02_S21        85.62        pcry
+    ## RNA_03_S22        82.08        pcry
+    ## RNA_04_S23        84.16        pcry
+    ## RNA_05_S24        83.69        pcry
+    ## ...                 ...         ...
+    ## RNA_14_S33        84.26        pcry
+    ## RNA_15_S34        85.09        pcry
+    ## RNA_16_S35        83.51        pcry
+    ## RNA_17_S36        80.78        pcry
+    ## RNA_18_S37        83.16        pcry
+
+``` r
+design <- ~condition
+dds_ctrl <- DESeqDataSet(gse_pcry, design=design)
+keep.sn <- rowSums(counts(dds_ctrl) >= 5) >= 3
+keep.sn %>% summary()
+```
+
+    ##    Mode   FALSE    TRUE 
+    ## logical    1591   16025
+
+``` r
+dds_ctrl <- dds_ctrl[keep.sn,]
+
+dds_ctrl <- DESeq(dds_ctrl)
+resultsNames(dds_ctrl)
+```
+
+    ## [1] "Intercept"                      "condition_pcry_dark_vs_WT_dark"
+    ## [3] "condition_WT_blue_vs_WT_dark"   "condition_pcry_blue_vs_WT_dark"
+    ## [5] "condition_WT_red_vs_WT_dark"    "condition_pcry_red_vs_WT_dark"
+
+``` r
+colData(dds_ctrl)
+```
+
+    ## DataFrame with 18 rows and 12 columns
+    ##                             names    clientId              filename  clientName
+    ##                       <character> <character>              <factor> <character>
+    ## RNA_01_S20 P3044_RNA_01_S20_L00..  RNA_01_S20 P3044_RNA_01_S20_L005       WT-D1
+    ## RNA_02_S21 P3044_RNA_02_S21_L00..  RNA_02_S21 P3044_RNA_02_S21_L005       WT-D2
+    ## RNA_03_S22 P3044_RNA_03_S22_L00..  RNA_03_S22 P3044_RNA_03_S22_L005       WT-D3
+    ## RNA_04_S23 P3044_RNA_04_S23_L00..  RNA_04_S23 P3044_RNA_04_S23_L005      WT-BL1
+    ## RNA_05_S24 P3044_RNA_05_S24_L00..  RNA_05_S24 P3044_RNA_05_S24_L005      WT-BL2
+    ## ...                           ...         ...                   ...         ...
+    ## RNA_14_S33 P3044_RNA_14_S33_L00..  RNA_14_S33 P3044_RNA_14_S33_L005    pcry-BL2
+    ## RNA_15_S34 P3044_RNA_15_S34_L00..  RNA_15_S34 P3044_RNA_15_S34_L005    pcry-BL3
+    ## RNA_16_S35 P3044_RNA_16_S35_L00..  RNA_16_S35 P3044_RNA_16_S35_L005     pcry-R1
+    ## RNA_17_S36 P3044_RNA_17_S36_L00..  RNA_17_S36 P3044_RNA_17_S36_L005     pcry-R2
+    ## RNA_18_S37 P3044_RNA_18_S37_L00..  RNA_18_S37 P3044_RNA_18_S37_L005     pcry-R3
+    ##            genotype treatment condition replicate        lane  RNA_conc
+    ##            <factor>  <factor>  <factor>  <factor> <character> <numeric>
+    ## RNA_01_S20       WT      dark   WT_dark         1        L005       125
+    ## RNA_02_S21       WT      dark   WT_dark         2        L005       127
+    ## RNA_03_S22       WT      dark   WT_dark         3        L005       132
+    ## RNA_04_S23       WT      blue   WT_blue         1        L005       141
+    ## RNA_05_S24       WT      blue   WT_blue         2        L005       128
+    ## ...             ...       ...       ...       ...         ...       ...
+    ## RNA_14_S33     pcry      blue pcry_blue         2        L005       134
+    ## RNA_15_S34     pcry      blue pcry_blue         3        L005       135
+    ## RNA_16_S35     pcry      red  pcry_red          1        L005       136
+    ## RNA_17_S36     pcry      red  pcry_red          2        L005       141
+    ## RNA_18_S37     pcry      red  pcry_red          3        L005       128
+    ##            mappingrates  experiment
+    ##               <numeric> <character>
+    ## RNA_01_S20        82.62        pcry
+    ## RNA_02_S21        85.62        pcry
+    ## RNA_03_S22        82.08        pcry
+    ## RNA_04_S23        84.16        pcry
+    ## RNA_05_S24        83.69        pcry
+    ## ...                 ...         ...
+    ## RNA_14_S33        84.26        pcry
+    ## RNA_15_S34        85.09        pcry
+    ## RNA_16_S35        83.51        pcry
+    ## RNA_17_S36        80.78        pcry
+    ## RNA_18_S37        83.16        pcry
+
+``` r
+res_ctrl_D_pvw <- results(dds_ctrl,contrast=c("condition","pcry_dark","WT_dark"))
+res_ctrl_R_pvw <- results(dds_ctrl,contrast=c("condition","pcry_red","WT_red"))
+res_ctrl_BL_pvw <- results(dds_ctrl,contrast=c("condition","pcry_blue","WT_blue"))
+res_ctrl_WT_rvd <- results(dds_ctrl,contrast=c("condition","WT_red","WT_dark"))
+res_ctrl_WT_blvd <- results(dds_ctrl,contrast=c("condition","WT_blue","WT_dark"))
+res_ctrl_pcry_rvd <- results(dds_ctrl,contrast=c("condition","pcry_red","pcry_dark"))
+res_ctrl_pcry_blvd <- results(dds_ctrl,contrast=c("condition","pcry_blue","pcry_dark"))
+
+((res_ctrl_D_pvw %>% rownames()) == (res_list$pcry$pcry_R.vs.WT_R %>% rownames())) %>% summary()
+```
+
+    ##    Mode    TRUE 
+    ## logical   16025
+
+``` r
+res_ctrl_D_pvw %>% nrow()
+```
+
+    ## [1] 16025
+
+``` r
+res_list$pcry$pcry_R.vs.WT_R %>% nrow()
+```
+
+    ## [1] 16025
+
+``` r
+res_list$pcry %>% names()
+```
+
+    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
+    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
+    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
+    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
+    ## [13] "pcry.vs.WT"
+
+``` r
+plot(res_ctrl_D_pvw$log2FoldChange ~ res_list$pcry$pcry_D.vs.WT_D$log2FoldChange)
+plot(res_ctrl_R_pvw$log2FoldChange ~ res_list$pcry$pcry_R.vs.WT_R$log2FoldChange)
+# plot(res_ctrl_R_pvw$log2FoldChange ~ res_list$pcry$pcry_R.vs.WT_R_2$log2FoldChange)
+plot(res_ctrl_BL_pvw$log2FoldChange ~ res_list$pcry$pcry_BL.vs.WT_BL$log2FoldChange)
+# plot(res_ctrl_BL_pvw$log2FoldChange ~ res_list$pcry$pcry_BL.vs.WT_BL_2$log2FoldChange)
+plot(res_ctrl_WT_rvd$log2FoldChange ~ res_list$pcry$WT_R.vs.D$log2FoldChange)
+plot(res_ctrl_WT_blvd$log2FoldChange ~ res_list$pcry$WT_BL.vs.D$log2FoldChange)
+plot(res_ctrl_pcry_rvd$log2FoldChange ~ res_list$pcry$pcry_R.vs.D$log2FoldChange)
+plot(res_ctrl_pcry_blvd$log2FoldChange ~ res_list$pcry$pcry_BL.vs.D$log2FoldChange)
+
+res_ctrl_WT_rvd["Cre06.g275350",]
+```
+
+    ## log2 fold change (MLE): condition WT_red vs WT_dark 
+    ## Wald test p-value: condition WT red vs WT dark 
+    ## DataFrame with 1 row and 6 columns
+    ##                baseMean log2FoldChange     lfcSE      stat      pvalue
+    ##               <numeric>      <numeric> <numeric> <numeric>   <numeric>
+    ## Cre06.g275350   4525.44       -5.02701  0.255411   -19.682 3.07499e-86
+    ##                      padj
+    ##                 <numeric>
+    ## Cre06.g275350 4.30471e-83
+
+``` r
+plotCounts(dds, gene="Cre06.g275350")
+plotCounts(dds_ctrl, gene="Cre06.g275350")
+
+# New results
+dds_pcry <- dds_list$pcry
+
+resultsNames(dds_pcry)
+```
+
+    ## [1] "Intercept"                  "genotype_pcry_vs_WT"       
+    ## [3] "treatment_blue_vs_dark"     "treatment_red_vs_dark"     
+    ## [5] "genotypepcry.treatmentblue" "genotypepcry.treatmentred"
+
+``` r
+res_pcry_R_WT_pcry <- results(dds_pcry,contrast=c(0,1,0,0,0,1))
+res_pcry_BL_WT_pcry <- results(dds_pcry,contrast=c(0,1,0,0,1,0))
+
+plot(res_ctrl_R_pvw$log2FoldChange ~ res_pcry_R_WT_pcry$log2FoldChange)
+plot(res_ctrl_BL_pvw$log2FoldChange ~ res_pcry_BL_WT_pcry$log2FoldChange)
+```
+
+<img src="Readme_files/figure-gfm/ctrl_results-1.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-2.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-3.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-4.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-5.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-6.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-7.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-8.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-9.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-10.png" width="25%" /><img src="Readme_files/figure-gfm/ctrl_results-11.png" width="25%" />
 
 ## Volcanos
 
@@ -1735,7 +1934,7 @@ write.table(Exp_design,file.path(outdir,"Exp_design.csv"), sep=",",  col.names=F
 sessionInfo()
 ```
 
-    ## R version 4.4.1 (2024-06-14)
+    ## R version 4.4.2 (2024-10-31)
     ## Platform: x86_64-pc-linux-gnu
     ## Running under: Ubuntu 22.04.5 LTS
     ## 
@@ -1761,8 +1960,8 @@ sessionInfo()
     ##  [1] VennDiagram_1.7.3           futile.logger_1.4.3        
     ##  [3] vsn_3.72.0                  ggpubr_0.6.0               
     ##  [5] viridis_0.6.5               viridisLite_0.4.2          
-    ##  [7] knitr_1.48                  kableExtra_1.4.0           
-    ##  [9] ape_5.8                     biomaRt_2.60.1             
+    ##  [7] knitr_1.49                  kableExtra_1.4.0           
+    ##  [9] ape_5.8-1                   biomaRt_2.60.1             
     ## [11] writexl_1.5.1               pheatmap_1.0.12            
     ## [13] EnhancedVolcano_1.22.0      DESeq2_1.44.0              
     ## [15] SummarizedExperiment_1.34.0 Biobase_2.64.0             
@@ -1771,83 +1970,85 @@ sessionInfo()
     ## [21] IRanges_2.38.1              S4Vectors_0.42.1           
     ## [23] AnnotationHub_3.12.0        BiocFileCache_2.12.0       
     ## [25] dbplyr_2.5.0                BiocGenerics_0.50.0        
-    ## [27] curl_5.2.3                  tximport_1.32.0            
-    ## [29] tximeta_1.22.1              lubridate_1.9.3            
+    ## [27] curl_6.0.1                  tximport_1.32.0            
+    ## [29] tximeta_1.22.1              lubridate_1.9.4            
     ## [31] forcats_1.0.0               dplyr_1.1.4                
     ## [33] purrr_1.0.2                 readr_2.1.5                
     ## [35] tidyr_1.3.1                 tibble_3.2.1               
     ## [37] tidyverse_2.0.0             plyr_1.8.9                 
-    ## [39] data.table_1.16.2           sessioninfo_1.2.2          
+    ## [39] data.table_1.16.4           sessioninfo_1.2.2          
     ## [41] RColorBrewer_1.1-3          R.utils_2.12.3             
-    ## [43] R.oo_1.26.0                 R.methodsS3_1.8.2          
+    ## [43] R.oo_1.27.0                 R.methodsS3_1.8.2          
     ## [45] stringr_1.5.1               PCAtools_2.16.0            
     ## [47] ggrepel_0.9.6               ggplot2_3.5.1              
-    ## [49] patchwork_1.3.0            
+    ## [49] patchwork_1.3.0             ggExtra_0.10.1             
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] BiocIO_1.14.0             bitops_1.0-9             
-    ##   [3] filelock_1.0.3            preprocessCore_1.66.0    
-    ##   [5] XML_3.99-0.17             lifecycle_1.0.4          
-    ##   [7] httr2_1.0.5               mixsqp_0.3-54            
-    ##   [9] rstatix_0.7.2             MASS_7.3-61              
-    ##  [11] lattice_0.22-6            ensembldb_2.28.1         
-    ##  [13] backports_1.5.0           magrittr_2.0.3           
-    ##  [15] limma_3.60.6              rmarkdown_2.28           
-    ##  [17] yaml_2.3.10               cowplot_1.1.3            
-    ##  [19] DBI_1.2.3                 maps_3.4.2               
-    ##  [21] abind_1.4-8               zlibbioc_1.50.0          
-    ##  [23] AnnotationFilter_1.28.0   RCurl_1.98-1.16          
-    ##  [25] rappdirs_0.3.3            GenomeInfoDbData_1.2.12  
-    ##  [27] irlba_2.3.5.1             dqrng_0.4.1              
-    ##  [29] svglite_2.1.3             DelayedMatrixStats_1.26.0
-    ##  [31] codetools_0.2-20          DelayedArray_0.30.1      
-    ##  [33] xml2_1.3.6                tidyselect_1.2.1         
-    ##  [35] UCSC.utils_1.0.0          farver_2.1.2             
-    ##  [37] ScaledMatrix_1.12.0       ash_1.0-15               
-    ##  [39] GenomicAlignments_1.40.0  jsonlite_1.8.9           
-    ##  [41] Formula_1.2-5             systemfonts_1.1.0        
-    ##  [43] tools_4.4.1               progress_1.2.3           
-    ##  [45] Rcpp_1.0.13               glue_1.8.0               
-    ##  [47] Rttf2pt1_1.3.12           gridExtra_2.3            
-    ##  [49] SparseArray_1.4.8         xfun_0.48                
-    ##  [51] withr_3.0.1               formatR_1.14             
-    ##  [53] BiocManager_1.30.25       fastmap_1.2.0            
-    ##  [55] fansi_1.0.6               truncnorm_1.0-9          
-    ##  [57] digest_0.6.37             rsvd_1.0.5               
-    ##  [59] timechange_0.3.0          R6_2.5.1                 
-    ##  [61] colorspace_2.1-1          RSQLite_2.3.7            
-    ##  [63] hexbin_1.28.4             utf8_1.2.4               
-    ##  [65] generics_0.1.3            rtracklayer_1.64.0       
-    ##  [67] prettyunits_1.2.0         httr_1.4.7               
-    ##  [69] S4Arrays_1.4.1            pkgconfig_2.0.3          
-    ##  [71] gtable_0.3.5              blob_1.2.4               
-    ##  [73] XVector_0.44.0            htmltools_0.5.8.1        
-    ##  [75] carData_3.0-5             ProtGenerics_1.36.0      
-    ##  [77] scales_1.3.0              png_0.1-8                
-    ##  [79] ashr_2.2-63               lambda.r_1.2.4           
-    ##  [81] rstudioapi_0.17.0         tzdb_0.4.0               
-    ##  [83] reshape2_1.4.4            rjson_0.2.23             
-    ##  [85] nlme_3.1-166              cachem_1.1.0             
-    ##  [87] KernSmooth_2.23-24        BiocVersion_3.19.1       
-    ##  [89] parallel_4.4.1            extrafont_0.19           
-    ##  [91] AnnotationDbi_1.66.0      restfulr_0.0.15          
-    ##  [93] pillar_1.9.0              vctrs_0.6.5              
-    ##  [95] BiocSingular_1.20.0       car_3.1-3                
-    ##  [97] beachmat_2.20.0           extrafontdb_1.0          
-    ##  [99] evaluate_1.0.1            invgamma_1.1             
-    ## [101] GenomicFeatures_1.56.0    cli_3.6.3                
-    ## [103] locfit_1.5-9.10           compiler_4.4.1           
-    ## [105] futile.options_1.0.1      Rsamtools_2.20.0         
-    ## [107] rlang_1.1.4               crayon_1.5.3             
-    ## [109] SQUAREM_2021.1            ggsignif_0.6.4           
-    ## [111] labeling_0.4.3            affy_1.82.0              
-    ## [113] stringi_1.8.4             BiocParallel_1.38.0      
-    ## [115] ggalt_0.4.0               txdbmaker_1.0.1          
-    ## [117] munsell_0.5.1             Biostrings_2.72.1        
-    ## [119] lazyeval_0.2.2            proj4_1.0-14             
-    ## [121] Matrix_1.7-0              hms_1.1.3                
-    ## [123] sparseMatrixStats_1.16.0  bit64_4.5.2              
-    ## [125] KEGGREST_1.44.1           statmod_1.5.0            
-    ## [127] highr_0.11                broom_1.0.7              
-    ## [129] memoise_2.0.1             affyio_1.74.0            
-    ## [131] bit_4.5.0
+    ##   [1] later_1.4.1               BiocIO_1.14.0            
+    ##   [3] bitops_1.0-9              filelock_1.0.3           
+    ##   [5] preprocessCore_1.66.0     XML_3.99-0.17            
+    ##   [7] lifecycle_1.0.4           httr2_1.0.7              
+    ##   [9] mixsqp_0.3-54             rstatix_0.7.2            
+    ##  [11] MASS_7.3-61               lattice_0.22-6           
+    ##  [13] ensembldb_2.28.1          backports_1.5.0          
+    ##  [15] magrittr_2.0.3            limma_3.60.6             
+    ##  [17] rmarkdown_2.29            yaml_2.3.10              
+    ##  [19] httpuv_1.6.15             cowplot_1.1.3            
+    ##  [21] DBI_1.2.3                 maps_3.4.2.1             
+    ##  [23] abind_1.4-8               zlibbioc_1.50.0          
+    ##  [25] AnnotationFilter_1.28.0   RCurl_1.98-1.16          
+    ##  [27] rappdirs_0.3.3            GenomeInfoDbData_1.2.12  
+    ##  [29] irlba_2.3.5.1             dqrng_0.4.1              
+    ##  [31] svglite_2.1.3             DelayedMatrixStats_1.26.0
+    ##  [33] codetools_0.2-20          DelayedArray_0.30.1      
+    ##  [35] xml2_1.3.6                tidyselect_1.2.1         
+    ##  [37] UCSC.utils_1.0.0          farver_2.1.2             
+    ##  [39] ScaledMatrix_1.12.0       ash_1.0-15               
+    ##  [41] GenomicAlignments_1.40.0  jsonlite_1.8.9           
+    ##  [43] Formula_1.2-5             systemfonts_1.1.0        
+    ##  [45] tools_4.4.2               progress_1.2.3           
+    ##  [47] Rcpp_1.0.13-1             glue_1.8.0               
+    ##  [49] Rttf2pt1_1.3.12           gridExtra_2.3            
+    ##  [51] SparseArray_1.4.8         xfun_0.49                
+    ##  [53] withr_3.0.2               formatR_1.14             
+    ##  [55] BiocManager_1.30.25       fastmap_1.2.0            
+    ##  [57] truncnorm_1.0-9           digest_0.6.37            
+    ##  [59] rsvd_1.0.5                timechange_0.3.0         
+    ##  [61] R6_2.5.1                  mime_0.12                
+    ##  [63] colorspace_2.1-1          RSQLite_2.3.9            
+    ##  [65] hexbin_1.28.5             generics_0.1.3           
+    ##  [67] rtracklayer_1.64.0        prettyunits_1.2.0        
+    ##  [69] httr_1.4.7                S4Arrays_1.4.1           
+    ##  [71] pkgconfig_2.0.3           gtable_0.3.6             
+    ##  [73] blob_1.2.4                XVector_0.44.0           
+    ##  [75] htmltools_0.5.8.1         carData_3.0-5            
+    ##  [77] ProtGenerics_1.36.0       scales_1.3.0             
+    ##  [79] png_0.1-8                 ashr_2.2-63              
+    ##  [81] lambda.r_1.2.4            rstudioapi_0.17.1        
+    ##  [83] tzdb_0.4.0                reshape2_1.4.4           
+    ##  [85] rjson_0.2.23              nlme_3.1-166             
+    ##  [87] cachem_1.1.0              KernSmooth_2.23-24       
+    ##  [89] BiocVersion_3.19.1        parallel_4.4.2           
+    ##  [91] miniUI_0.1.1.1            extrafont_0.19           
+    ##  [93] AnnotationDbi_1.66.0      restfulr_0.0.15          
+    ##  [95] pillar_1.10.0             vctrs_0.6.5              
+    ##  [97] promises_1.3.2            BiocSingular_1.20.0      
+    ##  [99] car_3.1-3                 beachmat_2.20.0          
+    ## [101] xtable_1.8-4              extrafontdb_1.0          
+    ## [103] evaluate_1.0.1            invgamma_1.1             
+    ## [105] GenomicFeatures_1.56.0    futile.options_1.0.1     
+    ## [107] cli_3.6.3                 locfit_1.5-9.10          
+    ## [109] compiler_4.4.2            Rsamtools_2.20.0         
+    ## [111] rlang_1.1.4               crayon_1.5.3             
+    ## [113] SQUAREM_2021.1            ggsignif_0.6.4           
+    ## [115] labeling_0.4.3            affy_1.82.0              
+    ## [117] stringi_1.8.4             BiocParallel_1.38.0      
+    ## [119] ggalt_0.4.0               txdbmaker_1.0.1          
+    ## [121] munsell_0.5.1             Biostrings_2.72.1        
+    ## [123] lazyeval_0.2.2            proj4_1.0-14             
+    ## [125] Matrix_1.7-1              hms_1.1.3                
+    ## [127] sparseMatrixStats_1.16.0  bit64_4.5.2              
+    ## [129] statmod_1.5.0             KEGGREST_1.44.1          
+    ## [131] shiny_1.10.0              broom_1.0.7              
+    ## [133] memoise_2.0.1             affyio_1.74.0            
+    ## [135] bit_4.5.0.1

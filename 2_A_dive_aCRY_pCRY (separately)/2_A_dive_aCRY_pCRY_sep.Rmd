@@ -9,7 +9,7 @@ output:
     toc_depth: 2
 always_allow_html: true
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 knit: (function(input_file, encoding) {
     rmarkdown::render(input_file,output_file= 'Readme.md')
         })
@@ -789,6 +789,8 @@ gcounts %>% print()
 ## Make results
 ```{r results, eval=TRUE, include=FALSE, echo=FALSE}
 
+dds <- dds_list$pcry
+
 design(dds)
 resultsNames(dds)
 cbind(resultsNames(dds),c(rep(0,resultsNames(dds) %>% length())))
@@ -815,7 +817,7 @@ res_l <- list()
 
 # res_WT_D_vs.pcry_D <- results(dds, contrast = c("condition","pcry_D","WT_D"))
 
-# Belichtungseffect für jeden Genotyp
+# Belichtungseffekt für jeden Genotyp
 nres <- "WT_BL.vs.D"
 contrast <- list(c("treatment_blue_vs_dark"))
 res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
@@ -835,16 +837,28 @@ res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 # Unterschiede zwischen WT und ko unter gleicher Belichtung
 nres <- paste(nlist,"D.vs.WT_D",sep="_")
-contrast <- list(c[2])                # [2,] "genotype_pcry_vs_WT"
+contrast <- list(c(c[2]))                # [2,] "genotype_pcry_vs_WT"
 res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
+# !! Fehler?!
+# 31.1.24 fixed: wrong terminus for list!
 nres <- paste(nlist,"BL.vs.WT_BL",sep="_")
-contrast <- list(c[2],c[5])           # [5,] "genotypepcry.treatmentblue"
+contrast <- list(c(c[2],c[5]))           # [5,] "genotypepcry.treatmentblue"
 res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
 
 nres <- paste(nlist,"R.vs.WT_R",sep="_")
-contrast <- list(c[2],c[6])           # [6,] "genotypepcry.treatmentred"  
+contrast <- list(c(c[2],c[6]))           # [6,] "genotypepcry.treatmentred"  
 res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
+
+# # New -> this is correct
+# nres <- paste(nlist,"BL.vs.WT_BL_2",sep="_")
+# contrast <- c(0,1,0,0,1,0)         # [5,] "genotypepcry.treatmentblue"
+# res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
+# 
+# nres <- paste(nlist,"R.vs.WT_R_2",sep="_")
+# contrast <- c(0,1,0,0,0,1)         # [6,] "genotypepcry.treatmentred"  
+# res_l[nres] <- getresults_SK(contrast = contrast, nres = nres)
+
 
 
 # Unterschiede im Belichtungseffekt
@@ -919,6 +933,61 @@ res_ashr_l[[names(res_list[[i]])[j]]] <- lfcShrink(res=res_list[[i]][[j]], dds=d
 }
 res_ashr_list[[ko]] <- res_ashr_l
 }
+
+```
+
+
+## Control results
+```{r ctrl_results, fig.show='hold', out.width='25%'}
+
+colData(gse_pcry)
+design <- ~condition
+dds_ctrl <- DESeqDataSet(gse_pcry, design=design)
+keep.sn <- rowSums(counts(dds_ctrl) >= 5) >= 3
+keep.sn %>% summary()
+dds_ctrl <- dds_ctrl[keep.sn,]
+
+dds_ctrl <- DESeq(dds_ctrl)
+resultsNames(dds_ctrl)
+colData(dds_ctrl)
+res_ctrl_D_pvw <- results(dds_ctrl,contrast=c("condition","pcry_dark","WT_dark"))
+res_ctrl_R_pvw <- results(dds_ctrl,contrast=c("condition","pcry_red","WT_red"))
+res_ctrl_BL_pvw <- results(dds_ctrl,contrast=c("condition","pcry_blue","WT_blue"))
+res_ctrl_WT_rvd <- results(dds_ctrl,contrast=c("condition","WT_red","WT_dark"))
+res_ctrl_WT_blvd <- results(dds_ctrl,contrast=c("condition","WT_blue","WT_dark"))
+res_ctrl_pcry_rvd <- results(dds_ctrl,contrast=c("condition","pcry_red","pcry_dark"))
+res_ctrl_pcry_blvd <- results(dds_ctrl,contrast=c("condition","pcry_blue","pcry_dark"))
+
+((res_ctrl_D_pvw %>% rownames()) == (res_list$pcry$pcry_R.vs.WT_R %>% rownames())) %>% summary()
+
+res_ctrl_D_pvw %>% nrow()
+res_list$pcry$pcry_R.vs.WT_R %>% nrow()
+res_list$pcry %>% names()
+plot(res_ctrl_D_pvw$log2FoldChange ~ res_list$pcry$pcry_D.vs.WT_D$log2FoldChange)
+plot(res_ctrl_R_pvw$log2FoldChange ~ res_list$pcry$pcry_R.vs.WT_R$log2FoldChange)
+# plot(res_ctrl_R_pvw$log2FoldChange ~ res_list$pcry$pcry_R.vs.WT_R_2$log2FoldChange)
+plot(res_ctrl_BL_pvw$log2FoldChange ~ res_list$pcry$pcry_BL.vs.WT_BL$log2FoldChange)
+# plot(res_ctrl_BL_pvw$log2FoldChange ~ res_list$pcry$pcry_BL.vs.WT_BL_2$log2FoldChange)
+plot(res_ctrl_WT_rvd$log2FoldChange ~ res_list$pcry$WT_R.vs.D$log2FoldChange)
+plot(res_ctrl_WT_blvd$log2FoldChange ~ res_list$pcry$WT_BL.vs.D$log2FoldChange)
+plot(res_ctrl_pcry_rvd$log2FoldChange ~ res_list$pcry$pcry_R.vs.D$log2FoldChange)
+plot(res_ctrl_pcry_blvd$log2FoldChange ~ res_list$pcry$pcry_BL.vs.D$log2FoldChange)
+
+res_ctrl_WT_rvd["Cre06.g275350",]
+
+plotCounts(dds, gene="Cre06.g275350")
+plotCounts(dds_ctrl, gene="Cre06.g275350")
+
+# New results
+dds_pcry <- dds_list$pcry
+
+resultsNames(dds_pcry)
+res_pcry_R_WT_pcry <- results(dds_pcry,contrast=c(0,1,0,0,0,1))
+res_pcry_BL_WT_pcry <- results(dds_pcry,contrast=c(0,1,0,0,1,0))
+
+plot(res_ctrl_R_pvw$log2FoldChange ~ res_pcry_R_WT_pcry$log2FoldChange)
+plot(res_ctrl_BL_pvw$log2FoldChange ~ res_pcry_BL_WT_pcry$log2FoldChange)
+
 
 ```
 
