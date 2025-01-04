@@ -10,7 +10,7 @@ knit: (function(input_file, encoding) {
         })
 date: "2024-10-17"
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 
@@ -414,7 +414,7 @@ DEGs_comb[ROC40,]
 
 
 # Fig 3: Volcanos
-## a) Genotype (1)
+## a) Δgenotype per condition (1)
 ```{r volcanos1, fig.height=6, fig.width=10}
 
 fig <- "Fig3"
@@ -607,14 +607,15 @@ volcanos_all <- volcano_dark + volcano_blue + volcano_red +
   theme(legend.position = 'none', axis.title=element_text(size=12))
 volcanos_all
 
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos.pdf",sep=""), plot = volcanos_all,
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos1.pdf",sep=""), plot = volcanos_all,
 width = 10,
 height = 6)
 
+
 ```
 
-## b): light effect (2)
-```{r volcanos2, fig.height=6, fig.width=10}
+## b): Δlight = light effect (2)
+```{r volcanos2, fig.height=10, fig.width=10}
 
 fig <- "Fig3"
 
@@ -868,12 +869,161 @@ volcanos_2 <- (volcano_WT_BL + volcano_WT_red) /  (volcano_pcry_BL + volcano_pcr
   theme(legend.position = 'none', axis.title=element_text(size=12))
 volcanos_2
 
-# ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos.pdf",sep=""), plot = volcanos_all,
-# width = 10,
-# height = 6)
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos2.pdf",sep=""), plot = volcanos_2,
+width = 10,
+height = 12)
 
 ```
 
+
+## c): ΔgenotypeΔlight = difference in light effect (interaction term) (3)
+```{r volcanos3, fig.height=6, fig.width=10}
+
+fig <- "Fig3"
+
+dds <- dds_list[["pcry"]]
+
+res_ashr_list %>% names()
+res_ashr_list[[2]] %>% names()
+
+res <- res_ashr_list$pcry$pcry_BLvD.vs.WT_BLvD
+res_n <- res_list$pcry$pcry_BLvD.vs.WT_BLvD
+
+# of shrinked results
+total <- subset(res, padj< 0.05) %>% nrow()
+up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# of "true" results
+total <- subset(res_n, padj< 0.05) %>% nrow()
+up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+
+
+# points outside the grid
+
+pmax <- 10^-50
+l2FCmax <- 6
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+# res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
+res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
+
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+
+mcols(dds_list[["pcry"]]) %>% nrow()
+res %>% nrow()
+
+volcano3_blue <- EnhancedVolcano(res,
+    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
+    x = 'log2FoldChange',
+    y = 'padj',
+    col=c("grey","grey","grey",group.colors[3]),
+    title = "pcry_BLvD.vs.WT_BLvD",
+    titleLabSize = 12,
+    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
+#    subtitle = {},
+    subtitleLabSize = 10,
+    caption = NULL,
+    xlim = c(-7,7),
+    ylim = c(0,50),
+    pCutoff = 0.05,
+    FCcutoff = 1,
+    maxoverlapsConnectors = 50,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = "grey70",
+    legendLabels=c('ns','ns','ns',
+      'padj < 0.05 & Log2FC > 1'),
+    labSize = 4,
+    axisLabSize = 12,
+    legendLabSize = 12,
+    legendIconSize = 3,
+    gridlines.major = FALSE,
+    gridlines.minor = FALSE,
+    pointSize = 3
+)
+
+
+
+
+# volcano_red
+res_ashr_list %>% names()
+res_ashr_list[[2]] %>% names()
+
+res <- res_ashr_list$pcry$pcry_RvD.vs.WT_RvD
+res_n <- res_list$pcry$pcry_RvD.vs.WT_RvD
+
+# of "true" results
+total <- subset(res_n, padj< 0.05) %>% nrow()
+up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
+down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
+
+# points outside the grid
+
+pmax <- 10^-50
+l2FCmax <- 6
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
+res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
+x <- res$padj
+res[(x < pmax) & (!is.na(x)),]$padj <- pmax
+
+subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+
+mcols(dds_list[["pcry"]]) %>% nrow()
+res %>% nrow()
+
+volcano3_red <- EnhancedVolcano(res,
+    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
+    x = 'log2FoldChange',
+    y = 'padj',
+    col=c("grey","grey","grey",group.colors[5]),
+    title = "pcry_RvD.vs.WT_RvD",
+    titleLabSize = 12,
+    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
+#    subtitle = {},
+    subtitleLabSize = 10,
+    caption = NULL,
+    xlim = c(-7,7),
+    ylim = c(0,50),
+    pCutoff = 0.05,
+    FCcutoff = 1,
+    maxoverlapsConnectors = 50,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    colConnectors = "grey70",
+    legendLabels=c('ns','ns','ns',
+      'padj < 0.05 & Log2FC > 1'),
+    labSize = 4,
+    axisLabSize = 12,
+    legendLabSize = 12,
+    legendIconSize = 4,
+    gridlines.major = FALSE,
+    gridlines.minor = FALSE,
+    pointSize = 3
+)
+
+
+volcanos_3 <- (volcano3_blue + volcano3_red) +
+  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
+  theme(legend.position = 'none', axis.title=element_text(size=12))
+volcanos_3
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos3.pdf",sep=""), plot = volcanos_3,
+width = 10,
+height = 6)
+
+colnames(anno)
+anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
+anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","Comments","TMHMM_transmembrane","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
+
+
+
+```
 
 
 # Fig 4: Overlaps
@@ -920,63 +1070,101 @@ wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
 ## Fig 4b: Groups
 ```{r groups, eval=TRUE, out.width="50%", fig.show='hold'}
 
-res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
-             blue = res_list$pcry$pcry_BL.vs.WT_BL,
-             red =res_list$pcry$pcry_R.vs.WT_R) %>% lapply(data.frame)
+goi_tf
 
-DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6)])
-colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
+res_core <- list(WT_blue = res_list$pcry$WT_BL.vs.D,
+             WT_red = res_list$pcry$WT_R.vs.D,
+             pcry_blue = res_list$pcry$pcry_BL.vs.D,
+             pcry_red = res_list$pcry$pcry_R.vs.D,
+             dd_blue = res_list$pcry$pcry_BLvD.vs.WT_BLvD,
+             dd_red = res_list$pcry$pcry_RvD.vs.WT_RvD) %>% lapply(data.frame)
 
-DEGs_genes["dark"]
-blue_red_genes <- unlist(DEGs_genes[c("blue","red")]) %>% unique()
+# plot(res_list$pcry$pcry_BL.vs.D$log2FoldChange~res_list$pcry$pcry_R.vs.D$log2FoldChange)
+#res_list$pcry$WT_BL.vs.D$symbol == anno[res_list$pcry$WT_BL.vs.D %>% rownames(),"geneSymbol"]
 
-non_sig <- data.frame(x = c(-9, 0, 9), y = c(20, 0.5, 20))
+res_comb <- bind_cols(symbol = anno[res_list$pcry$WT_BL.vs.D %>% rownames(),"geneSymbol"],
+                       res_core[[1]][,c(1,2,6)],
+                       res_core[[2]][,c(2,6)],
+                       res_core[[3]][,c(2,6)],
+                       res_core[[4]][,c(2,6)],
+                       res_core[[5]][,c(2,6)],
+                       res_core[[6]][,c(2,6)])
 
-DEGs_comb$sig
+colnames(res_comb)[c(3,4)] <- c("l2FC.WT_blue","padj.WT_blue")
+colnames(res_comb)[c(5,6)] <- c("l2FC.WT_red","padj.WT_red")
+colnames(res_comb)[c(7,8)] <- c("l2FC.pcry_blue","padj.pcry_blue")
+colnames(res_comb)[c(9,10)] <- c("l2FC.pcry_red","padj.pcry_red")
+colnames(res_comb)[c(11,12)] <- c("l2FC.dd_blue","padj.dd_blue")
+colnames(res_comb)[c(13,14)] <- c("l2FC.dd_red","padj.dd_red")                                  
 
-gg_all <- ggplot(DEGs_comb, aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
-  geom_point(shape=21) +
+res_comb$symbol2 <- anno[res_comb %>% rownames(),"geneSymbol"]
+  blue_red_genes <- c(deg_list$pcry$deg_pcry_BLvD.vs.WT_BLvD,
+                    deg_list$pcry$deg_pcry_RvD.vs.WT_RvD) %>%
+  unique()
+
+non_sig <- data.frame(x = c(-20, 0, 20), y = c(20, 0.5, 20))
+
+df <- res_comb[anno_tf$gene_id,]
+df <- res_comb[anno_phot$gene_id,]
+
+gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  scale_color_gradient2(mid="grey") +
+  geom_point(shape=21, fill="grey", col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
-  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
-  geom_text_repel(size=2, max.overlaps = 20) +
+  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
+  # coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
+  coord_fixed() +
+  geom_text_repel(size=4, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
-gg_all
+gg_phots
 
-gg_br <- ggplot(DEGs_comb[blue_red_genes,], aes(x=l2FC.blue, y=l2FC.red, label=symbol)) + # color=group, fill=group 
-  geom_point(shape=21) +
-  geom_text_repel(size=3) +
-  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
+# ROCs
+df <- res_comb[anno_tf$gene_id,]
+gg_rocs <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  scale_color_gradient2(mid="grey") +
+  geom_point(shape=21, fill="grey", col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
+  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
+  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
+  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
+  # coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
+  coord_fixed() +
+  geom_text_repel(size=4, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
-gg_br
-
-red_specific <- DEGs_comb %>% subset(l2FC.blue < 1 & l2FC.blue > -1 & (l2FC.red > 0.5 | l2FC.red < -0.5) & padj.red < 0.05) %>% arrange(l2FC.red)
-
-goi <- "Cre03.g192050"
+gg_rocs
 
 
-# single gene
-d <- plotCounts(dds, gene=goi, intgroup=c("condition","experiment","genotype","treatment"), main=s,returnData=TRUE)
-colnames(d)[1] <- "counts"
+# TOP
+df <- res_comb[blue_red_genes,]
 
-gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
-    geom_boxplot(color="black") +
-    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
-  # geom_text_repel(aes(label=clientName)) +
-    scale_fill_manual(values=group.colors) +
-    scale_color_manual(values=group.colors) +
-    scale_y_continuous(trans = "log2") +
-    theme_bw() +
-    removeGrid(x=T, y=T) +
-    geom_vline(xintercept=seq(1,length(levels(all_counts$treatment))-1,1)+.5,color="grey") +
-    labs(title = paste(mcols(dds)[goi,]$symbol," in ",colData(dds)$experiment[1],sep = "")) +
-    theme(axis.text.x = element_text(size = 10, face = "bold"),
-    axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-    axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
-gcounts
+
+gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  scale_color_gradient2(mid="grey") +
+  geom_point(shape=21, fill="grey", col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
+  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
+  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
+  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
+  coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
+  # coord_fixed() +
+  geom_text_repel(size=4, max.overlaps = 20) +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_top
+
+
+
+
 
 
 
