@@ -10,7 +10,7 @@ knit: (function(input_file, encoding) {
         })
 date: "2024-10-17"
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 
@@ -183,8 +183,6 @@ goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1"
 anno_phot <- subset(anno,geneSymbol %in% goi_phot, drop = FALSE)
 rownames(anno_phot) <- anno_phot$geneSymbol
 anno_phot <- anno_phot[goi_phot,]
-
-# Combined counts table TFs
 
 goi <- anno_phot
 l <- nrow(goi)
@@ -428,12 +426,12 @@ res <- res_ashr_list$pcry$pcry_R.vs.WT_R
 res_n <- res_list$pcry$pcry_R.vs.WT_R
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -491,7 +489,7 @@ res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
 res_n <- res_list$pcry$pcry_BL.vs.WT_BL
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -552,7 +550,7 @@ res <- res_ashr_list$pcry$pcry_D.vs.WT_D
 res_n <- res_list$pcry$pcry_D.vs.WT_D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -628,12 +626,12 @@ res <- res_ashr_list$pcry$WT_R.vs.D
 res_n <- res_list$pcry$WT_R.vs.D
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -691,7 +689,7 @@ res <- res_ashr_list$pcry$pcry_R.vs.D
 res_n <- res_list$pcry$pcry_R.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -752,7 +750,7 @@ res <- res_ashr_list$pcry$WT_BL.vs.D
 res_n <- res_list$pcry$WT_BL.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -811,7 +809,7 @@ res <- res_ashr_list$pcry$pcry_BL.vs.D
 res_n <- res_list$pcry$pcry_BL.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -890,12 +888,12 @@ res <- res_ashr_list$pcry$pcry_BLvD.vs.WT_BLvD
 res_n <- res_list$pcry$pcry_BLvD.vs.WT_BLvD
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -957,7 +955,7 @@ res <- res_ashr_list$pcry$pcry_RvD.vs.WT_RvD
 res_n <- res_list$pcry$pcry_RvD.vs.WT_RvD
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -1018,7 +1016,7 @@ width = 10,
 height = 6)
 
 colnames(anno)
-anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
+# anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
 anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","Comments","TMHMM_transmembrane","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
 
 
@@ -1112,7 +1110,8 @@ gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # col
         arrow = arrow(length = unit(0.01,units = "npc"))) +
   scale_color_gradient2(mid="grey") +
   geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
+  scale_fill_manual(name="Genotype",values="green3") +
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
   geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
@@ -1144,7 +1143,9 @@ gg_rocs
 
 # TOP
 df <- res_comb[blue_red_genes,]
+df %>% kable()
 
+plot(df$l2FC.dd_red ~ df$l2FC.dd_blue)
 
 gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
     geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
@@ -1162,6 +1163,7 @@ gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color
   removeGrid(x=T, y=T)
 gg_top
 
+  scale_colour_manual(name="Error Bars",values=cols)
 
 
 

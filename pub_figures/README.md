@@ -327,12 +327,12 @@ res <- res_ashr_list$pcry$pcry_R.vs.WT_R
 res_n <- res_list$pcry$pcry_R.vs.WT_R
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -426,7 +426,7 @@ res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
 res_n <- res_list$pcry$pcry_BL.vs.WT_BL
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -527,7 +527,7 @@ res <- res_ashr_list$pcry$pcry_D.vs.WT_D
 res_n <- res_list$pcry$pcry_D.vs.WT_D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -646,12 +646,12 @@ res <- res_ashr_list$pcry$WT_R.vs.D
 res_n <- res_list$pcry$WT_R.vs.D
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -751,7 +751,7 @@ res <- res_ashr_list$pcry$pcry_R.vs.D
 res_n <- res_list$pcry$pcry_R.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -855,7 +855,7 @@ res <- res_ashr_list$pcry$WT_BL.vs.D
 res_n <- res_list$pcry$WT_BL.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -959,7 +959,7 @@ res <- res_ashr_list$pcry$pcry_BL.vs.D
 res_n <- res_list$pcry$pcry_BL.vs.D
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -1087,12 +1087,12 @@ res <- res_ashr_list$pcry$pcry_BLvD.vs.WT_BLvD
 res_n <- res_list$pcry$pcry_BLvD.vs.WT_BLvD
 
 # of shrinked results
-total <- subset(res, padj< 0.05) %>% nrow()
+total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -1190,7 +1190,7 @@ res <- res_ashr_list$pcry$pcry_RvD.vs.WT_RvD
 res_n <- res_list$pcry$pcry_RvD.vs.WT_RvD
 
 # of "true" results
-total <- subset(res_n, padj< 0.05) %>% nrow()
+total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
 up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
@@ -1312,551 +1312,7 @@ colnames(anno)
     ## [27] "id.symbol"
 
 ``` r
-anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
-```
-
-    ##                   locusName_4532 initial_v6_locus_ID action
-    ## Cre06.g275350 Cre06.g275350_4532         Cr_06_27878       
-    ## Cre16.g681750 Cre16.g681750_4532         Cr_16_75354       
-    ## Cre16.g661850 Cre16.g661850_4532         Cr_16_73209       
-    ## Cre16.g677750 Cre16.g677750_4532         Cr_16_75752       
-    ## Cre02.g097800 Cre02.g097800_4532         Cr_02_08664       
-    ## Cre10.g452250 Cre10.g452250_4532         Cr_10_48969       
-    ## Cre16.g661750 Cre16.g661750_4532         Cr_16_73200       
-    ## Cre06.g263550 Cre06.g263550_4532         Cr_06_26662       
-    ## Cre24.g755897 Cre24.g755897_4532         Cr_05_25007       
-    ## Cre24.g755997 Cre24.g755997_4532         Cr_05_25015       
-    ## Cre02.g095151 Cre02.g095151_4532         Cr_11_52100       
-    ## Cre03.g800380 Cre03.g800380_4532      Cr_03_18734_TE       
-    ## Cre09.g410050 Cre09.g410050_4532         Cr_09_44666       
-    ## Cre06.g800711 Cre06.g800711_4532         Cr_06_30451       
-    ## Cre01.g004157 Cre01.g004157_4532         Cr_01_00414       
-    ## Cre09.g399400 Cre09.g399400_4532         Cr_09_41956       
-    ## Cre07.g329750 Cre07.g329750_4532         Cr_07_34683       
-    ## Cre10.g425050 Cre10.g425050_4532         Cr_10_46166       
-    ## Cre11.g467664 Cre11.g467664_4532         Cr_11_51140       
-    ## Cre17.g802135 Cre17.g802135_4532      Cr_17_81898_TE       
-    ## Cre12.g801353 Cre12.g801353_4532      Cr_12_54231_TE       
-    ## Cre09.g413200 Cre09.g413200_4532         Cr_09_44990       
-    ## Cre10.g447700 Cre10.g447700_4532         Cr_10_48543       
-    ## Cre06.g260700 Cre06.g260700_4532         Cr_06_26397       
-    ## Cre12.g531800 Cre12.g531800_4532         Cr_12_58458       
-    ## Cre06.g285350 Cre06.g285350_4532         Cr_06_29964       
-    ## Cre12.g501950 Cre12.g501950_4532         Cr_12_55975       
-    ## Cre07.g329050 Cre07.g329050_4532         Cr_07_34607       
-    ## Cre16.g687000 Cre16.g687000_4532         Cr_16_74780       
-    ##               Replacement_v5.v6._model geneSymbol    strainLocusId
-    ## Cre06.g275350                               ROC40    4532_06_30821
-    ## Cre16.g681750                              FAP381    4532_16_83335
-    ## Cre16.g661850                                        4532_16_80976
-    ## Cre16.g677750                                        4532_16_83781
-    ## Cre02.g097800                                HLA3    4532_02_09571
-    ## Cre10.g452250                               FAP41    4532_10_54106
-    ## Cre16.g661750                                        4532_16_80965
-    ## Cre06.g263550                               SELU1    4532_06_29491
-    ## Cre24.g755897                                        4532_05_27655
-    ## Cre24.g755997                               PHC18    4532_05_27665
-    ## Cre02.g095151                                        4532_11_57600
-    ## Cre03.g800380                                     4532_03_20671_TE
-    ## Cre09.g410050                                        4532_09_49376
-    ## Cre06.g800711                                        4532_06_33650
-    ## Cre01.g004157                                        4532_01_00461
-    ## Cre09.g399400                              FAP199    4532_09_46380
-    ## Cre07.g329750                                        4532_07_38316
-    ## Cre10.g425050                               ROC59    4532_10_51020
-    ## Cre11.g467664                                        4532_11_56535
-    ## Cre17.g802135                                     4532_17_90576_TE
-    ## Cre12.g801353                                     4532_12_59961_TE
-    ## Cre09.g413200                                        4532_09_49730
-    ## Cre10.g447700                                        4532_10_53626
-    ## Cre06.g260700                                        4532_06_29200
-    ## Cre12.g531800                                FAP7    4532_12_64615
-    ## Cre06.g285350                                        4532_06_33116
-    ## Cre12.g501950                                        4532_12_61880
-    ## Cre07.g329050                                AOC5    4532_07_38230
-    ## Cre16.g687000                                FPN1    4532_16_82700
-    ##                            PMID                             previousIdentifiers
-    ## Cre06.g275350 18334618#26920093                                  ROC40#g6174.t1
-    ## Cre16.g681750                                                         g16469.t1
-    ## Cre16.g661850                                                         g15982.t1
-    ## Cre16.g677750                                                        #g16561.t1
-    ## Cre02.g097800          12000678                              MRP1#HLA3#g1989.t1
-    ## Cre10.g452250          16754958                                       g11109.t1
-    ## Cre16.g661750                                                        #g15980.t1
-    ## Cre06.g263550                                                     LCI7#g5921.t1
-    ## Cre24.g755897                                      Cre05.g231750.t1.1#g18266.t1
-    ## Cre24.g755997          15998802       FAP150#Cre05.g231850.t1.1#g18268.t1#PHC18
-    ## Cre02.g095151                    Cre11.g474600.t1.2#Cre11.g474600.t1.1#g1923.t1
-    ## Cre03.g800380                                                                 0
-    ## Cre09.g410050                                                        g10159.t1#
-    ## Cre06.g800711                                                                 0
-    ## Cre01.g004157          29743196                                        g103.t1#
-    ## Cre09.g399400          15998802                                  TGL15#g9287.t1
-    ## Cre07.g329750                                                         #g7671.t1
-    ## Cre10.g425050          32555650                           ROC28#g10507.t1#ROC59
-    ## Cre11.g467664                   g11594.t1#Cre18.g745700.t1.1#Cre18.g745700.t1.2
-    ## Cre17.g802135                                                                 0
-    ## Cre12.g801353                                                                 0
-    ## Cre09.g413200          29743196                          STK22#STPK22#g10235.t2
-    ## Cre10.g447700                                                         g11010.t1
-    ## Cre06.g260700                                               XUV1#UAPA6#g5858.t1
-    ## Cre12.g531800 31092556#15998802                                       g13086.t1
-    ## Cre06.g285350                                                          g6633.t1
-    ## Cre12.g501950                                                   PPP39#g12534.t1
-    ## Cre07.g329050          23512853                             NCD7#g7651.t1#AOC5#
-    ## Cre16.g687000          23043051                                       g16352.t1
-    ##                                                             Description
-    ## Cre06.g275350                                  Rhythm Of Chloroplast 40
-    ## Cre16.g681750                          Flagellar Associated Protein 381
-    ## Cre16.g661850                                                          
-    ## Cre16.g677750                                                          
-    ## Cre02.g097800                               Bicarbonate ABC transporter
-    ## Cre10.g452250                           Flagellar Associated Protein 41
-    ## Cre16.g661750                                                          
-    ## Cre06.g263550                                              SELU homolog
-    ## Cre24.g755897                                                          
-    ## Cre24.g755997         Pherophorin-like Flagellar Associated Protein 150
-    ## Cre02.g095151                                                          
-    ## Cre03.g800380                                                          
-    ## Cre09.g410050                       putative Cation-transporting ATPase
-    ## Cre06.g800711                                                          
-    ## Cre01.g004157                                                          
-    ## Cre09.g399400 Lipase-Domain Containing Flagellar Associated Protein 199
-    ## Cre07.g329750                                                          
-    ## Cre10.g425050                                  Rhythm Of Chloroplast 59
-    ## Cre11.g467664                                                          
-    ## Cre17.g802135                                                          
-    ## Cre12.g801353                                                          
-    ## Cre09.g413200                           Serine/threonine protein kinase
-    ## Cre10.g447700                                                          
-    ## Cre06.g260700                   Xanthine/uracil/vitamin C permease-like
-    ## Cre12.g531800                            Flagellar Associated Protein 7
-    ## Cre06.g285350                                                          
-    ## Cre12.g501950                     Phosphoprotein phosphatase 2C-related
-    ## Cre07.g329050                           Cationic amino acid transporter
-    ## Cre16.g687000                                             Ferroportin 1
-    ##                                                                                                                                                                                                                                                                                                                                                                       Comments
-    ## Cre06.g275350                                                                                                                                                                                    CCA1/LHY-like MYB protein, circadian clock associated transcription factor# Goncalves et al (2016) show that the mutant is impaired in lipid accumulation during N starvation
-    ## Cre16.g681750                                                                                                                                                                                                                                                                                                                           Similar to Calcium-Transporting ATPase
-    ## Cre16.g661850                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre16.g677750                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre02.g097800 associated with bicarbonate uptake for CO2-cocentrating mechanism [PMID:19321421, 25660294, 26015566]# high light-induced, requiring both high light and low CO2 (ambient) levels for activation [PMID: 12000678]# MRP subfamily of ABC transporters [PMID: 15710683]# HLA3 is regulated by CCM1 [PMID: 15235119]# localized at plasma membrane [PMID: 15710683]
-    ## Cre10.g452250                                                                                                                                                                                                                                                                                                                                                  redox sensitive
-    ## Cre16.g661750                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre06.g263550                                                                                                          Similar to selenoprotein SELU, but lack selenocysteine residue# R53.5-related# low-CO2-inducible protein 7,  regulated by CCM1 [PMID: 15235119]# identified in the flagellar and basal body proteome [PMID: 15137946] and upregulated by deflagellation
-    ## Cre24.g755897                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre24.g755997                                                                                                                                                                                                                                               Belongs to the large pherophorin-family, a family of glycoproteins with a central hydroxyproline-rich (HR) domain#
-    ## Cre02.g095151                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre03.g800380                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre09.g410050                                                                                                                                                                                                                                                                                     High homology to bacterial genes# related to Cation-transporting ATPase pma1
-    ## Cre06.g800711                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre01.g004157                                                                                                                                                                                                                                                                                                                  null-allele mutant was isolated (PMID 29743196)
-    ## Cre09.g399400                                                                                                                                                                                                                                                                                                Found in the flagellar proteome# Putative triacylglycerol lipase#
-    ## Cre07.g329750                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre10.g425050                                        WD40- and tetratricopeptide-repeats protein involved in circadian rhythms with possible histone acetyltransferase activity# one of the target genes of the circadian transcription factor ROC75# Matsuo et al.'s (2008) roc28 (rhythm of chloroplast 28)  and roc59 circadian bioluminescence rhythm mutant loci map here
-    ## Cre11.g467664                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre17.g802135                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre12.g801353                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre09.g413200                                                                                                                                                                                                                                                        Serine/Threonine Protein Kinase Homolog 22, hypothetical# null-allele mutant was isolated (PMID 29743196)
-    ## Cre10.g447700                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre06.g260700                                                                                                                                                                                                                                                                                   related to plants and fungi# also related to bacterial inner membrane proteins
-    ## Cre12.g531800                                                                                                                                                                                                                                                                                                   Flagellar Associated Protein, found in the flagellar proteome#
-    ## Cre06.g285350                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre12.g501950                                                                                                                                                                                                                                                                                                                                                                 
-    ## Cre07.g329050                                            Related to human SLC7A family of solute carriers, involved in cationic amino acid transport (arginine, lysine, ornithine)# this is probably the gene mutated in the L-canavanine resistant mutant can1, which is closely linked to pf17 on Chromosome_07# siRNA silencing of this gene leads to canavanin resistance#
-    ## Cre16.g687000                                                                                                                                                                                                                                                                                                   Fe transporter# Orthologous to AtFPN1 in Arabidopsis thaliana#
-    ##               Polycistronic
-    ## Cre06.g275350              
-    ## Cre16.g681750              
-    ## Cre16.g661850              
-    ## Cre16.g677750              
-    ## Cre02.g097800              
-    ## Cre10.g452250              
-    ## Cre16.g661750              
-    ## Cre06.g263550              
-    ## Cre24.g755897              
-    ## Cre24.g755997              
-    ## Cre02.g095151              
-    ## Cre03.g800380              
-    ## Cre09.g410050              
-    ## Cre06.g800711              
-    ## Cre01.g004157              
-    ## Cre09.g399400              
-    ## Cre07.g329750              
-    ## Cre10.g425050              
-    ## Cre11.g467664              
-    ## Cre17.g802135              
-    ## Cre12.g801353              
-    ## Cre09.g413200              
-    ## Cre10.g447700              
-    ## Cre06.g260700              
-    ## Cre12.g531800              
-    ## Cre06.g285350              
-    ## Cre12.g501950              
-    ## Cre07.g329050              
-    ## Cre16.g687000              
-    ##                                                                                                                                               TMHMM_transmembrane
-    ## Cre06.g275350                                                                                                                                    TMHMM: 0 helices
-    ## Cre16.g681750                                           TMHMM: 9 helices Topology: i129-146o156-175i318-340o355-377i774-796o841-863i992-1014o1029-1051i1064-1086o
-    ## Cre16.g661850                                                                                                                                    TMHMM: 0 helices
-    ## Cre16.g677750                                                                                                                                    TMHMM: 0 helices
-    ## Cre02.g097800                TMHMM: 13 helices Topology: i90-112o137-159i217-239o244-263i321-343o353-375i696-718o750-772i793-815o830-852i854-876o937-959i966-988o
-    ## Cre10.g452250                                                                                                              TMHMM: 1 helices (SP) Topology: i7-29o
-    ## Cre16.g661750                                                                                                                                    TMHMM: 0 helices
-    ## Cre06.g263550                                                                                                                                    TMHMM: 0 helices
-    ## Cre24.g755897                                                                                                                                    TMHMM: 0 helices
-    ## Cre24.g755997                                                                                                                                    TMHMM: 0 helices
-    ## Cre02.g095151                                                                                TMHMM: 5 helices Topology: o557-579i600-622o632-654i661-683o738-760i
-    ## Cre03.g800380                                                                                                              TMHMM: 1 helices Topology: o1320-1342i
-    ## Cre09.g410050                                            TMHMM: 9 helices Topology: i122-139o143-162i305-327o342-364i865-887o892-914i937-959o1012-1034i1046-1064o
-    ## Cre06.g800711                                                                                         TMHMM: 4 helices (SP) Topology: i21-43o47-69i76-98o108-130i
-    ## Cre01.g004157                     TMHMM: 11 helices Topology: o124-146i213-235o272-294i307-329o344-366i431-453o1757-1779i1958-1980o1990-2007i2214-2236o2433-2455i
-    ## Cre09.g399400                                                                                                                                    TMHMM: 0 helices
-    ## Cre07.g329750                                                                                                                                    TMHMM: 0 helices
-    ## Cre10.g425050                                                                                                                                    TMHMM: 0 helices
-    ## Cre11.g467664                                                                                                              TMHMM: 1 helices (SP) Topology: i7-29o
-    ## Cre17.g802135                                                                                                                                    TMHMM: 0 helices
-    ## Cre12.g801353                                                                                                                                    TMHMM: 0 helices
-    ## Cre09.g413200                                                                                                                                    TMHMM: 0 helices
-    ## Cre10.g447700                                                                                                    TMHMM: 2 helices Topology: o1207-1229i1270-1292o
-    ## Cre06.g260700                 TMHMM: 13 helices Topology: i53-75o118-140i147-169o173-192i199-221o226-245i291-308o312-329i383-405o420-442i463-485o516-538i543-562o
-    ## Cre12.g531800                                                                                                                                    TMHMM: 0 helices
-    ## Cre06.g285350                                                                                                                                    TMHMM: 0 helices
-    ## Cre12.g501950                                                                                                                                    TMHMM: 0 helices
-    ## Cre07.g329050 TMHMM: 15 helices Topology: o75-97i104-126o131-150i155-177o197-216i223-245o265-287i299-321o345-367i396-413o418-440i461-483o498-520i527-546o556-575i
-    ## Cre16.g687000                                              TMHMM: 9 helices (SP) Topology: o43-65i93-115o125-147i179-201o205-227i448-470o483-505i512-534o614-636i
-    ##                                                                 TargetP
-    ## Cre06.g275350             Chloroplast (RC 5 score: 0.574 on #1 protein)
-    ## Cre16.g681750                                Other (RC 3 on #1 protein)
-    ## Cre16.g661850       Secretory_pathway (RC 2 score: 0.801 on #1 protein)
-    ## Cre16.g677750 Mitochondrion (RC 3 score: 0.627 TPlen: 91 on #1 protein)
-    ## Cre02.g097800                                Other (RC 2 on #1 protein)
-    ## Cre10.g452250       Secretory_pathway (RC 4 score: 0.858 on #1 protein)
-    ## Cre16.g661750       Secretory_pathway (RC 4 score: 0.673 on #1 protein)
-    ## Cre06.g263550             Chloroplast (RC 5 score: 0.274 on #1 protein)
-    ## Cre24.g755897                                Other (RC 5 on #1 protein)
-    ## Cre24.g755997       Secretory_pathway (RC 2 score: 0.845 on #1 protein)
-    ## Cre02.g095151                                Other (RC 3 on #1 protein)
-    ## Cre03.g800380                                Other (RC 3 on #1 protein)
-    ## Cre09.g410050             Chloroplast (RC 4 score: 0.810 on #1 protein)
-    ## Cre06.g800711                                Other (RC 4 on #1 protein)
-    ## Cre01.g004157             Chloroplast (RC 1 score: 0.898 on #1 protein)
-    ## Cre09.g399400                                Other (RC 1 on #1 protein)
-    ## Cre07.g329750                                Other (RC 2 on #1 protein)
-    ## Cre10.g425050 Mitochondrion (RC 4 score: 0.540 TPlen: 31 on #1 protein)
-    ## Cre11.g467664       Secretory_pathway (RC 1 score: 0.942 on #1 protein)
-    ## Cre17.g802135             Chloroplast (RC 5 score: 0.594 on #1 protein)
-    ## Cre12.g801353 Mitochondrion (RC 3 score: 0.554 TPlen: 83 on #1 protein)
-    ## Cre09.g413200                                Other (RC 3 on #1 protein)
-    ## Cre10.g447700       Secretory_pathway (RC 3 score: 0.899 on #1 protein)
-    ## Cre06.g260700                                Other (RC 2 on #1 protein)
-    ## Cre12.g531800             Chloroplast (RC 5 score: 0.685 on #1 protein)
-    ## Cre06.g285350             Chloroplast (RC 2 score: 0.901 on #1 protein)
-    ## Cre12.g501950                                Other (RC 5 on #1 protein)
-    ## Cre07.g329050                                Other (RC 4 on #1 protein)
-    ## Cre16.g687000                                Other (RC 1 on #1 protein)
-    ##                                                    Predalgo
-    ## Cre06.g275350     Mitochondrion (score 1.412 on #1 protein)
-    ## Cre16.g681750                 Other (score - on #1 protein)
-    ## Cre16.g661850 Secretory_pathway (score 1.611 on #1 protein)
-    ## Cre16.g677750                 Other (score - on #1 protein)
-    ## Cre02.g097800                 Other (score - on #1 protein)
-    ## Cre10.g452250     Mitochondrion (score 2.191 on #1 protein)
-    ## Cre16.g661750 Secretory_pathway (score 1.876 on #1 protein)
-    ## Cre06.g263550       Chloroplast (score 0.546 on #1 protein)
-    ## Cre24.g755897     Mitochondrion (score 0.494 on #1 protein)
-    ## Cre24.g755997 Secretory_pathway (score 0.891 on #1 protein)
-    ## Cre02.g095151                 Other (score - on #1 protein)
-    ## Cre03.g800380     Mitochondrion (score 0.932 on #1 protein)
-    ## Cre09.g410050                 Other (score - on #1 protein)
-    ## Cre06.g800711 Secretory_pathway (score 0.808 on #1 protein)
-    ## Cre01.g004157       Chloroplast (score 1.365 on #1 protein)
-    ## Cre09.g399400                 Other (score - on #1 protein)
-    ## Cre07.g329750                 Other (score - on #1 protein)
-    ## Cre10.g425050     Mitochondrion (score 0.632 on #1 protein)
-    ## Cre11.g467664 Secretory_pathway (score 2.029 on #1 protein)
-    ## Cre17.g802135                 Other (score - on #1 protein)
-    ## Cre12.g801353     Mitochondrion (score 0.818 on #1 protein)
-    ## Cre09.g413200                 Other (score - on #1 protein)
-    ## Cre10.g447700 Secretory_pathway (score 1.721 on #1 protein)
-    ## Cre06.g260700                 Other (score - on #1 protein)
-    ## Cre12.g531800     Mitochondrion (score 0.604 on #1 protein)
-    ## Cre06.g285350     Mitochondrion (score 0.442 on #1 protein)
-    ## Cre12.g501950       Chloroplast (score 0.854 on #1 protein)
-    ## Cre07.g329050                 Other (score - on #1 protein)
-    ## Cre16.g687000 Secretory_pathway (score 0.202 on #1 protein)
-    ##                                                                         interactions
-    ## Cre06.g275350                                                                       
-    ## Cre16.g681750                                                                       
-    ## Cre16.g661850                                                                       
-    ## Cre16.g677750                                                                       
-    ## Cre02.g097800 Cre01.g007051, Cre01.g024950, Cre01.g025350, Cre02.g092250, and others
-    ## Cre10.g452250                                           Cre02.g120150, Cre04.g223050
-    ## Cre16.g661750                                                                       
-    ## Cre06.g263550                                                                       
-    ## Cre24.g755897                                                                       
-    ## Cre24.g755997                                                                       
-    ## Cre02.g095151                                                                       
-    ## Cre03.g800380                                                                       
-    ## Cre09.g410050                                                                       
-    ## Cre06.g800711                                                                       
-    ## Cre01.g004157                                                                       
-    ## Cre09.g399400                                                                       
-    ## Cre07.g329750                                                                       
-    ## Cre10.g425050                                                                       
-    ## Cre11.g467664                                                                       
-    ## Cre17.g802135                                                                       
-    ## Cre12.g801353                                                                       
-    ## Cre09.g413200                                                                       
-    ## Cre10.g447700                                                                       
-    ## Cre06.g260700                                                                       
-    ## Cre12.g531800                                                                       
-    ## Cre06.g285350                                                                       
-    ## Cre12.g501950                                                                       
-    ## Cre07.g329050                                                                       
-    ## Cre16.g687000                                                                       
-    ##                                experimental_localization
-    ## Cre06.g275350                                           
-    ## Cre16.g681750                                           
-    ## Cre16.g661850                                           
-    ## Cre16.g677750                                           
-    ## Cre02.g097800 Plasma membrane and late-secretory pathway
-    ## Cre10.g452250                                           
-    ## Cre16.g661750 Plasma membrane and late-secretory pathway
-    ## Cre06.g263550                               Cytosol weak
-    ## Cre24.g755897                                           
-    ## Cre24.g755997                                           
-    ## Cre02.g095151                                           
-    ## Cre03.g800380                                           
-    ## Cre09.g410050                                           
-    ## Cre06.g800711                                           
-    ## Cre01.g004157                                           
-    ## Cre09.g399400                                           
-    ## Cre07.g329750                                           
-    ## Cre10.g425050                                           
-    ## Cre11.g467664                                           
-    ## Cre17.g802135                                           
-    ## Cre12.g801353                                           
-    ## Cre09.g413200                                           
-    ## Cre10.g447700                                           
-    ## Cre06.g260700                                           
-    ## Cre12.g531800                                           
-    ## Cre06.g285350                                           
-    ## Cre12.g501950                                           
-    ## Cre07.g329050                                           
-    ## Cre16.g687000                                           
-    ##                                                                      CLiP_library
-    ## Cre06.g275350 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre06.g275350
-    ## Cre16.g681750 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre16.g681750
-    ## Cre16.g661850 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre16.g661850
-    ## Cre16.g677750 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre16.g677750
-    ## Cre02.g097800 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre02.g097800
-    ## Cre10.g452250 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre10.g452250
-    ## Cre16.g661750 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre16.g661750
-    ## Cre06.g263550 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre06.g263550
-    ## Cre24.g755897 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre24.g755897
-    ## Cre24.g755997 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre24.g755997
-    ## Cre02.g095151 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre02.g095151
-    ## Cre03.g800380                                                                    
-    ## Cre09.g410050 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre09.g410050
-    ## Cre06.g800711                                                                    
-    ## Cre01.g004157 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre01.g004157
-    ## Cre09.g399400 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre09.g399400
-    ## Cre07.g329750 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre07.g329750
-    ## Cre10.g425050 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre10.g425050
-    ## Cre11.g467664 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre11.g467664
-    ## Cre17.g802135                                                                    
-    ## Cre12.g801353                                                                    
-    ## Cre09.g413200 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre09.g413200
-    ## Cre10.g447700 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre10.g447700
-    ## Cre06.g260700 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre06.g260700
-    ## Cre12.g531800 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre12.g531800
-    ## Cre06.g285350 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre06.g285350
-    ## Cre12.g501950 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre12.g501950
-    ## Cre07.g329050 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre07.g329050
-    ## Cre16.g687000 https://www.chlamylibrary.org/showGene?geneIdentifier=Cre16.g687000
-    ##                                 mutant_phenotypes Plastid.ribosome_pulldown
-    ## Cre06.g275350               no phenotype detected                          
-    ## Cre16.g681750               no phenotype detected                          
-    ## Cre16.g661850               no phenotype detected                          
-    ## Cre16.g677750               no phenotype detected                          
-    ## Cre02.g097800               no phenotype detected                          
-    ## Cre10.g452250               no phenotype detected                          
-    ## Cre16.g661750               no phenotype detected                          
-    ## Cre06.g263550               no phenotype detected                          
-    ## Cre24.g755897               no phenotype detected                          
-    ## Cre24.g755997               no phenotype detected                          
-    ## Cre02.g095151               no phenotype detected                          
-    ## Cre03.g800380                    no mutant mapped                          
-    ## Cre09.g410050 growth defect under High pH, Low pH                          
-    ## Cre06.g800711                    no mutant mapped                          
-    ## Cre01.g004157               no phenotype detected                          
-    ## Cre09.g399400               no phenotype detected                          
-    ## Cre07.g329750               no phenotype detected                          
-    ## Cre10.g425050     growth defect under Paromomycin                          
-    ## Cre11.g467664               no phenotype detected                          
-    ## Cre17.g802135                    no mutant mapped                          
-    ## Cre12.g801353                    no mutant mapped                          
-    ## Cre09.g413200               no phenotype detected                          
-    ## Cre10.g447700               no phenotype detected                          
-    ## Cre06.g260700               no phenotype detected                          
-    ## Cre12.g531800               no phenotype detected                          
-    ## Cre06.g285350               no phenotype detected                          
-    ## Cre12.g501950               no phenotype detected                          
-    ## Cre07.g329050               no phenotype detected                          
-    ## Cre16.g687000               no phenotype detected                          
-    ##                            TF_database..PMID.27067009.
-    ## Cre06.g275350 SBP transcription factor (PMID 27067009)
-    ## Cre16.g681750                                         
-    ## Cre16.g661850                                         
-    ## Cre16.g677750                                         
-    ## Cre02.g097800                                         
-    ## Cre10.g452250                                         
-    ## Cre16.g661750                                         
-    ## Cre06.g263550                                         
-    ## Cre24.g755897                                         
-    ## Cre24.g755997                                         
-    ## Cre02.g095151                                         
-    ## Cre03.g800380                                         
-    ## Cre09.g410050                                         
-    ## Cre06.g800711                                         
-    ## Cre01.g004157                                         
-    ## Cre09.g399400                                         
-    ## Cre07.g329750                                         
-    ## Cre10.g425050                                         
-    ## Cre11.g467664                                         
-    ## Cre17.g802135                                         
-    ## Cre12.g801353                                         
-    ## Cre09.g413200                                         
-    ## Cre10.g447700                                         
-    ## Cre06.g260700                                         
-    ## Cre12.g531800                                         
-    ## Cre06.g285350                                         
-    ## Cre12.g501950                                         
-    ## Cre07.g329050                                         
-    ## Cre16.g687000                                         
-    ##                                                             Flagellar_Proteome
-    ## Cre06.g275350                                                                 
-    ## Cre16.g681750   Total Peptides:3 (Axoneme:0; M+M:0; KCl extract:3; Tergitol:0)
-    ## Cre16.g661850                                                                 
-    ## Cre16.g677750                                                                 
-    ## Cre02.g097800                                                                 
-    ## Cre10.g452250 Total Peptides:14 (Axoneme:13; M+M:0; KCl extract:0; Tergitol:1)
-    ## Cre16.g661750                                                                 
-    ## Cre06.g263550                                                                 
-    ## Cre24.g755897                                                                 
-    ## Cre24.g755997   Total Peptides:8 (Axoneme:4; M+M:0; KCl extract:3; Tergitol:1)
-    ## Cre02.g095151                                                                 
-    ## Cre03.g800380                                                                 
-    ## Cre09.g410050                                                                 
-    ## Cre06.g800711                                                                 
-    ## Cre01.g004157                                                                 
-    ## Cre09.g399400   Total Peptides:5 (Axoneme:4; M+M:0; KCl extract:1; Tergitol:0)
-    ## Cre07.g329750                                                                 
-    ## Cre10.g425050                                                                 
-    ## Cre11.g467664                                                                 
-    ## Cre17.g802135                                                                 
-    ## Cre12.g801353                                                                 
-    ## Cre09.g413200                                                                 
-    ## Cre10.g447700   Total Peptides:1 (Axoneme:0; M+M:1; KCl extract:0; Tergitol:0)
-    ## Cre06.g260700                                                                 
-    ## Cre12.g531800  Total Peptides:17 (Axoneme:3; M+M:1; KCl extract:4; Tergitol:9)
-    ## Cre06.g285350                                                                 
-    ## Cre12.g501950                                                                 
-    ## Cre07.g329050                                                                 
-    ## Cre16.g687000                                                                 
-    ##                                 Co.expression.cluster..PMID.28710131.
-    ## Cre06.g275350                                              cluster 31
-    ## Cre16.g681750                       cluster 45 (Plus gamete-specific)
-    ## Cre16.g661850                                              cluster 32
-    ## Cre16.g677750                 cluster 26 (Mating activation-specific)
-    ## Cre02.g097800                                              cluster 39
-    ## Cre10.g452250                                              cluster 36
-    ## Cre16.g661750                                              cluster 15
-    ## Cre06.g263550  cluster 22 (Mating activation-induced in plus gametes)
-    ## Cre24.g755897                                                        
-    ## Cre24.g755997                                                        
-    ## Cre02.g095151                                                        
-    ## Cre03.g800380                                                        
-    ## Cre09.g410050  cluster 22 (Mating activation-induced in plus gametes)
-    ## Cre06.g800711                                                        
-    ## Cre01.g004157                                              cluster 28
-    ## Cre09.g399400                                              cluster 25
-    ## Cre07.g329750 cluster 13 (Mating activation-induced in minus gametes)
-    ## Cre10.g425050                                               cluster 5
-    ## Cre11.g467664                                                        
-    ## Cre17.g802135                                                        
-    ## Cre12.g801353                                                        
-    ## Cre09.g413200                                                        
-    ## Cre10.g447700                       cluster 45 (Plus gamete-specific)
-    ## Cre06.g260700                       cluster 45 (Plus gamete-specific)
-    ## Cre12.g531800                                              cluster 17
-    ## Cre06.g285350                                              cluster 32
-    ## Cre12.g501950                                              cluster 46
-    ## Cre07.g329050                      cluster 41 (Minus gamete-specific)
-    ## Cre16.g687000                                               cluster 6
-    ##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              GEnome.scale.Metabolic.Model
-    ## Cre06.g275350                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre16.g681750                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre16.g661850                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre16.g677750                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre02.g097800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre10.g452250                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre16.g661750                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre06.g263550                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre24.g755897                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre24.g755997                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre02.g095151                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre03.g800380                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre09.g410050                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre06.g800711                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre01.g004157                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre09.g399400                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre07.g329750                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre10.g425050                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre11.g467664                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre17.g802135                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre12.g801353                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre09.g413200                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre10.g447700                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre06.g260700                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre12.g531800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre06.g285350                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre12.g501950                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ## Cre07.g329050 Name= Amino acid transporter (gly), chloroplast;Amino acid transporter (his-L), chloroplast;Amino acid transporter (ser-L), chloroplast;Amino acid transporter (thr-L), chloroplast;Amino acid transporter (val-L), chloroplast;Amino acid transporter (met), chloroplast;Amino acid transporter (his-L), extracellular;Amino acid transporter (ala-L), glyoxysomal;Amino acid transporter (gly), glyoxysomal;Amino acid transporter (ala-L), mitochondrial;Amino acid transporter (gly), mitochondrial;Amino acid transporter (ser-L), mitochondrial;Amino acid transporter (thr-L), mitochondrial;Amino acid transporter (val-L), mitochondrial# KEGG= # E.C.= 2.A.3.3.3 # [Merchant 2007];[Stern 2009] # (PMID:30202653)
-    ## Cre16.g687000                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    ##                     gene_id previousIdentifiers_list prev.symbols     id.symbol
-    ## Cre06.g275350 Cre06.g275350             ROC40, g....        ROC40         ROC40
-    ## Cre16.g681750 Cre16.g681750                g16469.t1                     FAP381
-    ## Cre16.g661850 Cre16.g661850                g15982.t1              Cre16.g661850
-    ## Cre16.g677750 Cre16.g677750              , g16561.t1              Cre16.g677750
-    ## Cre02.g097800 Cre02.g097800             MRP1, HL....    MRP1#HLA3          HLA3
-    ## Cre10.g452250 Cre10.g452250                g11109.t1                      FAP41
-    ## Cre16.g661750 Cre16.g661750              , g15980.t1              Cre16.g661750
-    ## Cre06.g263550 Cre06.g263550             LCI7, g5....         LCI7         SELU1
-    ## Cre24.g755897 Cre24.g755897             Cre05.g2....              Cre24.g755897
-    ## Cre24.g755997 Cre24.g755997             FAP150, .... FAP150#PHC18         PHC18
-    ## Cre02.g095151 Cre02.g095151             Cre11.g4....              Cre02.g095151
-    ## Cre03.g800380 Cre03.g800380                        0              Cre03.g800380
-    ## Cre09.g410050 Cre09.g410050                g10159.t1              Cre09.g410050
-    ## Cre06.g800711 Cre06.g800711                        0              Cre06.g800711
-    ## Cre01.g004157 Cre01.g004157                  g103.t1              Cre01.g004157
-    ## Cre09.g399400 Cre09.g399400             TGL15, g....        TGL15        FAP199
-    ## Cre07.g329750 Cre07.g329750               , g7671.t1              Cre07.g329750
-    ## Cre10.g425050 Cre10.g425050             ROC28, g....  ROC28#ROC59         ROC59
-    ## Cre11.g467664 Cre11.g467664             g11594.t....              Cre11.g467664
-    ## Cre17.g802135 Cre17.g802135                        0              Cre17.g802135
-    ## Cre12.g801353 Cre12.g801353                        0              Cre12.g801353
-    ## Cre09.g413200 Cre09.g413200             STK22, S.... STK22#STPK22         STK22
-    ## Cre10.g447700 Cre10.g447700                g11010.t1              Cre10.g447700
-    ## Cre06.g260700 Cre06.g260700             XUV1, UA....   XUV1#UAPA6          XUV1
-    ## Cre12.g531800 Cre12.g531800                g13086.t1                       FAP7
-    ## Cre06.g285350 Cre06.g285350                 g6633.t1              Cre06.g285350
-    ## Cre12.g501950 Cre12.g501950             PPP39, g....        PPP39         PPP39
-    ## Cre07.g329050 Cre07.g329050             NCD7, g7....    NCD7#AOC5          AOC5
-    ## Cre16.g687000 Cre16.g687000                g16352.t1                       FPN1
-
-``` r
+# anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
 anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","Comments","TMHMM_transmembrane","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
 ```
 
@@ -2017,7 +1473,8 @@ gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # col
         arrow = arrow(length = unit(0.01,units = "npc"))) +
   scale_color_gradient2(mid="grey") +
   geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
+  scale_fill_manual(name="Genotype",values="green3") +
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
   geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
@@ -2049,7 +1506,75 @@ gg_rocs
 
 # TOP
 df <- res_comb[blue_red_genes,]
+df %>% kable()
+```
 
+|  | symbol | baseMean | l2FC.WT_blue | padj.WT_blue | l2FC.WT_red | padj.WT_red | l2FC.pcry_blue | padj.pcry_blue | l2FC.pcry_red | padj.pcry_red | l2FC.dd_blue | padj.dd_blue | l2FC.dd_red | padj.dd_red | symbol2 |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---|
+| Cre16.g681750 | FAP381 | 2907.44060 | 1.1937921 | 0.0000000 | -0.2354870 | 0.0579729 | 3.1605968 | 0.0000000 | 1.9898814 | 0.0000000 | 1.9668047 | 0.0000000 | 2.2253684 | 0.0000000 | FAP381 |
+| Cre16.g661850 |  | 12538.40390 | 0.5590292 | 0.2247740 | -1.1763678 | 0.0008734 | 2.9837730 | 0.0000000 | 1.3675094 | 0.0000954 | 2.4247438 | 0.0000102 | 2.5438772 | 0.0000039 |  |
+| Cre02.g116700 |  | 1036.70519 | 2.2915385 | 0.0000000 | 1.8700997 | 0.0000000 | 0.0465878 | 0.9166465 | 1.0484168 | 0.0000025 | -2.2449507 | 0.0000000 | -0.8216829 | 0.2255780 |  |
+| Cre02.g097800 | HLA3 | 801.79432 | -0.5798709 | 0.0021489 | -1.3749874 | 0.0000000 | 1.4830546 | 0.0000000 | 0.6329741 | 0.0006041 | 2.0629255 | 0.0000000 | 2.0079615 | 0.0000000 | HLA3 |
+| Cre16.g686750 | PTA3 | 6486.26620 | -0.1492872 | 0.5007108 | -0.4452798 | 0.0022618 | -1.6117259 | 0.0000000 | -1.4187900 | 0.0000000 | -1.4624387 | 0.0000000 | -0.9735102 | 0.0000253 | PTA3 |
+| Cre24.g755997 | PHC18 | 30501.96755 | -0.6094306 | 0.2414273 | -0.7711925 | 0.0779316 | 1.7565809 | 0.0000046 | 1.3330580 | 0.0009034 | 2.3660116 | 0.0003303 | 2.1042505 | 0.0045265 | PHC18 |
+| Cre06.g263550 | SELU1 | 3566.14159 | 1.5204870 | 0.0000000 | 1.5265702 | 0.0000000 | 3.2407600 | 0.0000000 | 2.9555869 | 0.0000000 | 1.7202730 | 0.0000000 | 1.4290167 | 0.0000011 | SELU1 |
+| Cre16.g677750 |  | 11349.47648 | 0.5122534 | 0.0000771 | 0.4578023 | 0.0003669 | 1.8725240 | 0.0000000 | 1.8284833 | 0.0000000 | 1.3602706 | 0.0000000 | 1.3706811 | 0.0000000 |  |
+| Cre12.g501950 |  | 250.78410 | 0.7078341 | 0.0008032 | 0.4134300 | 0.0730692 | -1.5295010 | 0.0000000 | -0.7681230 | 0.0003388 | -2.2373351 | 0.0000000 | -1.1815530 | 0.0020309 |  |
+| Cre02.g104450 |  | 1036.55112 | 0.5388459 | 0.0290498 | 0.0209254 | 0.9535675 | -1.3531256 | 0.0000000 | -0.9823133 | 0.0000050 | -1.8919715 | 0.0000000 | -1.0032387 | 0.0398758 |  |
+| Cre09.g801087 |  | 138.44874 | 0.1607796 | 0.9829967 | -2.3778746 | 0.5146915 | -24.1613126 | 0.0000000 | -2.7256059 | 0.5016597 | -24.3220922 | 0.0000000 | -0.3477313 | 0.9983302 |  |
+| Cre16.g681351 |  | 832.79182 | -3.9838068 | 0.0000000 | 0.1955314 | 0.5136958 | -1.7837533 | 0.0000002 | 0.4989267 | 0.1420120 | 2.2000536 | 0.0000024 | 0.3033953 | 0.9983302 |  |
+| Cre16.g661750 |  | 22967.83509 | 0.4300778 | 0.2845117 | -0.7744108 | 0.0129256 | 2.3005055 | 0.0000000 | 1.1279334 | 0.0001449 | 1.8704277 | 0.0001163 | 1.9023441 | 0.0001296 |  |
+| Cre01.g009101 |  | 3303.37288 | 0.3465231 | 0.0198109 | -0.4563152 | 0.0007454 | 1.6904340 | 0.0000000 | 0.5138072 | 0.0001970 | 1.3439108 | 0.0000000 | 0.9701224 | 0.0000056 |  |
+| Cre03.g197100 | LRL1 | 1689.53979 | 0.0161155 | 0.9760041 | 0.4915130 | 0.0226171 | -1.5442957 | 0.0000000 | -0.2715881 | 0.3094146 | -1.5604112 | 0.0000004 | -0.7631011 | 0.1748123 | LRL1 |
+| Cre01.g048150 | HLA8 | 5821.18967 | 0.2464299 | 0.2422513 | 1.0638132 | 0.0000000 | 1.4658713 | 0.0000000 | 1.6523784 | 0.0000000 | 1.2194413 | 0.0000004 | 0.5885653 | 0.1876649 | HLA8 |
+| Cre09.g410050 |  | 2390.35379 | 0.0994994 | 0.7792814 | -0.0678178 | 0.8011735 | 1.4391171 | 0.0000000 | 1.2527899 | 0.0000000 | 1.3396177 | 0.0000013 | 1.3206077 | 0.0000030 |  |
+| Cre13.g588950 |  | 64.13478 | -0.0928425 | 0.9145962 | 0.3716768 | 0.4321595 | -2.8259787 | 0.0000000 | -1.2551513 | 0.0003507 | -2.7331362 | 0.0000033 | -1.6268281 | 0.0398758 |  |
+| Cre09.g400849 |  | 243.85600 | -0.0059096 | 0.9912044 | -0.0893476 | 0.7532477 | -1.5140535 | 0.0000000 | -0.8365955 | 0.0000089 | -1.5081440 | 0.0000004 | -0.7472479 | 0.1559229 |  |
+| Cre02.g095151 |  | 451.10132 | 0.1467181 | 0.7566426 | 0.2222050 | 0.4948615 | 1.8762707 | 0.0000000 | 2.1346857 | 0.0000000 | 1.7295526 | 0.0000109 | 1.9124807 | 0.0000011 |  |
+| Cre10.g452250 | FAP41 | 5894.35363 | -1.0793767 | 0.0000000 | -0.8925390 | 0.0000000 | -2.1910171 | 0.0000000 | -2.2365151 | 0.0000000 | -1.1116404 | 0.0000072 | -1.3439761 | 0.0000000 | FAP41 |
+| Cre13.g576100 |  | 787.30886 | -0.0611995 | 0.8137302 | -0.2944780 | 0.0333620 | -1.2205512 | 0.0000000 | -0.9378698 | 0.0000000 | -1.1593517 | 0.0000000 | -0.6433918 | 0.0118876 |  |
+| Cre02.g093600 |  | 1050.44659 | -1.1871255 | 0.0000000 | -0.7721316 | 0.0000041 | 0.0645633 | 0.8343549 | 0.2189122 | 0.3540083 | 1.2516888 | 0.0000036 | 0.9910438 | 0.0017015 |  |
+| Cre13.g567075 |  | 150.04347 | 0.5859887 | 0.2546713 | 0.2032132 | 0.7146876 | -1.7945814 | 0.0000099 | -0.7197617 | 0.1311019 | -2.3805702 | 0.0003989 | -0.9229749 | 0.7625680 |  |
+| Cre09.g399400 | FAP199 | 4018.83190 | -0.7107484 | 0.0000028 | -0.6230517 | 0.0000409 | 0.3781325 | 0.0294008 | 0.4916753 | 0.0023790 | 1.0888809 | 0.0000073 | 1.1147269 | 0.0000050 | FAP199 |
+| Cre14.g623125 |  | 371.14941 | 0.4768751 | 0.0341447 | 0.3193556 | 0.1741310 | -0.9526529 | 0.0000018 | -0.4031517 | 0.0864386 | -1.4295280 | 0.0000057 | -0.7225073 | 0.2297691 |  |
+| Cre17.g728550 |  | 353.50470 | 0.4477168 | 0.0819506 | 0.7489792 | 0.0005493 | -1.0797390 | 0.0000008 | 0.1809340 | 0.5885753 | -1.5274559 | 0.0000102 | -0.5680451 | 0.6341481 |  |
+| Cre24.g755897 |  | 304.87524 | -1.1374565 | 0.0000000 | -1.6126219 | 0.0000000 | 0.1538841 | 0.5372404 | 0.2533786 | 0.2333968 | 1.2913406 | 0.0000001 | 1.8660005 | 0.0000000 |  |
+| Cre06.g800711 |  | 124.48846 | 0.2747153 | 0.5052019 | 1.1379331 | 0.0000072 | -1.5999394 | 0.0000000 | -0.7694691 | 0.0043518 | -1.8746547 | 0.0000078 | -1.9074022 | 0.0000027 |  |
+| Cre08.g368850 |  | 169.63135 | 0.6652323 | 0.0058938 | -0.1049888 | 0.7583617 | -0.9102989 | 0.0001087 | -1.1553928 | 0.0000004 | -1.5755311 | 0.0000127 | -1.0504040 | 0.0490918 |  |
+| Cre10.g435750 |  | 56.42748 | 3.3558100 | 0.0000000 | 0.8822331 | 0.2253436 | -0.2525669 | 0.8224295 | 0.3277208 | 0.7663463 | -3.6083769 | 0.0006495 | -0.5545123 | 0.9983302 |  |
+| Cre17.g739650 |  | 18.18458 | 2.4102989 | 0.0000647 | 1.0669515 | 0.1459163 | -1.1971548 | 0.0915355 | -1.5521161 | 0.0220098 | -3.6074537 | 0.0003513 | -2.6190676 | 0.0863541 |  |
+| Cre16.g678200 |  | 71.27662 | 0.5254184 | 0.2097014 | 1.2325791 | 0.0000945 | -1.6187021 | 0.0000085 | -0.2973088 | 0.5548296 | -2.1441205 | 0.0001888 | -1.5298879 | 0.0292803 |  |
+| Cre15.g801848 |  | 101.61490 | -0.7971819 | 0.1150307 | -0.2865368 | 0.6117287 | 1.5420561 | 0.0004742 | 1.4653527 | 0.0009462 | 2.3392380 | 0.0019905 | 1.7518895 | 0.0924464 |  |
+| Cre03.g800327 |  | 123.11836 | 1.2448706 | 0.0001149 | 0.9545304 | 0.0041485 | -0.7070271 | 0.0622128 | -0.1672797 | 0.7663048 | -1.9518976 | 0.0003314 | -1.1218101 | 0.2701100 |  |
+| Cre14.g801599 |  | 448.97407 | 0.7647598 | 0.0004193 | 1.2022992 | 0.0000000 | -0.5846841 | 0.0113996 | 0.3593927 | 0.1613715 | -1.3494439 | 0.0001053 | -0.8429065 | 0.1204427 |  |
+| Cre16.g801863 |  | 144.41526 | 2.6568757 | 0.0000000 | 2.4521495 | 0.0000000 | 0.3312222 | 0.6240170 | 1.6116061 | 0.0001937 | -2.3256535 | 0.0037689 | -0.8405434 | 0.9150931 |  |
+| Cre13.g585000 |  | 1399.33861 | -0.3564876 | 0.1007399 | -1.3870713 | 0.0000000 | -1.4864848 | 0.0000000 | -2.2003278 | 0.0000000 | -1.1299972 | 0.0001638 | -0.8132565 | 0.0523224 |  |
+| Cre06.g305350 |  | 1366.90100 | 0.6788986 | 0.0268337 | 0.4173256 | 0.1955002 | -0.7766870 | 0.0079966 | -0.5530117 | 0.0814984 | -1.4555856 | 0.0035122 | -0.9703373 | 0.2422670 |  |
+| Cre09.g399552 | LCR1 | 143.24026 | -1.5418181 | 0.0000011 | -1.8432797 | 0.0000000 | -3.4850347 | 0.0000000 | -3.5668577 | 0.0000000 | -1.9432166 | 0.0011478 | -1.7235779 | 0.0138614 | LCR1 |
+| Cre03.g200200 |  | 543.22530 | 0.9199630 | 0.0001374 | 1.0119430 | 0.0000137 | -0.4645725 | 0.1089507 | 0.4613859 | 0.1029298 | -1.3845356 | 0.0008522 | -0.5505571 | 0.7875744 |  |
+| Cre16.g649433 |  | 3697.93428 | -0.2073476 | 0.4960325 | -0.2990109 | 0.1987810 | -1.2855574 | 0.0000000 | -0.8276971 | 0.0000200 | -1.0782098 | 0.0023000 | -0.5286862 | 0.6093842 |  |
+| Cre10.g447700 |  | 122.45117 | 0.6907013 | 0.0023669 | 0.9965494 | 0.0000022 | -0.7053603 | 0.0008815 | -0.3079313 | 0.2246084 | -1.3960616 | 0.0000353 | -1.3044806 | 0.0002721 |  |
+| Cre08.g364351 |  | 99.26345 | -0.5145438 | 0.1005924 | -0.4719931 | 0.1188121 | 0.9762593 | 0.0008061 | 0.9269126 | 0.0015484 | 1.4908032 | 0.0022852 | 1.3989057 | 0.0100037 |  |
+| Cre03.g206033 |  | 64.57241 | -0.1810026 | 0.7806489 | 0.5834710 | 0.1164930 | -2.0290617 | 0.0000000 | -0.8066855 | 0.0283381 | -1.8480590 | 0.0041262 | -1.3901565 | 0.0835768 |  |
+| Cre07.g326700 |  | 291.39649 | -0.5810229 | 0.0186609 | -0.4358936 | 0.0852904 | -1.8037882 | 0.0000000 | -1.3187007 | 0.0000000 | -1.2227652 | 0.0030434 | -0.8828071 | 0.1504761 |  |
+| Cre16.g801871 |  | 197.90250 | 0.2100194 | 0.5763564 | 0.8816924 | 0.0000841 | 1.4473220 | 0.0000000 | 1.5608169 | 0.0000000 | 1.2373027 | 0.0023188 | 0.6791245 | 0.4525175 |  |
+| Cre06.g275350 | ROC40 | 4525.43590 | -0.3932456 | 0.3177271 | -5.0270077 | 0.0000000 | -0.6920228 | 0.0285565 | -1.4854313 | 0.0000000 | -0.2987771 | 0.9708832 | 3.5415764 | 0.0000000 | ROC40 |
+| Cre03.g800380 |  | 78.65503 | -0.4609437 | 0.9495052 | -21.5309907 | 0.0000000 | 0.9865672 | 0.8467001 | 1.3286991 | 0.7985701 | 1.4475110 | 0.9726881 | 22.8596899 | 0.0000012 |  |
+| Cre01.g004157 |  | 1591.50282 | 0.1308140 | 0.7805465 | -0.3225325 | 0.2648484 | 1.3411890 | 0.0000000 | 1.1806121 | 0.0000003 | 1.2103750 | 0.0070314 | 1.5031446 | 0.0002232 |  |
+| Cre07.g329750 |  | 3682.62780 | -0.3044604 | 0.0512961 | -0.8945490 | 0.0000000 | -0.2174957 | 0.2241317 | 0.1333711 | 0.5174430 | 0.0869647 | 0.9708832 | 1.0279201 | 0.0000014 |  |
+| Cre10.g425050 | ROC59 | 95.74613 | -0.4053095 | 0.3137300 | -1.0431040 | 0.0005524 | 0.0709275 | 0.9232541 | 1.0717159 | 0.0044781 | 0.4762370 | 0.9708832 | 2.1148198 | 0.0001518 | ROC59 |
+| Cre11.g467664 |  | 799.36721 | -0.3051966 | 0.0702333 | 0.0851739 | 0.6715178 | -1.2175380 | 0.0000000 | -1.0079113 | 0.0000000 | -0.9123414 | 0.0001318 | -1.0930852 | 0.0000012 |  |
+| Cre17.g802135 |  | 46.85867 | 18.6357322 | 0.0000000 | 20.6222409 | 0.0000000 | 2.2241521 | 0.6604924 | 1.2437058 | 0.8350031 | -16.4115801 | 0.0107630 | -19.3785351 | 0.0012231 |  |
+| Cre12.g801353 |  | 38.33938 | 0.1700847 | 0.7908455 | -0.4914744 | 0.2352436 | 1.8643932 | 0.0000124 | 1.6905382 | 0.0000974 | 1.6943085 | 0.0318976 | 2.1820126 | 0.0025939 |  |
+| Cre09.g413200 |  | 1963.74793 | -1.3180480 | 0.0000000 | -3.3556733 | 0.0000000 | -1.8986165 | 0.0000000 | -2.2686069 | 0.0000000 | -0.5805685 | 0.3768417 | 1.0870664 | 0.0017015 |  |
+| Cre06.g260700 |  | 181.28117 | -1.0798458 | 0.0000000 | -1.4359254 | 0.0000000 | -1.0494194 | 0.0000007 | -0.1748709 | 0.5798608 | 0.0304264 | 0.9902168 | 1.2610546 | 0.0004460 |  |
+| Cre12.g531800 | FAP7 | 480.45292 | 0.8460782 | 0.0005353 | 1.3486722 | 0.0000000 | 0.2316140 | 0.5034274 | 0.0797826 | 0.8589850 | -0.6144642 | 0.6108895 | -1.2688896 | 0.0047699 | FAP7 |
+| Cre06.g285350 |  | 950.92924 | 0.0516860 | 0.8993572 | -0.2211321 | 0.3166587 | 0.7423766 | 0.0000240 | 0.7965364 | 0.0000044 | 0.6906906 | 0.1053799 | 1.0176685 | 0.0016248 |  |
+| Cre07.g329050 | AOC5 | 89.09958 | -0.7533875 | 0.0525125 | 0.2085977 | 0.6493559 | -2.0436827 | 0.0000000 | -1.5839405 | 0.0000019 | -1.2902952 | 0.1462976 | -1.7925382 | 0.0047817 | AOC5 |
+| Cre16.g687000 | FPN1 | 172.69472 | -0.2216115 | 0.3831199 | 0.0209792 | 0.9419827 | -0.8145136 | 0.0000043 | -1.0343937 | 0.0000000 | -0.5929021 | 0.3041292 | -1.0553728 | 0.0011744 | FPN1 |
+
+``` r
+plot(df$l2FC.dd_red ~ df$l2FC.dd_blue)
 
 gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
     geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
@@ -2066,9 +1591,52 @@ gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color
   theme_bw() +
   removeGrid(x=T, y=T)
 gg_top
+
+  scale_colour_manual(name="Error Bars",values=cols)
 ```
 
-<img src="README_files/figure-gfm/groups-1.png" width="50%" /><img src="README_files/figure-gfm/groups-2.png" width="50%" /><img src="README_files/figure-gfm/groups-3.png" width="50%" />
+    ## <ggproto object: Class ScaleDiscrete, Scale, gg>
+    ##     aesthetics: colour
+    ##     axis_order: function
+    ##     break_info: function
+    ##     break_positions: function
+    ##     breaks: waiver
+    ##     call: call
+    ##     clone: function
+    ##     dimension: function
+    ##     drop: TRUE
+    ##     expand: waiver
+    ##     get_breaks: function
+    ##     get_breaks_minor: function
+    ##     get_labels: function
+    ##     get_limits: function
+    ##     get_transformation: function
+    ##     guide: legend
+    ##     is_discrete: function
+    ##     is_empty: function
+    ##     labels: waiver
+    ##     limits: NULL
+    ##     make_sec_title: function
+    ##     make_title: function
+    ##     map: function
+    ##     map_df: function
+    ##     n.breaks.cache: NULL
+    ##     na.translate: TRUE
+    ##     na.value: grey50
+    ##     name: Error Bars
+    ##     palette: function
+    ##     palette.cache: NULL
+    ##     position: left
+    ##     range: environment
+    ##     rescale: function
+    ##     reset: function
+    ##     train: function
+    ##     train_df: function
+    ##     transform: function
+    ##     transform_df: function
+    ##     super:  <ggproto object: Class ScaleDiscrete, Scale, gg>
+
+<img src="README_files/figure-gfm/groups-1.png" width="50%" /><img src="README_files/figure-gfm/groups-2.png" width="50%" /><img src="README_files/figure-gfm/groups-3.png" width="50%" /><img src="README_files/figure-gfm/groups-4.png" width="50%" />
 
 # Fig. X
 
