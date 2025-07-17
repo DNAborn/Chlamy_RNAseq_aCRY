@@ -562,10 +562,16 @@ summary(anno$id.symbol)
 
 dim(anno)
 
+colnames(anno)
+
 # anno[1:10,1:10]
 
 # save(anno, file = paste(dir,"anno.RDS",sep="/"), compress = FALSE)
 # load(paste(dir,"anno.RDS",sep="/"))
+
+anno_xls <- subset(anno, select = -previousIdentifiers_list)
+write_xlsx(data.frame(anno_xls),
+           paste(gitdir,"Chlamy_master_annotation.xlsx",sep="/"))
 
 ```
 

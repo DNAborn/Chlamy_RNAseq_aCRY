@@ -1219,12 +1219,11 @@ gcounts_interaction <- ggplot(all_counts, aes(x = Gene, y = count, fill=conditio
   theme_bw() +
   removeGrid(x=T, y=T) +
   geom_vline(xintercept=seq(1,length(levels(all_counts$Gene))-1,1)+.5,color="grey") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
 gcounts_interaction %>% print()
 
 ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Counts_Interaction.pdf",sep=""), plot = gcounts_interaction,
-width = 15,
+width = 30,
 height = 8)
 
 ```
