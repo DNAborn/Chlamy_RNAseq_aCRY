@@ -1,0 +1,107 @@
+```{r anno}
+library(data.table)
+library(plyr)
+library(tidyverse)
+library(ape)
+
+# more gene info from master_annotation_table
+annopath <- file.path(s,"AG/AG-Scholz-NGS/Daten/Simon/linux-ngs/salmon/salmon_index_chlamy/Phytozone_v6.1/CreinhardtiiCC_4532_707_v6.1.master_annotation_table.tsv")
+
+anno <- read.delim2(annopath, header = T, sep = "\t",)
+head(anno)[1:5,1:9] %>% kable()
+
+# search for genes
+anno[str_detect(anno[["locusName_4532"]],"Cre01.g000050"),]
+anno[str_detect(anno[["geneSymbol"]],"HKR"),]
+anno[str_detect(anno[["previousIdentifiers"]],"HKR"),]
+anno[str_detect(anno[["geneSymbol"]],"COP"),]
+anno[str_detect(anno[["previousIdentifiers"]],"COP1"),]
+anno[str_detect(anno[["geneSymbol"]],"cop"),]
+anno[str_detect(anno[["geneSymbol"]],"PLAP6"),]
+anno[str_detect(anno[["geneSymbol"]],"COQ3"),]
+anno[str_detect(anno[["geneSymbol"]],"PCRY"),]
+anno[str_detect(anno[["geneSymbol"]],"CRY"),]
+anno[str_detect(anno[["geneSymbol"]],"CRY-DASH"),]
+anno[str_detect(anno[["previousIdentifiers"]],"CRY-DASH"),]
+
+dim(anno)
+
+# Remove "_4532"
+anno$gene_id <- str_remove(anno$locusName_4532,pattern = "_4532")
+rownames(anno) <- anno$gene_id
+
+# convert previousIdentifiers to list
+anno$previousIdentifiers_list <- strsplit(anno$previousIdentifiers, "#")
+head(anno)
+anno$previousIdentifiers_list[1]
+
+# polish "previousIdentifiers"
+# remove Cre & g-numbers
+head(anno$previousIdentifiers)
+tail(anno$previousIdentifiers)
+prev.symbols <-
+  str_replace_all(anno$previousIdentifiers,pattern="Cre\\d+.g\\d+.t\\d+.\\d+", replacement="?") %>%
+  str_replace_all(pattern="Cre...g\\d+", replacement="?") %>%
+  str_replace_all(pattern="g\\d+.t\\d+", replacement="?") %>%
+  str_remove_all(pattern="\\?") %>%
+  str_remove_all("^#|#$| ") %>% str_remove_all("^#|#$") %>% str_remove_all("^#|#$|^0") %>%
+  str_replace_all(pattern="##","#") %>% str_replace_all(pattern="##","#")
+prev.symbols[str_detect(prev.symbols,"#")] %>% head(n=20)
+prev.symbols[str_detect(prev.symbols,"0")] %>% head(n=20)
+prev.symbols[str_detect(prev.symbols,"Cre")] %>% head(n=20)
+tail(anno$previousIdentifiers[str_detect(anno$previousIdentifiers,"Cre")])
+
+
+anno$prev.symbols <- prev.symbols
+head(anno)[1:5,1:9] %>% kable()
+
+# Make colum with gene symbol or prev.symbol or Gene id
+anno$combname <- anno$geneSymbol
+
+summary(anno$combname)
+summary(anno$combname=="")
+summary(anno$combname==" ")
+summary(is.na(anno$combname))
+summary(anno$combname=="0")
+
+# replace "" with prev.symbol
+summary(anno$combname=="")
+  length(anno$combname[anno$combname==""])
+  length(str_split(
+  anno$prev.symbols[anno$combname==""],pattern ="#", simplify = T)[,1])
+anno$combname[anno$combname==""] <- str_split(
+  anno$prev.symbols[anno$combname==""],pattern ="#", simplify = T)[,1]
+summary(anno$combname=="")
+
+anno$combname[anno$combname==""] <- anno$gene_id[anno$combname==""]
+summary(anno$combname=="")
+subset(anno,anno$combname=="")
+
+summary(duplicated(anno$combname))
+# some duplicates
+
+colnames(anno)[which(names(anno) == "combname")] <- "id.symbol"
+
+
+summary(anno$geneSymbol!="")
+# 4408 gene Symbols
+summary(anno$previousIdentifiers!="")
+# all (!) 17712 genes have "previousIdentifiers"
+summary(anno$prev.symbols!="")
+# 7236 have alternative/old symbols
+summary(anno$id.symbol)
+
+dim(anno)
+
+colnames(anno)
+
+# anno[1:10,1:10]
+
+# save(anno, file = paste(dir,"anno.RDS",sep="/"), compress = FALSE)
+# load(paste(dir,"anno.RDS",sep="/"))
+
+anno_xls <- subset(anno, select = -previousIdentifiers_list)
+write_xlsx(data.frame(anno_xls),
+           paste(gitdir,"Chlamy_master_annotation.xlsx",sep="/"))
+
+```
