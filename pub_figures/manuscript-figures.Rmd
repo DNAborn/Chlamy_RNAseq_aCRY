@@ -1096,6 +1096,8 @@ colnames(res_comb)[c(11,12)] <- c("l2FC.dd_blue","padj.dd_blue")
 colnames(res_comb)[c(13,14)] <- c("l2FC.dd_red","padj.dd_red")                                  
 
 res_comb$symbol2 <- anno[res_comb %>% rownames(),"geneSymbol"]
+res_comb$id.symbol <- anno[res_comb %>% rownames(),"id.symbol"]
+
   blue_red_genes <- c(deg_list$pcry$deg_pcry_BLvD.vs.WT_BLvD,
                     deg_list$pcry$deg_pcry_RvD.vs.WT_RvD) %>%
   unique()
@@ -1106,8 +1108,8 @@ df <- res_comb[anno_tf$gene_id,]
 df <- res_comb[anno_phot$gene_id,]
 
 gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+    arrow = arrow(length = unit(0.01,units = "npc"))) +
   scale_color_gradient2(mid="grey") +
   geom_point(shape=21, fill="grey", col="grey40") +
   geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
@@ -1229,6 +1231,35 @@ height = 8)
 
 ```
 
+## scatter plot
+```{r interaction_scatter}
+# Interaction
+df <- res_comb[anno_interaction$gene_id,]
+
+gg_interaction <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  scale_color_gradient2(mid="grey") +
+  geom_point(aes(x=l2FC.WT_blue, y=l2FC.WT_red, fill="WT"),shape=21, col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
+  scale_fill_manual(name="Genotype",values=c("green3","grey")) + 
+  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
+  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
+  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
+  # coord_cartesian(xlim=c(-2,2),ylim = c(-2,2)) +
+  coord_fixed(xlim=c(-2,2),ylim = c(-2,2)) +
+  geom_text_repel(size=3, max.overlaps = 20) +
+  theme_bw() +
+  removeGrid(x=T, y=T)
+gg_interaction
+
+ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Scatter_Interaction.pdf",sep=""), plot = gg_interaction,
+width = 10,
+height = 10)
+
+write_xlsx(data.frame(df),"Interaction_results.xlsx")
+
+```
 
 
 
