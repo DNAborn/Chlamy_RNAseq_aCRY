@@ -1475,8 +1475,8 @@ df <- res_comb[anno_tf$gene_id,]
 df <- res_comb[anno_phot$gene_id,]
 
 gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
+  geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
+    arrow = arrow(length = unit(0.01,units = "npc"))) +
   scale_color_gradient2(mid="grey") +
   geom_point(shape=21, fill="grey", col="grey40") +
   geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
@@ -1887,8 +1887,9 @@ gg_interaction <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)
     geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
         arrow = arrow(length = unit(0.01,units = "npc"))) +
   scale_color_gradient2(mid="grey") +
-  geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
+  geom_point(aes(x=l2FC.WT_blue, y=l2FC.WT_red, fill="WT"),shape=21, col="grey40") +
+  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
+  scale_fill_manual(name="Genotype",values=c("green3","grey")) + 
   geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
   geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
   geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
@@ -1906,6 +1907,8 @@ gg_interaction
 ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Scatter_Interaction.pdf",sep=""), plot = gg_interaction,
 width = 10,
 height = 10)
+
+write_xlsx(data.frame(df),"Interaction_results.xlsx")
 ```
 
 # Fig. Y
