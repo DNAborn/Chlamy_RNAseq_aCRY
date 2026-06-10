@@ -259,7 +259,7 @@ height = 5)
 
 
 
-gcounts_roc40
+# gcounts_roc40
 
 # ggsave(paste(pub_figures,"ROC40.pdf",sep="/"), plot = gcounts,
 #   width = 5,
@@ -442,10 +442,10 @@ DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6
 colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
 
 
-res_list[["pcry"]] %>% names()
+# res_list[["pcry"]] %>% names()
 
-res_list[["pcry"]][["WT_R.vs.D"]][ROC40,c(2,6)]
-res_list[["pcry"]][["pCRY_R.vs.D"]][ROC40,c(2,6)]
+# res_list[["pcry"]][["WT_R.vs.D"]][ROC40,c(2,6)]
+# res_list[["pcry"]][["pCRY_R.vs.D"]][ROC40,c(2,6)]
 
 # anno_tf
 ROC59 <- "Cre10.g425050"
@@ -460,7 +460,7 @@ p <- sapply(results,"[[",goi,c(6)) %>% round(digits=3)
 goi_lp <- list("l2fc"=l2fc,
                "p"=p)
 
-l2fc
+# l2fc
 # gcounts_roc40
 gcounts_roc40 + coord_cartesian(ylim = c(1,10000)) + 
   # (1.)
@@ -548,8 +548,8 @@ fig <- "Fig3"
 
 dds <- dds_list[["pcry"]]
 
-res_ashr_list %>% names()
-res_ashr_list[[1]] %>% names()
+# res_ashr_list %>% names()
+# res_ashr_list[[1]] %>% names()
 
 res <- res_ashr_list$pcry$pcry_R.vs.WT_R
 res_n <- res_list$pcry$pcry_R.vs.WT_R
@@ -565,7 +565,7 @@ up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # points outside the grid
-subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
+# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 #                 baseMean log2FoldChange     lfcSE      pvalue        padj
 #               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
 # Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
@@ -574,8 +574,8 @@ subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 res["Cre16.g681750","padj"] <- 10^-50
 res["Cre17.g802135","log2FoldChange"] <- 6
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-res %>% nrow()
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
 volcano_red <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
@@ -611,8 +611,8 @@ volcano_red <- EnhancedVolcano(res,
 
 # blue
 
-res_ashr_list %>% names()
-res_ashr_list[[1]] %>% names()
+# res_ashr_list %>% names()
+# res_ashr_list[[1]] %>% names()
 
 res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
 res_n <- res_list$pcry$pcry_BL.vs.WT_BL
@@ -626,7 +626,7 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
 # res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
@@ -635,8 +635,8 @@ x <- res$padj
 res[(x < pmax) & (!is.na(x)),]$padj <- pmax
 subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-res %>% nrow()
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
 volcano_blue <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
@@ -672,8 +672,8 @@ volcano_blue <- EnhancedVolcano(res,
 
 # dark
 
-res_ashr_list %>% names()
-res_ashr_list[[2]] %>% names()
+# res_ashr_list %>% names()
+# res_ashr_list[[2]] %>% names()
 
 res <- res_ashr_list$pcry$pcry_D.vs.WT_D
 res_n <- res_list$pcry$pcry_D.vs.WT_D
@@ -687,16 +687,16 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
 res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
 res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
 
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-res %>% nrow()
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
 volcano_dark <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
@@ -748,8 +748,8 @@ fig <- "Fig3"
 
 dds <- dds_list[["pcry"]]
 
-res_ashr_list %>% names()
-res_ashr_list[[2]] %>% names()
+# res_ashr_list %>% names()
+# res_ashr_list[[2]] %>% names()
 
 res <- res_ashr_list$pcry$WT_R.vs.D
 res_n <- res_list$pcry$WT_R.vs.D
@@ -765,7 +765,7 @@ up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # points outside the grid
-subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
+# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 #                 baseMean log2FoldChange     lfcSE      pvalue        padj
 #               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
 # Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
@@ -774,8 +774,8 @@ subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 res["Cre16.g681750","padj"] <- 10^-50
 res["Cre17.g802135","log2FoldChange"] <- 6
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-res %>% nrow()
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
 volcano_WT_red <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
@@ -1032,16 +1032,16 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
 # res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
 
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-res %>% nrow()
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
 volcano3_blue <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
@@ -1158,7 +1158,7 @@ anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","
 ```{r overlap, eval=TRUE}
 fig <- "Fig4"
 
-res_list[["pcry"]] %>% names()
+# res_list[["pcry"]] %>% names()
 #  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
 DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
              blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
@@ -1167,7 +1167,7 @@ DEGs <- lapply(DEGs,data.frame)
 DEGs_genes <- lapply(DEGs,rownames)
 
 venn.ol <- calculate.overlap(DEGs_genes)
-venn.ol %>% lapply(length)
+# venn.ol %>% lapply(length)
 
 input_list <- DEGs_genes
 
@@ -1292,13 +1292,9 @@ gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color
   geom_text_repel(size=4, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
-gg_top
+gg_top %>% print()
 
-  scale_colour_manual(name="Error Bars",values=cols)
-
-
-
-
+# scale_colour_manual(name="Error Bars",values=cols)
 
 
 ```
@@ -1330,7 +1326,7 @@ for (i in 1:l){
   all_counts <- bind_rows(all_counts,d)
   }
 
-all_counts$Gene
+# all_counts$Gene
 levels(all_counts$condition)
 levels(all_counts$Gene)
 
@@ -1371,7 +1367,7 @@ df_final <- df %>%
   filter(!str_starts(id.symbol, "Cre")) %>%
   filter((baseMean > 100 & shift > 0.2) | id.symbol == "CSL")
 
-df_final
+df_final %>% kable()
 gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
     geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = shift), # color = baseMean
         arrow = arrow(length = unit(0.02,units = "npc"))) +

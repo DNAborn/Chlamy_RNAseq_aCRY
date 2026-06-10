@@ -32,7 +32,7 @@ BiocManager::install()
 
 # Fig 2: Counts
 
-<img src="README_files/figure-gfm/Counts-1.png" width="50%" /><img src="README_files/figure-gfm/Counts-2.png" width="50%" /><img src="README_files/figure-gfm/Counts-3.png" width="50%" /><img src="README_files/figure-gfm/Counts-4.png" width="50%" /><img src="README_files/figure-gfm/Counts-5.png" width="50%" /><img src="README_files/figure-gfm/Counts-6.png" width="50%" /><img src="README_files/figure-gfm/Counts-7.png" width="50%" />
+<img src="README_files/figure-gfm/Counts-1.png" width="50%" /><img src="README_files/figure-gfm/Counts-2.png" width="50%" /><img src="README_files/figure-gfm/Counts-3.png" width="50%" /><img src="README_files/figure-gfm/Counts-4.png" width="50%" /><img src="README_files/figure-gfm/Counts-5.png" width="50%" /><img src="README_files/figure-gfm/Counts-6.png" width="50%" />
 
 ## TPM
 
@@ -60,33 +60,11 @@ DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6
 colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
 
 
-res_list[["pcry"]] %>% names()
-```
+# res_list[["pcry"]] %>% names()
 
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
-    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
-    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "pcry.vs.WT"
+# res_list[["pcry"]][["WT_R.vs.D"]][ROC40,c(2,6)]
+# res_list[["pcry"]][["pCRY_R.vs.D"]][ROC40,c(2,6)]
 
-``` r
-res_list[["pcry"]][["WT_R.vs.D"]][ROC40,c(2,6)]
-```
-
-    ## log2 fold change (MLE): treatment_red_vs_dark effect 
-    ##  
-    ## DataFrame with 1 row and 2 columns
-    ##               log2FoldChange        padj
-    ##                    <numeric>   <numeric>
-    ## Cre06.g275350       -5.02701 4.30468e-83
-
-``` r
-res_list[["pcry"]][["pCRY_R.vs.D"]][ROC40,c(2,6)]
-```
-
-    ## NULL
-
-``` r
 # anno_tf
 ROC59 <- "Cre10.g425050"
 goi  <- ROC40  # ROC40 ROC59
@@ -100,21 +78,7 @@ p <- sapply(results,"[[",goi,c(6)) %>% round(digits=3)
 goi_lp <- list("l2fc"=l2fc,
                "p"=p)
 
-l2fc
-```
-
-    ##           l2fc.WT_BL.vs.D            l2fc.WT_R.vs.D         l2fc.pcry_BL.vs.D 
-    ##                     -0.39                     -5.03                     -0.69 
-    ##          l2fc.pcry_R.vs.D       l2fc.pcry_D.vs.WT_D     l2fc.pcry_BL.vs.WT_BL 
-    ##                     -1.49                      0.62                      0.32 
-    ##       l2fc.pcry_R.vs.WT_R l2fc.pcry_BLvD.vs.WT_BLvD   l2fc.pcry_RvD.vs.WT_RvD 
-    ##                      4.16                     -0.30                      3.54 
-    ##            l2fc.BL+R.vs.D              l2fc.BL.vs.D               l2fc.R.vs.D 
-    ##                     -0.73                     -0.54                     -3.26 
-    ##           l2fc.pcry.vs.WT 
-    ##                      1.70
-
-``` r
+# l2fc
 # gcounts_roc40
 gcounts_roc40 + coord_cartesian(ylim = c(1,10000)) + 
   # (1.)
@@ -208,22 +172,9 @@ fig <- "Fig3"
 
 dds <- dds_list[["pcry"]]
 
-res_ashr_list %>% names()
-```
+# res_ashr_list %>% names()
+# res_ashr_list[[1]] %>% names()
 
-    ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[1]] %>% names()
-```
-
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "acry_BL.vs.D"        
-    ##  [4] "acry_R.vs.D"          "acry_D.vs.WT_D"       "acry_BL.vs.WT_BL"    
-    ##  [7] "acry_R.vs.WT_R"       "acry_BLvD.vs.WT_BLvD" "acry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "acry.vs.WT"
-
-``` r
 res <- res_ashr_list$pcry$pcry_R.vs.WT_R
 res_n <- res_list$pcry$pcry_R.vs.WT_R
 
@@ -238,21 +189,7 @@ up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # points outside the grid
-subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
-```
-
-    ## log2 fold change (MMSE): genotype_pcry_vs_WT+genotypepcry.treatmentred effect 
-    ## Wald test p-value: genotype_pcry_vs_WT+genotypepcry.treatmentred effect 
-    ## DataFrame with 5 rows and 5 columns
-    ##                baseMean log2FoldChange     lfcSE       pvalue         padj
-    ##               <numeric>      <numeric> <numeric>    <numeric>    <numeric>
-    ## Cre01.g002200   20.2489      -20.40542  9.368334           NA           NA
-    ## Cre03.g800380   78.6550       22.00906  2.726709  3.12803e-16  2.56846e-13
-    ## Cre06.g275350 4525.4359        4.09928  0.258053  1.74591e-59  1.29023e-55
-    ## Cre09.g403367   32.3010      -17.14324 10.815079  1.35041e-06  2.97897e-04
-    ## Cre16.g681351  832.7918       -4.90661  0.217733 1.22244e-114 1.80676e-110
-
-``` r
+# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 #                 baseMean log2FoldChange     lfcSE      pvalue        padj
 #               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
 # Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
@@ -261,18 +198,9 @@ subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 res["Cre16.g681750","padj"] <- 10^-50
 res["Cre17.g802135","log2FoldChange"] <- 6
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
-    ## [1] 16025
-
-``` r
-res %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
 volcano_red <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
     x = 'log2FoldChange',
@@ -307,22 +235,9 @@ volcano_red <- EnhancedVolcano(res,
 
 # blue
 
-res_ashr_list %>% names()
-```
+# res_ashr_list %>% names()
+# res_ashr_list[[1]] %>% names()
 
-    ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[1]] %>% names()
-```
-
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "acry_BL.vs.D"        
-    ##  [4] "acry_R.vs.D"          "acry_D.vs.WT_D"       "acry_BL.vs.WT_BL"    
-    ##  [7] "acry_R.vs.WT_R"       "acry_BLvD.vs.WT_BLvD" "acry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "acry.vs.WT"
-
-``` r
 res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
 res_n <- res_list$pcry$pcry_BL.vs.WT_BL
 
@@ -335,20 +250,8 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-    ## log2 fold change (MMSE): genotype_pcry_vs_WT+genotypepcry.treatmentblue effect 
-    ## Wald test p-value: genotype_pcry_vs_WT+genotypepcry.treatmentblue effect 
-    ## DataFrame with 4 rows and 5 columns
-    ##                baseMean log2FoldChange     lfcSE      pvalue        padj
-    ##               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
-    ## Cre01.g002200   20.2489      -24.05117  7.787350          NA          NA
-    ## Cre05.g241653  363.4087      -25.28372  4.766765 1.10719e-08 2.37163e-06
-    ## Cre07.g329750 3682.6278       -2.48819  0.118908 2.84342e-98 4.20258e-94
-    ## Cre09.g801087  138.4487      -23.81100  2.655027 1.96659e-19 1.81664e-16
-
-``` r
 # res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
 
@@ -362,18 +265,9 @@ subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
     ## DataFrame with 0 rows and 5 columns
 
 ``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
-    ## [1] 16025
-
-``` r
-res %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
 volcano_blue <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
     x = 'log2FoldChange',
@@ -408,22 +302,9 @@ volcano_blue <- EnhancedVolcano(res,
 
 # dark
 
-res_ashr_list %>% names()
-```
+# res_ashr_list %>% names()
+# res_ashr_list[[2]] %>% names()
 
-    ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
-
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
-    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
-    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "pcry.vs.WT"
-
-``` r
 res <- res_ashr_list$pcry$pcry_D.vs.WT_D
 res_n <- res_list$pcry$pcry_D.vs.WT_D
 
@@ -436,45 +317,17 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-    ## log2 fold change (MMSE): genotype_pcry_vs_WT effect 
-    ## Wald test p-value: genotype_pcry_vs_WT effect 
-    ## DataFrame with 5 rows and 5 columns
-    ##                baseMean log2FoldChange     lfcSE       pvalue         padj
-    ##               <numeric>      <numeric> <numeric>    <numeric>    <numeric>
-    ## Cre07.g329750 3682.6278       -2.57541  0.119550 1.19696e-105 9.58823e-102
-    ## Cre09.g801064  331.7958      -19.94522  9.784809           NA           NA
-    ## Cre12.g486400  256.7333       -3.74956  0.212386  2.51477e-73  1.34297e-69
-    ## Cre16.g681351  832.7918       -5.20782  0.226776 3.67115e-119 5.88154e-115
-    ## Cre17.g802135   46.8587       18.23857  2.998278  5.37636e-10  2.53337e-07
-
-``` r
 res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
 res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
 
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-    ## log2 fold change (MMSE): genotype_pcry_vs_WT effect 
-    ## Wald test p-value: genotype_pcry_vs_WT effect 
-    ## DataFrame with 0 rows and 5 columns
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
-res %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
 volcano_dark <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
     x = 'log2FoldChange',
@@ -527,22 +380,9 @@ fig <- "Fig3"
 
 dds <- dds_list[["pcry"]]
 
-res_ashr_list %>% names()
-```
+# res_ashr_list %>% names()
+# res_ashr_list[[2]] %>% names()
 
-    ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
-
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
-    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
-    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "pcry.vs.WT"
-
-``` r
 res <- res_ashr_list$pcry$WT_R.vs.D
 res_n <- res_list$pcry$WT_R.vs.D
 
@@ -557,27 +397,7 @@ up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
 down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 # points outside the grid
-subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
-```
-
-    ## log2 fold change (MMSE): treatment_red_vs_dark effect 
-    ## Wald test p-value: treatment_red_vs_dark effect 
-    ## DataFrame with 38 rows and 5 columns
-    ##                 baseMean log2FoldChange     lfcSE       pvalue         padj
-    ##                <numeric>      <numeric> <numeric>    <numeric>    <numeric>
-    ## Cre01.g016300    7677.68        1.17714 0.0769912  3.05679e-54  1.42641e-51
-    ## Cre01.g016600   13730.87        4.40175 0.1699831 9.90223e-153 3.81211e-149
-    ## Cre01.g017500    2433.54        1.62017 0.1060704  3.67753e-55  1.76970e-52
-    ## Cre02.g093750    6948.16        2.90015 0.1875842  1.06476e-55  5.28909e-53
-    ## Cre02.g095077    8153.90        2.08437 0.0989614 4.07627e-101  8.96722e-98
-    ## ...                  ...            ...       ...          ...          ...
-    ## Cre16.g662600  6340.3350       -2.78692  0.176656  7.35446e-58  4.19449e-55
-    ## Cre17.g707350  1050.4887       -3.67433  0.203042  4.22282e-76  4.64480e-73
-    ## Cre17.g726850 10982.6929        2.15827  0.129867  1.40651e-64  1.13994e-61
-    ## Cre17.g802135    46.8587       19.82698  2.966102  8.58207e-12  2.57613e-10
-    ## Cre26.g756747  1667.3446       -3.13814  0.178306  3.20702e-71  3.08655e-68
-
-``` r
+# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 #                 baseMean log2FoldChange     lfcSE      pvalue        padj
 #               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
 # Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
@@ -586,18 +406,9 @@ subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
 res["Cre16.g681750","padj"] <- 10^-50
 res["Cre17.g802135","log2FoldChange"] <- 6
 
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
-    ## [1] 16025
-
-``` r
-res %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
 volcano_WT_red <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
     x = 'log2FoldChange',
@@ -1003,40 +814,17 @@ down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
 
 pmax <- 10^-50
 l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-    ## log2 fold change (MMSE): 0,0,0,0,+1,0 
-    ## Wald test p-value: 0,0,0,0,+1,0 
-    ## DataFrame with 1 row and 5 columns
-    ##                baseMean log2FoldChange     lfcSE      pvalue        padj
-    ##               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
-    ## Cre09.g801087   138.449       -23.7929   3.54841 1.18577e-11 1.59324e-08
-
-``` r
 # res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
 res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
 
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
+# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
 
-    ## log2 fold change (MMSE): 0,0,0,0,+1,0 
-    ## Wald test p-value: 0,0,0,0,+1,0 
-    ## DataFrame with 0 rows and 5 columns
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
+# mcols(dds_list[["pcry"]]) %>% nrow()
+# res %>% nrow()
 
-    ## [1] 16025
-
-``` r
-res %>% nrow()
-```
-
-    ## [1] 16025
-
-``` r
 volcano3_blue <- EnhancedVolcano(res,
     lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
     x = 'log2FoldChange',
@@ -1256,16 +1044,7 @@ anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","
 ``` r
 fig <- "Fig4"
 
-res_list[["pcry"]] %>% names()
-```
-
-    ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
-    ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
-    ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
-    ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
-    ## [13] "pcry.vs.WT"
-
-``` r
+# res_list[["pcry"]] %>% names()
 #  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
 DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
              blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
@@ -1274,31 +1053,8 @@ DEGs <- lapply(DEGs,data.frame)
 DEGs_genes <- lapply(DEGs,rownames)
 
 venn.ol <- calculate.overlap(DEGs_genes)
-venn.ol %>% lapply(length)
-```
+# venn.ol %>% lapply(length)
 
-    ## $a5
-    ## [1] 21
-    ## 
-    ## $a2
-    ## [1] 16
-    ## 
-    ## $a4
-    ## [1] 7
-    ## 
-    ## $a6
-    ## [1] 22
-    ## 
-    ## $a1
-    ## [1] 84
-    ## 
-    ## $a3
-    ## [1] 162
-    ## 
-    ## $a7
-    ## [1] 26
-
-``` r
 input_list <- DEGs_genes
 
 plt <- venn.diagram(
@@ -1493,53 +1249,10 @@ gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color
   geom_text_repel(size=4, max.overlaps = 20) +
   theme_bw() +
   removeGrid(x=T, y=T)
-gg_top
+gg_top %>% print()
 
-  scale_colour_manual(name="Error Bars",values=cols)
+# scale_colour_manual(name="Error Bars",values=cols)
 ```
-
-    ## <ggproto object: Class ScaleDiscrete, Scale, gg>
-    ##     aesthetics: colour
-    ##     axis_order: function
-    ##     break_info: function
-    ##     break_positions: function
-    ##     breaks: waiver
-    ##     call: call
-    ##     clone: function
-    ##     dimension: function
-    ##     drop: TRUE
-    ##     expand: waiver
-    ##     fallback_palette: function
-    ##     get_breaks: function
-    ##     get_breaks_minor: function
-    ##     get_labels: function
-    ##     get_limits: function
-    ##     get_transformation: function
-    ##     guide: legend
-    ##     is_discrete: function
-    ##     is_empty: function
-    ##     labels: waiver
-    ##     limits: NULL
-    ##     make_sec_title: function
-    ##     make_title: function
-    ##     map: function
-    ##     map_df: function
-    ##     minor_breaks: waiver
-    ##     n.breaks.cache: NULL
-    ##     na.translate: TRUE
-    ##     na.value: grey50
-    ##     name: Error Bars
-    ##     palette: function
-    ##     palette.cache: NULL
-    ##     position: left
-    ##     range: environment
-    ##     rescale: function
-    ##     reset: function
-    ##     train: function
-    ##     train_df: function
-    ##     transform: function
-    ##     transform_df: function
-    ##     super:  <ggproto object: Class ScaleDiscrete, Scale, gg>
 
 <img src="README_files/figure-gfm/groups-1.png" width="50%" /><img src="README_files/figure-gfm/groups-2.png" width="50%" /><img src="README_files/figure-gfm/groups-3.png" width="50%" /><img src="README_files/figure-gfm/groups-4.png" width="50%" />
 
@@ -1575,155 +1288,7 @@ for (i in 1:l){
   all_counts <- bind_rows(all_counts,d)
   }
 
-all_counts$Gene
-```
-
-    ##   [1] "PCRY1"         "PCRY1"         "PCRY1"         "PCRY1"        
-    ##   [5] "PCRY1"         "PCRY1"         "PCRY1"         "PCRY1"        
-    ##   [9] "PCRY1"         "PCRY1"         "PCRY1"         "PCRY1"        
-    ##  [13] "PCRY1"         "PCRY1"         "PCRY1"         "PCRY1"        
-    ##  [17] "PCRY1"         "PCRY1"         "CSL"           "CSL"          
-    ##  [21] "CSL"           "CSL"           "CSL"           "CSL"          
-    ##  [25] "CSL"           "CSL"           "CSL"           "CSL"          
-    ##  [29] "CSL"           "CSL"           "CSL"           "CSL"          
-    ##  [33] "CSL"           "CSL"           "CSL"           "CSL"          
-    ##  [37] "PRP38A"        "PRP38A"        "PRP38A"        "PRP38A"       
-    ##  [41] "PRP38A"        "PRP38A"        "PRP38A"        "PRP38A"       
-    ##  [45] "PRP38A"        "PRP38A"        "PRP38A"        "PRP38A"       
-    ##  [49] "PRP38A"        "PRP38A"        "PRP38A"        "PRP38A"       
-    ##  [53] "PRP38A"        "PRP38A"        "Cre10.g421850" "Cre10.g421850"
-    ##  [57] "Cre10.g421850" "Cre10.g421850" "Cre10.g421850" "Cre10.g421850"
-    ##  [61] "Cre10.g421850" "Cre10.g421850" "Cre10.g421850" "Cre10.g421850"
-    ##  [65] "Cre10.g421850" "Cre10.g421850" "Cre10.g421850" "Cre10.g421850"
-    ##  [69] "Cre10.g421850" "Cre10.g421850" "Cre10.g421850" "Cre10.g421850"
-    ##  [73] "FAP71"         "FAP71"         "FAP71"         "FAP71"        
-    ##  [77] "FAP71"         "FAP71"         "FAP71"         "FAP71"        
-    ##  [81] "FAP71"         "FAP71"         "FAP71"         "FAP71"        
-    ##  [85] "FAP71"         "FAP71"         "FAP71"         "FAP71"        
-    ##  [89] "FAP71"         "FAP71"         "NOM1"          "NOM1"         
-    ##  [93] "NOM1"          "NOM1"          "NOM1"          "NOM1"         
-    ##  [97] "NOM1"          "NOM1"          "NOM1"          "NOM1"         
-    ## [101] "NOM1"          "NOM1"          "NOM1"          "NOM1"         
-    ## [105] "NOM1"          "NOM1"          "NOM1"          "NOM1"         
-    ## [109] "RFC2"          "RFC2"          "RFC2"          "RFC2"         
-    ## [113] "RFC2"          "RFC2"          "RFC2"          "RFC2"         
-    ## [117] "RFC2"          "RFC2"          "RFC2"          "RFC2"         
-    ## [121] "RFC2"          "RFC2"          "RFC2"          "RFC2"         
-    ## [125] "RFC2"          "RFC2"          "Cre02.g092400" "Cre02.g092400"
-    ## [129] "Cre02.g092400" "Cre02.g092400" "Cre02.g092400" "Cre02.g092400"
-    ## [133] "Cre02.g092400" "Cre02.g092400" "Cre02.g092400" "Cre02.g092400"
-    ## [137] "Cre02.g092400" "Cre02.g092400" "Cre02.g092400" "Cre02.g092400"
-    ## [141] "Cre02.g092400" "Cre02.g092400" "Cre02.g092400" "Cre02.g092400"
-    ## [145] "PHC6"          "PHC6"          "PHC6"          "PHC6"         
-    ## [149] "PHC6"          "PHC6"          "PHC6"          "PHC6"         
-    ## [153] "PHC6"          "PHC6"          "PHC6"          "PHC6"         
-    ## [157] "PHC6"          "PHC6"          "PHC6"          "PHC6"         
-    ## [161] "PHC6"          "PHC6"          "FAP236"        "FAP236"       
-    ## [165] "FAP236"        "FAP236"        "FAP236"        "FAP236"       
-    ## [169] "FAP236"        "FAP236"        "FAP236"        "FAP236"       
-    ## [173] "FAP236"        "FAP236"        "FAP236"        "FAP236"       
-    ## [177] "FAP236"        "FAP236"        "FAP236"        "FAP236"       
-    ## [181] "Cre03.g200431" "Cre03.g200431" "Cre03.g200431" "Cre03.g200431"
-    ## [185] "Cre03.g200431" "Cre03.g200431" "Cre03.g200431" "Cre03.g200431"
-    ## [189] "Cre03.g200431" "Cre03.g200431" "Cre03.g200431" "Cre03.g200431"
-    ## [193] "Cre03.g200431" "Cre03.g200431" "Cre03.g200431" "Cre03.g200431"
-    ## [197] "Cre03.g200431" "Cre03.g200431" "LIP1"          "LIP1"         
-    ## [201] "LIP1"          "LIP1"          "LIP1"          "LIP1"         
-    ## [205] "LIP1"          "LIP1"          "LIP1"          "LIP1"         
-    ## [209] "LIP1"          "LIP1"          "LIP1"          "LIP1"         
-    ## [213] "LIP1"          "LIP1"          "LIP1"          "LIP1"         
-    ## [217] "Cre06.g278259" "Cre06.g278259" "Cre06.g278259" "Cre06.g278259"
-    ## [221] "Cre06.g278259" "Cre06.g278259" "Cre06.g278259" "Cre06.g278259"
-    ## [225] "Cre06.g278259" "Cre06.g278259" "Cre06.g278259" "Cre06.g278259"
-    ## [229] "Cre06.g278259" "Cre06.g278259" "Cre06.g278259" "Cre06.g278259"
-    ## [233] "Cre06.g278259" "Cre06.g278259" "Cre06.g257400" "Cre06.g257400"
-    ## [237] "Cre06.g257400" "Cre06.g257400" "Cre06.g257400" "Cre06.g257400"
-    ## [241] "Cre06.g257400" "Cre06.g257400" "Cre06.g257400" "Cre06.g257400"
-    ## [245] "Cre06.g257400" "Cre06.g257400" "Cre06.g257400" "Cre06.g257400"
-    ## [249] "Cre06.g257400" "Cre06.g257400" "Cre06.g257400" "Cre06.g257400"
-    ## [253] "Cre08.g358567" "Cre08.g358567" "Cre08.g358567" "Cre08.g358567"
-    ## [257] "Cre08.g358567" "Cre08.g358567" "Cre08.g358567" "Cre08.g358567"
-    ## [261] "Cre08.g358567" "Cre08.g358567" "Cre08.g358567" "Cre08.g358567"
-    ## [265] "Cre08.g358567" "Cre08.g358567" "Cre08.g358567" "Cre08.g358567"
-    ## [269] "Cre08.g358567" "Cre08.g358567" "Cre08.g378000" "Cre08.g378000"
-    ## [273] "Cre08.g378000" "Cre08.g378000" "Cre08.g378000" "Cre08.g378000"
-    ## [277] "Cre08.g378000" "Cre08.g378000" "Cre08.g378000" "Cre08.g378000"
-    ## [281] "Cre08.g378000" "Cre08.g378000" "Cre08.g378000" "Cre08.g378000"
-    ## [285] "Cre08.g378000" "Cre08.g378000" "Cre08.g378000" "Cre08.g378000"
-    ## [289] "TEF13"         "TEF13"         "TEF13"         "TEF13"        
-    ## [293] "TEF13"         "TEF13"         "TEF13"         "TEF13"        
-    ## [297] "TEF13"         "TEF13"         "TEF13"         "TEF13"        
-    ## [301] "TEF13"         "TEF13"         "TEF13"         "TEF13"        
-    ## [305] "TEF13"         "TEF13"         "Cre06.g274500" "Cre06.g274500"
-    ## [309] "Cre06.g274500" "Cre06.g274500" "Cre06.g274500" "Cre06.g274500"
-    ## [313] "Cre06.g274500" "Cre06.g274500" "Cre06.g274500" "Cre06.g274500"
-    ## [317] "Cre06.g274500" "Cre06.g274500" "Cre06.g274500" "Cre06.g274500"
-    ## [321] "Cre06.g274500" "Cre06.g274500" "Cre06.g274500" "Cre06.g274500"
-    ## [325] "Cre01.g013600" "Cre01.g013600" "Cre01.g013600" "Cre01.g013600"
-    ## [329] "Cre01.g013600" "Cre01.g013600" "Cre01.g013600" "Cre01.g013600"
-    ## [333] "Cre01.g013600" "Cre01.g013600" "Cre01.g013600" "Cre01.g013600"
-    ## [337] "Cre01.g013600" "Cre01.g013600" "Cre01.g013600" "Cre01.g013600"
-    ## [341] "Cre01.g013600" "Cre01.g013600" "GAPC1"         "GAPC1"        
-    ## [345] "GAPC1"         "GAPC1"         "GAPC1"         "GAPC1"        
-    ## [349] "GAPC1"         "GAPC1"         "GAPC1"         "GAPC1"        
-    ## [353] "GAPC1"         "GAPC1"         "GAPC1"         "GAPC1"        
-    ## [357] "GAPC1"         "GAPC1"         "GAPC1"         "GAPC1"        
-    ## [361] "PRP19"         "PRP19"         "PRP19"         "PRP19"        
-    ## [365] "PRP19"         "PRP19"         "PRP19"         "PRP19"        
-    ## [369] "PRP19"         "PRP19"         "PRP19"         "PRP19"        
-    ## [373] "PRP19"         "PRP19"         "PRP19"         "PRP19"        
-    ## [377] "PRP19"         "PRP19"         "PPP16"         "PPP16"        
-    ## [381] "PPP16"         "PPP16"         "PPP16"         "PPP16"        
-    ## [385] "PPP16"         "PPP16"         "PPP16"         "PPP16"        
-    ## [389] "PPP16"         "PPP16"         "PPP16"         "PPP16"        
-    ## [393] "PPP16"         "PPP16"         "PPP16"         "PPP16"        
-    ## [397] "PHC15"         "PHC15"         "PHC15"         "PHC15"        
-    ## [401] "PHC15"         "PHC15"         "PHC15"         "PHC15"        
-    ## [405] "PHC15"         "PHC15"         "PHC15"         "PHC15"        
-    ## [409] "PHC15"         "PHC15"         "PHC15"         "PHC15"        
-    ## [413] "PHC15"         "PHC15"         "NSG17"         "NSG17"        
-    ## [417] "NSG17"         "NSG17"         "NSG17"         "NSG17"        
-    ## [421] "NSG17"         "NSG17"         "NSG17"         "NSG17"        
-    ## [425] "NSG17"         "NSG17"         "NSG17"         "NSG17"        
-    ## [429] "NSG17"         "NSG17"         "NSG17"         "NSG17"        
-    ## [433] "Cre16.g676350" "Cre16.g676350" "Cre16.g676350" "Cre16.g676350"
-    ## [437] "Cre16.g676350" "Cre16.g676350" "Cre16.g676350" "Cre16.g676350"
-    ## [441] "Cre16.g676350" "Cre16.g676350" "Cre16.g676350" "Cre16.g676350"
-    ## [445] "Cre16.g676350" "Cre16.g676350" "Cre16.g676350" "Cre16.g676350"
-    ## [449] "Cre16.g676350" "Cre16.g676350" "REF1"          "REF1"         
-    ## [453] "REF1"          "REF1"          "REF1"          "REF1"         
-    ## [457] "REF1"          "REF1"          "REF1"          "REF1"         
-    ## [461] "REF1"          "REF1"          "REF1"          "REF1"         
-    ## [465] "REF1"          "REF1"          "REF1"          "REF1"         
-    ## [469] "FAP149"        "FAP149"        "FAP149"        "FAP149"       
-    ## [473] "FAP149"        "FAP149"        "FAP149"        "FAP149"       
-    ## [477] "FAP149"        "FAP149"        "FAP149"        "FAP149"       
-    ## [481] "FAP149"        "FAP149"        "FAP149"        "FAP149"       
-    ## [485] "FAP149"        "FAP149"        "Cre16.g676402" "Cre16.g676402"
-    ## [489] "Cre16.g676402" "Cre16.g676402" "Cre16.g676402" "Cre16.g676402"
-    ## [493] "Cre16.g676402" "Cre16.g676402" "Cre16.g676402" "Cre16.g676402"
-    ## [497] "Cre16.g676402" "Cre16.g676402" "Cre16.g676402" "Cre16.g676402"
-    ## [501] "Cre16.g676402" "Cre16.g676402" "Cre16.g676402" "Cre16.g676402"
-    ## [505] "CSK4"          "CSK4"          "CSK4"          "CSK4"         
-    ## [509] "CSK4"          "CSK4"          "CSK4"          "CSK4"         
-    ## [513] "CSK4"          "CSK4"          "CSK4"          "CSK4"         
-    ## [517] "CSK4"          "CSK4"          "CSK4"          "CSK4"         
-    ## [521] "CSK4"          "CSK4"          "CGL117"        "CGL117"       
-    ## [525] "CGL117"        "CGL117"        "CGL117"        "CGL117"       
-    ## [529] "CGL117"        "CGL117"        "CGL117"        "CGL117"       
-    ## [533] "CGL117"        "CGL117"        "CGL117"        "CGL117"       
-    ## [537] "CGL117"        "CGL117"        "CGL117"        "CGL117"       
-    ## [541] "Cre16.g684700" "Cre16.g684700" "Cre16.g684700" "Cre16.g684700"
-    ## [545] "Cre16.g684700" "Cre16.g684700" "Cre16.g684700" "Cre16.g684700"
-    ## [549] "Cre16.g684700" "Cre16.g684700" "Cre16.g684700" "Cre16.g684700"
-    ## [553] "Cre16.g684700" "Cre16.g684700" "Cre16.g684700" "Cre16.g684700"
-    ## [557] "Cre16.g684700" "Cre16.g684700" "Cre06.g290450" "Cre06.g290450"
-    ## [561] "Cre06.g290450" "Cre06.g290450" "Cre06.g290450" "Cre06.g290450"
-    ## [565] "Cre06.g290450" "Cre06.g290450" "Cre06.g290450" "Cre06.g290450"
-    ## [569] "Cre06.g290450" "Cre06.g290450" "Cre06.g290450" "Cre06.g290450"
-    ## [573] "Cre06.g290450" "Cre06.g290450" "Cre06.g290450" "Cre06.g290450"
-
-``` r
+# all_counts$Gene
 levels(all_counts$condition)
 ```
 
@@ -1788,77 +1353,27 @@ df_final <- df %>%
   filter(!str_starts(id.symbol, "Cre")) %>%
   filter((baseMean > 100 & shift > 0.2) | id.symbol == "CSL")
 
-df_final
+df_final %>% kable()
 ```
 
-    ##               symbol   baseMean l2FC.WT_blue padj.WT_blue l2FC.WT_red
-    ## Cre09.g390615   LIP1  4851.8528   1.17329744 1.156023e-03   1.9282801
-    ## Cre12.g496100 FAP149   350.3482   0.87899036 3.135848e-03   1.2110136
-    ## Cre06.g278194 FAP236   625.1249   1.03835976 3.306949e-11   1.0722404
-    ## Cre03.g201400         1073.4484  -0.84023536 1.267234e-02  -0.2157703
-    ## Cre06.g261900  FAP71  1879.7996   0.84677559 2.100900e-09   0.9980327
-    ## Cre13.g575900 CGL117  3418.9470   0.29488276 2.000772e-01   0.4202106
-    ## Cre06.g295200  PCRY1  1598.6347   0.24557531 4.471139e-01   0.3907966
-    ## Cre12.g485150  GAPC1   328.9929   0.37218293 6.449914e-01   0.3852239
-    ## Cre14.g620850  NSG17  4977.5780   0.16618254 3.944132e-01   0.1219927
-    ## Cre07.g337150   RFC2   247.4703  -0.07718712 9.378221e-01  -0.2420410
-    ## Cre17.g717950   PHC6  6078.9064   0.72522303 9.642132e-02   0.7165871
-    ## Cre03.g178300         5972.3762   0.54082064 3.192915e-02   0.3022600
-    ## Cre10.g462250   REF1  1253.2101  -0.04195519 9.306963e-01   0.3377597
-    ## Cre09.g396100  PHC15 15983.8832   0.62641303 1.463066e-01   0.7474967
-    ## Cre16.g666200         4170.3507   0.09191102 5.506179e-01   0.1388978
-    ## Cre02.g092150          129.8465  -0.05116402 9.466656e-01  -0.4982285
-    ##                padj.WT_red l2FC.pcry_blue padj.pcry_blue l2FC.pcry_red
-    ## Cre09.g390615 4.194325e-09    0.284502248    0.589812391   0.668584021
-    ## Cre12.g496100 9.730807e-06    0.092029405    0.854328996   0.156486468
-    ## Cre06.g278194 6.062055e-12    0.164094718    0.503604763   0.219961290
-    ## Cre03.g201400 6.072290e-01   -0.112124171    0.836242498   0.361578735
-    ## Cre06.g261900 5.122104e-13    0.284814834    0.109747867   0.324784505
-    ## Cre13.g575900 2.799179e-02   -0.316805769    0.146012347  -0.016503405
-    ## Cre06.g295200 1.116388e-01   -0.156828850    0.642044432  -0.041483594
-    ## Cre12.g485150 5.358801e-01    0.079261955    0.929360544   0.008840688
-    ## Cre14.g620850 4.914824e-01    0.443920157    0.001503568   0.429643582
-    ## Cre07.g337150 6.703779e-01    0.095823352    0.898393598   0.075189640
-    ## Cre17.g717950 7.602066e-02    0.506630848    0.290089230   0.503363069
-    ## Cre03.g178300 2.639807e-01    0.288646185    0.338913227   0.257852068
-    ## Cre10.g462250 1.424696e-01    0.065601850    0.853526035   0.108407999
-    ## Cre09.g396100 4.720697e-02    0.787636913    0.043927459   0.573588086
-    ## Cre16.g666200 2.264636e-01   -0.009441828    0.960115113  -0.069380131
-    ## Cre02.g092150 1.696768e-01   -0.197277900    0.682072985  -0.464978978
-    ##               padj.pcry_red l2FC.dd_blue padj.dd_blue l2FC.dd_red padj.dd_red
-    ## Cre09.g390615   0.103389138   -0.8887952   0.61778566 -1.25969611  0.21675849
-    ## Cre12.g496100   0.747043292   -0.7869610   0.52212942 -1.05452711  0.18111714
-    ## Cre06.g278194   0.325067114   -0.8742650   0.00461754 -0.85227916  0.01004654
-    ## Cre03.g201400   0.394937351    0.7281112   0.70636985  0.57734903  0.93439793
-    ## Cre06.g261900   0.055033220   -0.5619608   0.13618045 -0.67324820  0.04294117
-    ## Cre13.g575900   0.965302657   -0.6116885   0.25282546 -0.43671402  0.71388851
-    ## Cre06.g295200   0.927153069   -0.4024042   0.90236166 -0.43228021  0.89378653
-    ## Cre12.g485150   0.992769257   -0.2929210   0.97088321 -0.37638325  0.99833025
-    ## Cre14.g620850   0.002158445    0.2777376   0.83143704  0.30765092  0.79662612
-    ## Cre07.g337150   0.929456405    0.1730105   0.97542518  0.31723064  0.99833025
-    ## Cre17.g717950   0.287031458   -0.2185922   0.97153728 -0.21322402  0.99833025
-    ## Cre03.g178300   0.404628019   -0.2521745   0.97088321 -0.04440797  0.99833025
-    ## Cre10.g462250   0.754544576    0.1075570   0.97153728 -0.22935170  0.99833025
-    ## Cre09.g396100   0.177894313    0.1612239   0.97347942 -0.17390859  0.99833025
-    ## Cre16.g666200   0.653395600   -0.1013528   0.97088321 -0.20827789  0.84115191
-    ## Cre02.g092150   0.225187624   -0.1461139   0.97313323  0.03324952  0.99833025
-    ##               symbol2 id.symbol     shift
-    ## Cre09.g390615    LIP1      LIP1 1.5416845
-    ## Cre12.g496100  FAP149    FAP149 1.3158020
-    ## Cre06.g278194  FAP236    FAP236 1.2209501
-    ## Cre03.g201400             PPP16 0.9292351
-    ## Cre06.g261900   FAP71     FAP71 0.8769624
-    ## Cre13.g575900  CGL117    CGL117 0.7515863
-    ## Cre06.g295200   PCRY1     PCRY1 0.5905889
-    ## Cre12.g485150   GAPC1     GAPC1 0.4769351
-    ## Cre14.g620850   NSG17     NSG17 0.4144723
-    ## Cre07.g337150    RFC2      RFC2 0.3613418
-    ## Cre17.g717950    PHC6      PHC6 0.3053638
-    ## Cre03.g178300            PRP38A 0.2560547
-    ## Cre10.g462250    REF1      REF1 0.2533194
-    ## Cre09.g396100   PHC15     PHC15 0.2371441
-    ## Cre16.g666200              CSK4 0.2316292
-    ## Cre02.g092150               CSL 0.1498492
+|  | symbol | baseMean | l2FC.WT_blue | padj.WT_blue | l2FC.WT_red | padj.WT_red | l2FC.pcry_blue | padj.pcry_blue | l2FC.pcry_red | padj.pcry_red | l2FC.dd_blue | padj.dd_blue | l2FC.dd_red | padj.dd_red | symbol2 | id.symbol | shift |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---|:---|---:|
+| Cre09.g390615 | LIP1 | 4851.8528 | 1.1732974 | 0.0011560 | 1.9282801 | 0.0000000 | 0.2845022 | 0.5898124 | 0.6685840 | 0.1033891 | -0.8887952 | 0.6177857 | -1.2596961 | 0.2167585 | LIP1 | LIP1 | 1.5416845 |
+| Cre12.g496100 | FAP149 | 350.3482 | 0.8789904 | 0.0031358 | 1.2110136 | 0.0000097 | 0.0920294 | 0.8543290 | 0.1564865 | 0.7470433 | -0.7869610 | 0.5221294 | -1.0545271 | 0.1811171 | FAP149 | FAP149 | 1.3158020 |
+| Cre06.g278194 | FAP236 | 625.1249 | 1.0383598 | 0.0000000 | 1.0722404 | 0.0000000 | 0.1640947 | 0.5036048 | 0.2199613 | 0.3250671 | -0.8742650 | 0.0046175 | -0.8522792 | 0.0100465 | FAP236 | FAP236 | 1.2209501 |
+| Cre03.g201400 |  | 1073.4484 | -0.8402354 | 0.0126723 | -0.2157703 | 0.6072290 | -0.1121242 | 0.8362425 | 0.3615787 | 0.3949374 | 0.7281112 | 0.7063699 | 0.5773490 | 0.9343979 |  | PPP16 | 0.9292351 |
+| Cre06.g261900 | FAP71 | 1879.7996 | 0.8467756 | 0.0000000 | 0.9980327 | 0.0000000 | 0.2848148 | 0.1097479 | 0.3247845 | 0.0550332 | -0.5619608 | 0.1361804 | -0.6732482 | 0.0429412 | FAP71 | FAP71 | 0.8769624 |
+| Cre13.g575900 | CGL117 | 3418.9470 | 0.2948828 | 0.2000772 | 0.4202106 | 0.0279918 | -0.3168058 | 0.1460123 | -0.0165034 | 0.9653027 | -0.6116885 | 0.2528255 | -0.4367140 | 0.7138885 | CGL117 | CGL117 | 0.7515863 |
+| Cre06.g295200 | PCRY1 | 1598.6347 | 0.2455753 | 0.4471139 | 0.3907966 | 0.1116388 | -0.1568289 | 0.6420444 | -0.0414836 | 0.9271531 | -0.4024042 | 0.9023617 | -0.4322802 | 0.8937865 | PCRY1 | PCRY1 | 0.5905889 |
+| Cre12.g485150 | GAPC1 | 328.9929 | 0.3721829 | 0.6449914 | 0.3852239 | 0.5358801 | 0.0792620 | 0.9293605 | 0.0088407 | 0.9927693 | -0.2929210 | 0.9708832 | -0.3763832 | 0.9983302 | GAPC1 | GAPC1 | 0.4769351 |
+| Cre14.g620850 | NSG17 | 4977.5780 | 0.1661825 | 0.3944132 | 0.1219927 | 0.4914824 | 0.4439202 | 0.0015036 | 0.4296436 | 0.0021584 | 0.2777376 | 0.8314370 | 0.3076509 | 0.7966261 | NSG17 | NSG17 | 0.4144723 |
+| Cre07.g337150 | RFC2 | 247.4703 | -0.0771871 | 0.9378221 | -0.2420410 | 0.6703779 | 0.0958234 | 0.8983936 | 0.0751896 | 0.9294564 | 0.1730105 | 0.9754252 | 0.3172306 | 0.9983302 | RFC2 | RFC2 | 0.3613418 |
+| Cre17.g717950 | PHC6 | 6078.9064 | 0.7252230 | 0.0964213 | 0.7165871 | 0.0760207 | 0.5066308 | 0.2900892 | 0.5033631 | 0.2870315 | -0.2185922 | 0.9715373 | -0.2132240 | 0.9983302 | PHC6 | PHC6 | 0.3053638 |
+| Cre03.g178300 |  | 5972.3762 | 0.5408206 | 0.0319292 | 0.3022600 | 0.2639807 | 0.2886462 | 0.3389132 | 0.2578521 | 0.4046280 | -0.2521745 | 0.9708832 | -0.0444080 | 0.9983302 |  | PRP38A | 0.2560547 |
+| Cre10.g462250 | REF1 | 1253.2101 | -0.0419552 | 0.9306963 | 0.3377597 | 0.1424696 | 0.0656019 | 0.8535260 | 0.1084080 | 0.7545446 | 0.1075570 | 0.9715373 | -0.2293517 | 0.9983302 | REF1 | REF1 | 0.2533194 |
+| Cre09.g396100 | PHC15 | 15983.8832 | 0.6264130 | 0.1463066 | 0.7474967 | 0.0472070 | 0.7876369 | 0.0439275 | 0.5735881 | 0.1778943 | 0.1612239 | 0.9734794 | -0.1739086 | 0.9983302 | PHC15 | PHC15 | 0.2371441 |
+| Cre16.g666200 |  | 4170.3507 | 0.0919110 | 0.5506179 | 0.1388978 | 0.2264636 | -0.0094418 | 0.9601151 | -0.0693801 | 0.6533956 | -0.1013528 | 0.9708832 | -0.2082779 | 0.8411519 |  | CSK4 | 0.2316292 |
+| Cre02.g092150 |  | 129.8465 | -0.0511640 | 0.9466656 | -0.4982285 | 0.1696768 | -0.1972779 | 0.6820730 | -0.4649790 | 0.2251876 | -0.1461139 | 0.9731332 | 0.0332495 | 0.9983302 |  | CSL | 0.1498492 |
 
 ``` r
 gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
