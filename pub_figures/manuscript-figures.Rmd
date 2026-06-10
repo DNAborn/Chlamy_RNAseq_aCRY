@@ -1244,9 +1244,9 @@ df_final <- df %>%
 
 df_final
 gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = baseMean),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
-  # scale_color_gradient2(mid="grey") +
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = shift), # color = baseMean
+        arrow = arrow(length = unit(0.02,units = "npc"))) +
+  scale_color_gradient(low = "grey",high = "green3") +
   geom_point(aes(x=l2FC.WT_blue, y=l2FC.WT_red, fill="WT"),shape=21, col="grey40") +
   geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
   scale_fill_manual(name="Genotype",values=c("green3","grey")) + 
@@ -1255,7 +1255,8 @@ gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.s
   geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
   # coord_cartesian(xlim=c(-2,2),ylim = c(-2,2)) +
   # coord_fixed(xlim=c(-1,2),ylim = c(-1,2)) +
-  geom_text_repel(size=4, max.overlaps = 5, color="grey30", fontface="bold") +
+  geom_label_repel(fontface = "bold", color = "grey10", fill = "white", label.size = 0.15, label.padding = 0.15, size = 4, max.overlaps = Inf,   force = 2, point.padding = 0.5,    min.segment.length = 0, segment.color = "black", segment.size = 0.1) +
+ # geom_text_repel(size=4, max.overlaps = 5, color="grey30", fontface="bold") +
   theme_bw() +
   removeGrid(x=T, y=T)
 gg_interaction
