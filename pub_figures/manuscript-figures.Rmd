@@ -30,6 +30,7 @@ BiocManager::install()
 # run prepare_data scripts
 ```{r run_start_up, include=FALSE, results='hide'}
 library(knitr)
+library(scales)
 source(purl("/mnt/s/AG/AG-Scholz-NGS/Daten/Simon/Chlamy_RNASeq_aCRY/git_Chlamy_RNAseq_aCRY/2_A_dive_aCRY_pCRY (separately)/2_A_dive_aCRY_pCRY_sep.Rmd", output = tempfile()), local = knitr::knit_global())
        
 futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
@@ -265,6 +266,134 @@ gcounts_roc40
 #   height = 4)
 
 ```
+
+## TPM
+```{r TPM}
+
+library(tidyverse)
+library(scales) # Wichtig für die saubere Y-Achsen-Formatierung
+
+fig <- "Fig2"
+
+# Wir iterieren über alle dds-Objekte in der Liste
+for (dds in dds_list) {
+  
+  # ==========================================
+  # TEIL 1: ROC / CLOCK GENES
+  # ==========================================
+  
+  # 1. TF Gene definieren und Annotation anpassen
+  goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC59", "ROC114", "ROC55", "CON1", "CRB1")
+  
+  anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+  anno_tf <- subset(anno, geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+  
+  # Filtern auf Gene, die im aktuellen dds-Objekt vorhanden sind
+  anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+  
+  # 2. TPM-Werte (Abundance) extrahieren
+  tpm_matrix <- assay(dds, "abundance")
+  gene_ids_tf <- anno_tf$gene_id
+  tpm_goi_tf <- tpm_matrix[gene_ids_tf, , drop = FALSE]
+  
+  # 3. Daten umwandeln (Tidyverse)
+  all_counts_tf <- as.data.frame(tpm_goi_tf) %>%
+    rownames_to_column(var = "gene_id") %>%
+    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
+    left_join(anno_tf %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
+    dplyr::rename(Gene = geneSymbol) %>%
+    left_join(as.data.frame(colData(dds)) %>% 
+                rownames_to_column(var = "sample") %>% 
+                dplyr::select(sample, condition, experiment, treatment, genotype), 
+              by = "sample")
+  
+  # 4. Dynamische Sortierung der TF-Gene nach dem Median der WT_dark Bedingung
+  gene_order_tf <- all_counts_tf %>%
+    dplyr::filter(condition == "WT_dark") %>%
+    dplyr::group_by(Gene) %>%
+    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
+    dplyr::arrange(desc(baseline_expr)) %>%
+    dplyr::pull(Gene)
+  
+  all_counts_tf$Gene <- factor(all_counts_tf$Gene, levels = gene_order_tf)
+  
+  # 5. Plot erstellen & speichern
+  gcounts_tf1 <- ggplot(all_counts_tf, aes(x = Gene, y = abundance, fill = condition)) +
+    geom_boxplot(fatten = 1) +
+    scale_fill_manual(values = group.colors) +
+    labs(title = "ROC genes", y = "TPM (Gene Length Normalized)") + 
+    theme_bw() +
+    removeGrid(x = T, y = T) +
+    geom_vline(xintercept = seq(1, length(levels(all_counts_tf$Gene)) - 1, 1) + .5, color = "grey") +
+    # log2 und saubere Achsen-Labels (drop0trailing)
+    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
+    plot_annotation(title = colData(dds)$experiment[1])
+  
+  print(gcounts_tf1)
+  
+  ggsave(paste(fig, "_", colData(dds)$experiment[1], "_TPMs_ROCs.pdf", sep = ""), 
+         plot = gcounts_tf1, width = 12, height = 8)
+  
+  
+  # ==========================================
+  # TEIL 2: PHOTORECEPTOR GENES
+  # ==========================================
+  
+  # 1. Vorbereitung der Gene
+  goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1")
+  
+  anno_phot <- subset(anno, geneSymbol %in% goi_phot, drop = FALSE)
+  rownames(anno_phot) <- anno_phot$geneSymbol
+  anno_phot <- anno_phot[goi_phot,]
+  
+  # 2. TPM-Werte aus der bereits extrahierten Matrix ziehen
+  gene_ids_phot <- anno_phot$gene_id
+  tpm_goi_phot <- tpm_matrix[gene_ids_phot, , drop = FALSE]
+  
+  # 3. Daten umwandeln (Tidyverse)
+  all_counts_phot <- as.data.frame(tpm_goi_phot) %>%
+    rownames_to_column(var = "gene_id") %>%
+    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
+    left_join(anno_phot %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
+    dplyr::rename(Gene = geneSymbol) %>%
+    left_join(as.data.frame(colData(dds)) %>% 
+                rownames_to_column(var = "sample") %>% 
+                dplyr::select(sample, condition, experiment, treatment, genotype), 
+              by = "sample")
+  
+  # 4. Dynamische Sortierung der Phot-Gene nach dem Median der WT_dark Bedingung
+  gene_order_phot <- all_counts_phot %>%
+    dplyr::filter(condition == "WT_dark") %>%
+    dplyr::group_by(Gene) %>%
+    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
+    dplyr::arrange(desc(baseline_expr)) %>%
+    dplyr::pull(Gene)
+  
+  all_counts_phot$Gene <- factor(all_counts_phot$Gene, levels = gene_order_phot)
+  
+  # 5. Plot erstellen & speichern
+  gcounts_phot1 <- ggplot(all_counts_phot, aes(x = Gene, y = abundance, fill = condition)) +
+    geom_boxplot(fatten = 1) +
+    scale_fill_manual(values = group.colors) +
+    labs(title = "Photoreceptor genes", y = "TPM (Gene Length Normalized)") + 
+    theme_bw() +
+    removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts_phot$Gene))-1,1)+.5,color="grey") +
+    # log2 und saubere Achsen-Labels (drop0trailing)
+    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
+    plot_annotation(title = colData(dds)$experiment[1])
+  
+  print(gcounts_phot1)
+  
+  ggsave(paste(fig,"_",colData(dds)$experiment[1],"_TPMs_Phots.pdf",sep=""), 
+         plot = gcounts_phot1, width = 12, height = 8)
+  
+}
+
+```
+
+
+
 
 ## individual counts
 ```{r plot_counts2}
