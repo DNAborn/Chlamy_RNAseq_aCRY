@@ -44,119 +44,7 @@ BiocManager::install()
 
 # Fig 2x: Explain data
 
-``` r
-c_graphic <- png::readPNG("Contrasts.png", native = TRUE)
-patchwork::wrap_elements((c_graphic))
-```
-
-![](README_files/figure-gfm/explain_data-1.png)<!-- -->
-
-``` r
-res_core <- list(dark = res_list$pcry$pcry_D.vs.WT_D,
-             blue = res_list$pcry$pcry_BL.vs.WT_BL,
-             red =res_list$pcry$pcry_R.vs.WT_R) %>% lapply(data.frame)
-
-DEGs_comb <- bind_cols(res_core[[1]],res_core[[2]][,c(2,6)],res_core[[3]][,c(2,6)])
-colnames(DEGs_comb)[c(2,6,8,9,10,11)] <- c("l2FC.dark","padj.dark","l2FC.blue","padj.blue","l2FC.red","padj.red") 
-
-
-# res_list[["pcry"]] %>% names()
-
-# res_list[["pcry"]][["WT_R.vs.D"]][ROC40,c(2,6)]
-# res_list[["pcry"]][["pCRY_R.vs.D"]][ROC40,c(2,6)]
-
-# anno_tf
-ROC59 <- "Cre10.g425050"
-goi  <- ROC40  # ROC40 ROC59
-
-
-results <- lapply(res_list[["pcry"]],data.frame)
-l2fc <- sapply(results,"[[",goi,c(2)) %>% round(digits=2)
-names(l2fc) <- paste0("l2fc.",names(l2fc))
-p <- sapply(results,"[[",goi,c(6)) %>% round(digits=3)
-
-goi_lp <- list("l2fc"=l2fc,
-               "p"=p)
-
-# l2fc
-# gcounts_roc40
-gcounts_roc40 + coord_cartesian(ylim = c(1,10000)) + 
-  # (1.)
-  geom_text(aes(x = 0.5,y = 120),
-            label="1.", color="red2") +
-  # "pcry_D.vs.WT_D" 
-  geom_segment(
-        aes(x = 0.7,y = 90, xend = 1.3,yend = 90),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="red2") +
-  geom_text(aes(x = 1,y = 120),
-            label=goi_lp$l2fc["l2fc.pcry_D.vs.WT_D"], color="red2") +
-  
-    # "pcry_BL.vs.WT_BL" 
-  geom_segment(
-        aes(x = 1.7,y = 90, xend = 2.3,yend = 90),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="red2") +
-  geom_text(aes(x = 2,y = 120),
-            label=goi_lp$l2fc["l2fc.pcry_BL.vs.WT_BL"], color="red2") +
-  
-    # "pcry_R.vs.WT_R" 
-  geom_segment(
-        aes(x = 2.7,y = 75, xend = 3.3,yend = 75),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="red2") +
-  geom_text(aes(x = 3,y = 100),
-            label=goi_lp$l2fc["l2fc.pcry_R.vs.WT_R"], color="red2") +
-
-  # (2.)  
-  geom_text(aes(x = 0.5,y = 50),
-            label="2.", color="green4") +
-  # ""WT_BL.vs.D"" 
-    geom_segment(
-        aes(x = 0.7,y = 40, xend = 1.7,yend = 40),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="green4") +
-  geom_text(aes(x = 1,y = 55),
-            label=goi_lp$l2fc["l2fc.WT_BL.vs.D"], color="green4") +
-  # 3.
-  geom_text(aes(x = 0.5,y = 20),
-            label="3.", color="purple3") +
-    # "WT_R.vs.D" 
-    geom_segment(
-        aes(x = 1.3,y = 35, xend = 1.7,yend = 12),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="purple3") +
-  geom_text(aes(x = 1.7,y = 25),
-            label=goi_lp$l2fc["l2fc.pcry_BLvD.vs.WT_BLvD"], color="purple3") +
-  # "pcry_BL.vs.D"
-    geom_segment(
-        aes(x = 1.2,y = 9, xend = 2.3,yend = 9),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="green3") +
-  geom_text(aes(x = 2,y = 12),
-            label=goi_lp$l2fc["l2fc.pcry_BL.vs.D"], color="green3") +
-
-    # "WT_R.vs.D" 
-    geom_segment(
-        aes(x = 0.7,y = 6, xend = 2.7,yend = 6),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="green4") +
-  geom_text(aes(x = 0.9,y = 8),
-            label=goi_lp$l2fc["l2fc.WT_R.vs.D"], color="green4") +
-  # "pcry_BL.vs.D" 
-    geom_segment(
-        aes(x = 1.2,y = 1, xend = 3.3,yend = 1),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="green3") +
-  geom_text(aes(x = 3,y = 1.3),
-            label=goi_lp$l2fc["l2fc.pcry_R.vs.D"], color="green3") +
-
-  
-  # "pcry_BL.vs.D" 
-    geom_segment(
-        aes(x = 1.7,y = 5, xend = 2.3,yend = 1.3),
-        arrow = arrow(length = unit(0.03,units = "npc")),color ="purple1") +
-  geom_text(aes(x = 2.3,y = 2.7),
-            label=goi_lp$l2fc["l2fc.pcry_RvD.vs.WT_RvD"], color="purple1") #+
-```
-
-![](README_files/figure-gfm/explain_data-2.png)<!-- -->
-
-``` r
-DEGs_comb[ROC40,]
-```
+![](README_files/figure-gfm/explain_data-1.png)<!-- -->![](README_files/figure-gfm/explain_data-2.png)<!-- -->
 
     ##               baseMean l2FC.dark     lfcSE     stat    pvalue padj.dark symbol
     ## Cre06.g275350 4525.436 0.6158121 0.2470149 2.493016 0.0126663 0.2481123  ROC40
@@ -167,312 +55,21 @@ DEGs_comb[ROC40,]
 
 ## a) Δgenotype per condition (1)
 
-``` r
-fig <- "Fig3"
-
-dds <- dds_list[["pcry"]]
-
-# res_ashr_list %>% names()
-# res_ashr_list[[1]] %>% names()
-
-res <- res_ashr_list$pcry$pcry_R.vs.WT_R
-res_n <- res_list$pcry$pcry_R.vs.WT_R
-
-# of shrinked results
-total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
-#                 baseMean log2FoldChange     lfcSE      pvalue        padj
-#               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
-# Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
-# Cre17.g802135   46.8587       36.40049   7.35075 1.00156e-08 7.64096e-06
-
-res["Cre16.g681750","padj"] <- 10^-50
-res["Cre17.g802135","log2FoldChange"] <- 6
-
-# mcols(dds_list[["pcry"]]) %>% nrow()
-# res %>% nrow()
-
-volcano_red <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[5]),
-    title = "red-light, pCRY vs. WT",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,50),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-# volcano_red
-
-
-# blue
-
-# res_ashr_list %>% names()
-# res_ashr_list[[1]] %>% names()
-
-res <- res_ashr_list$pcry$pcry_BL.vs.WT_BL
-res_n <- res_list$pcry$pcry_BL.vs.WT_BL
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-50
-l2FCmax <- 6
-# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-
-# res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-
-x <- res$padj
-res[(x < pmax) & (!is.na(x)),]$padj <- pmax
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
-
     ## log2 fold change (MMSE): genotype_pcry_vs_WT+genotypepcry.treatmentblue effect 
     ## Wald test p-value: genotype_pcry_vs_WT+genotypepcry.treatmentblue effect 
     ## DataFrame with 0 rows and 5 columns
 
-``` r
-# mcols(dds_list[["pcry"]]) %>% nrow()
-# res %>% nrow()
-
-volcano_blue <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[3]),
-    title = "blue-light, pCRY vs. WT",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,50),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-# volcano_blue
-
-
-# dark
-
-# res_ashr_list %>% names()
-# res_ashr_list[[2]] %>% names()
-
-res <- res_ashr_list$pcry$pcry_D.vs.WT_D
-res_n <- res_list$pcry$pcry_D.vs.WT_D
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-50
-l2FCmax <- 6
-# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-
-res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
-
-# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-
-# mcols(dds_list[["pcry"]]) %>% nrow()
-# res %>% nrow()
-
-volcano_dark <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[1]),
-    title = "dark, pCRY vs. WT",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,50),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-# volcano_dark
-
-volcanos_all <- volcano_dark + volcano_blue + volcano_red +
-  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
-  theme(legend.position = 'none', axis.title=element_text(size=12))
-volcanos_all
-```
-
 ![](README_files/figure-gfm/volcanos1-1.png)<!-- -->
-
-``` r
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos1.pdf",sep=""), plot = volcanos_all,
-width = 10,
-height = 6)
-```
 
 ## b): Δlight = light effect (2)
 
-``` r
-fig <- "Fig3"
-
-dds <- dds_list[["pcry"]]
-
-# res_ashr_list %>% names()
-# res_ashr_list[[2]] %>% names()
-
-res <- res_ashr_list$pcry$WT_R.vs.D
-res_n <- res_list$pcry$WT_R.vs.D
-
-# of shrinked results
-total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-# subset(res, padj < 10^-50 | log2FoldChange > 6 | log2FoldChange < -6)
-#                 baseMean log2FoldChange     lfcSE      pvalue        padj
-#               <numeric>      <numeric> <numeric>   <numeric>   <numeric>
-# Cre16.g681750 2907.4406       -3.51641   0.22216 2.99151e-57 4.79270e-53
-# Cre17.g802135   46.8587       36.40049   7.35075 1.00156e-08 7.64096e-06
-
-res["Cre16.g681750","padj"] <- 10^-50
-res["Cre17.g802135","log2FoldChange"] <- 6
-
-# mcols(dds_list[["pcry"]]) %>% nrow()
-# res %>% nrow()
-
-volcano_WT_red <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[5]),
-    title = "WT_R.vs.D",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,100),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-# volcano_red
-
-
-# blue
-
-res_ashr_list %>% names()
-```
-
     ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[1]] %>% names()
-```
 
     ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "acry_BL.vs.D"        
     ##  [4] "acry_R.vs.D"          "acry_D.vs.WT_D"       "acry_BL.vs.WT_BL"    
     ##  [7] "acry_R.vs.WT_R"       "acry_BLvD.vs.WT_BLvD" "acry_RvD.vs.WT_RvD"  
     ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
     ## [13] "acry.vs.WT"
-
-``` r
-res <- res_ashr_list$pcry$pcry_R.vs.D
-res_n <- res_list$pcry$pcry_R.vs.D
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-100
-l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
 
     ## log2 fold change (MMSE): treatment_red_vs_dark+genotypepcry.treatmentred effect 
     ## Wald test p-value: treatment_red_vs_dark+genotypepcry.treatmentred effect 
@@ -487,96 +84,21 @@ subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
     ## Cre13.g603550  3111.9323       -5.26266 0.1498718 6.98677e-272 5.48811e-268
     ## Cre16.g801923    21.0442      -26.79298 6.2230303  3.82198e-08  7.86937e-07
 
-``` r
-# res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-x <- res$padj
-res[(x < pmax) & (!is.na(x)),]$padj <- pmax
-
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
-
     ## log2 fold change (MMSE): treatment_red_vs_dark+genotypepcry.treatmentred effect 
     ## Wald test p-value: treatment_red_vs_dark+genotypepcry.treatmentred effect 
     ## DataFrame with 0 rows and 5 columns
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
-
     ## [1] 16025
 
-``` r
-res %>% nrow()
-```
-
     ## [1] 16025
-
-``` r
-volcano_pcry_R <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[6]),
-    title = "pcry_R.vs.D",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,100),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-# volcano_blue
-
-
-# WT BLUE
-
-res_ashr_list %>% names()
-```
 
     ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
 
     ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
     ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
     ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
     ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
     ## [13] "pcry.vs.WT"
-
-``` r
-res <- res_ashr_list$pcry$WT_BL.vs.D
-res_n <- res_list$pcry$WT_BL.vs.D
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-100
-l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
 
     ## log2 fold change (MMSE): treatment_blue_vs_dark effect 
     ## Wald test p-value: treatment_blue_vs_dark effect 
@@ -593,94 +115,21 @@ subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
     ## Cre17.g740950 15530.0821        2.59377 0.0753787 5.71219e-261 2.19905e-257
     ## Cre17.g802135    46.8587       16.53408 2.9414978  7.06918e-10  2.37164e-08
 
-``` r
-res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-# res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
-
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
-
     ## log2 fold change (MMSE): treatment_blue_vs_dark effect 
     ## Wald test p-value: treatment_blue_vs_dark effect 
     ## DataFrame with 0 rows and 5 columns
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
-
     ## [1] 16025
 
-``` r
-res %>% nrow()
-```
-
     ## [1] 16025
-
-``` r
-volcano_WT_BL <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[3]),
-    title = "WT_BL.vs.D",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,100),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-
-
-# pcry BLUE
-
-res_ashr_list %>% names()
-```
 
     ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
 
     ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
     ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
     ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
     ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
     ## [13] "pcry.vs.WT"
-
-``` r
-res <- res_ashr_list$pcry$pcry_BL.vs.D
-res_n <- res_list$pcry$pcry_BL.vs.D
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-100
-l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
 
     ## log2 fold change (MMSE): treatment_blue_vs_dark+genotypepcry.treatmentblue effect 
     ## Wald test p-value: treatment_blue_vs_dark+genotypepcry.treatmentblue effect 
@@ -699,94 +148,19 @@ subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
     ## Cre16.g681750    2907.44        3.14588 0.0992670 5.37126e-223 1.43422e-219
     ## Cre17.g740950   15530.08        2.43230 0.0756135 6.06259e-230 1.94258e-226
 
-``` r
-res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-res[subset(res, padj < pmax) %>% rownames(),]$padj <- pmax
-
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
-
     ## log2 fold change (MMSE): treatment_blue_vs_dark+genotypepcry.treatmentblue effect 
     ## Wald test p-value: treatment_blue_vs_dark+genotypepcry.treatmentblue effect 
     ## DataFrame with 0 rows and 5 columns
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
-
     ## [1] 16025
 
-``` r
-res %>% nrow()
-```
-
     ## [1] 16025
-
-``` r
-volcano_pcry_BL <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[4]),
-    title = "pcry_BL.vs.D",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,100),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 40,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-
-
-
-
-
-volcanos_2 <- (volcano_WT_BL + volcano_WT_red) /  (volcano_pcry_BL + volcano_pcry_R) +
-  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
-  theme(legend.position = 'none', axis.title=element_text(size=12))
-volcanos_2
-```
 
 ![](README_files/figure-gfm/volcanos2-1.png)<!-- -->
 
-``` r
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos2.pdf",sep=""), plot = volcanos_2,
-width = 10,
-height = 12)
-```
-
 ## c): ΔgenotypeΔlight = difference in light effect (interaction term) (3)
 
-``` r
-fig <- "Fig3"
-
-dds <- dds_list[["pcry"]]
-
-res_ashr_list %>% names()
-```
-
     ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
 
     ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
     ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
@@ -794,101 +168,13 @@ res_ashr_list[[2]] %>% names()
     ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
     ## [13] "pcry.vs.WT"
 
-``` r
-res <- res_ashr_list$pcry$pcry_BLvD.vs.WT_BLvD
-res_n <- res_list$pcry$pcry_BLvD.vs.WT_BLvD
-
-# of shrinked results
-total <- subset(res, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-
-
-# points outside the grid
-
-pmax <- 10^-50
-l2FCmax <- 6
-# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-
-# res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-
-# subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-
-
-# mcols(dds_list[["pcry"]]) %>% nrow()
-# res %>% nrow()
-
-volcano3_blue <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[3]),
-    title = "pcry_BLvD.vs.WT_BLvD",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,50),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 50,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 3,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-
-
-
-
-# volcano_red
-res_ashr_list %>% names()
-```
-
     ## [1] "acry" "pcry"
-
-``` r
-res_ashr_list[[2]] %>% names()
-```
 
     ##  [1] "WT_BL.vs.D"           "WT_R.vs.D"            "pcry_BL.vs.D"        
     ##  [4] "pcry_R.vs.D"          "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"    
     ##  [7] "pcry_R.vs.WT_R"       "pcry_BLvD.vs.WT_BLvD" "pcry_RvD.vs.WT_RvD"  
     ## [10] "BL+R.vs.D"            "BL.vs.D"              "R.vs.D"              
     ## [13] "pcry.vs.WT"
-
-``` r
-res <- res_ashr_list$pcry$pcry_RvD.vs.WT_RvD
-res_n <- res_list$pcry$pcry_RvD.vs.WT_RvD
-
-# of "true" results
-total <- subset(res_n, padj< 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )) %>% nrow()
-up <- subset(res_n, padj< 0.05 & log2FoldChange > 1) %>% nrow()
-down <- subset(res_n, padj< 0.05 & log2FoldChange < -1) %>% nrow()
-
-# points outside the grid
-
-pmax <- 10^-50
-l2FCmax <- 6
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
 
     ## log2 fold change (MMSE): 0,0,0,0,0,+1 
     ## Wald test p-value: 0,0,0,0,0,+1 
@@ -899,78 +185,15 @@ subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
     ## Cre16.g681750 2907.4406        2.18416  0.139607 5.99939e-57 9.42505e-53
     ## Cre17.g802135   46.8587       -9.29647  9.641600 2.41332e-06 1.22301e-03
 
-``` r
-res[res$log2FoldChange > l2FCmax,]$log2FoldChange <- l2FCmax
-res[res$log2FoldChange < -l2FCmax,]$log2FoldChange <- -l2FCmax
-x <- res$padj
-res[(x < pmax) & (!is.na(x)),]$padj <- pmax
-
-subset(res, padj < pmax | log2FoldChange > l2FCmax | log2FoldChange < -l2FCmax)
-```
-
     ## log2 fold change (MMSE): 0,0,0,0,0,+1 
     ## Wald test p-value: 0,0,0,0,0,+1 
     ## DataFrame with 0 rows and 5 columns
 
-``` r
-mcols(dds_list[["pcry"]]) %>% nrow()
-```
-
     ## [1] 16025
 
-``` r
-res %>% nrow()
-```
-
     ## [1] 16025
-
-``` r
-volcano3_red <- EnhancedVolcano(res,
-    lab = mcols(dds_list[["pcry"]])[["geneSymbol"]],
-    x = 'log2FoldChange',
-    y = 'padj',
-    col=c("grey","grey","grey",group.colors[5]),
-    title = "pcry_RvD.vs.WT_RvD",
-    titleLabSize = 12,
-    subtitle = paste0("upregulated: ",up,", downregulated: ",down,"\n(total: ",total,")"),
-#    subtitle = {},
-    subtitleLabSize = 10,
-    caption = NULL,
-    xlim = c(-7,7),
-    ylim = c(0,50),
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    maxoverlapsConnectors = 50,
-    drawConnectors = TRUE,
-    widthConnectors = 0.5,
-    colConnectors = "grey70",
-    legendLabels=c('ns','ns','ns',
-      'padj < 0.05 & Log2FC > 1'),
-    labSize = 4,
-    axisLabSize = 12,
-    legendLabSize = 12,
-    legendIconSize = 4,
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE,
-    pointSize = 3
-)
-
-
-volcanos_3 <- (volcano3_blue + volcano3_red) +
-  plot_layout(guides = "collect", axes="collect", axis_titles="collect") & 
-  theme(legend.position = 'none', axis.title=element_text(size=12))
-volcanos_3
-```
 
 ![](README_files/figure-gfm/volcanos3-1.png)<!-- -->
-
-``` r
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Volcanos3.pdf",sep=""), plot = volcanos_3,
-width = 10,
-height = 6)
-
-colnames(anno)
-```
 
     ##  [1] "locusName_4532"                       
     ##  [2] "initial_v6_locus_ID"                  
@@ -999,11 +222,6 @@ colnames(anno)
     ## [25] "previousIdentifiers_list"             
     ## [26] "prev.symbols"                         
     ## [27] "id.symbol"
-
-``` r
-# anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
-anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
-```
 
 |  | geneSymbol | previousIdentifiers | Description | previousIdentifiers.1 | Description.1 | TargetP | Predalgo | Flagellar_Proteome |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---|
@@ -1041,132 +259,12 @@ anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","
 
 ## Fig 4a: Venns
 
-``` r
-fig <- "Fig4"
-
-# res_list[["pcry"]] %>% names()
-#  "pcry_D.vs.WT_D"       "pcry_BL.vs.WT_BL"     "pcry_R.vs.WT_R"      
-DEGs <- list(dark = res_list$pcry$pcry_D.vs.WT_D %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
-             blue = res_list$pcry$pcry_BL.vs.WT_BL %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )),
-             red =res_list$pcry$pcry_R.vs.WT_R %>% subset(padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1 )))
-DEGs <- lapply(DEGs,data.frame)
-DEGs_genes <- lapply(DEGs,rownames)
-
-venn.ol <- calculate.overlap(DEGs_genes)
-# venn.ol %>% lapply(length)
-
-input_list <- DEGs_genes
-
-plt <- venn.diagram(
-    x = input_list,
-    inverted=TRUE,
-    # total.population = TRUE,
-    filename = NULL,
-    fontfamily ="Arial",
-    lwd = 2,
-    lty = 'blank',
-    fill = group.colors[c(2,4,6)],
-    category.names = paste0(names(input_list),"\n(",lapply(input_list,length),")"),
-#    cat.col=cols2d[c(1,2)],
-    cat.fontface = "bold",
-    cat.fontfamily = "arial",
-#    cat.pos = c(+30,-30),
-#    cat.dist = c(0.12, 0.12),
-    disable.logging = TRUE
-)
-
-wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
-```
-
 ![](README_files/figure-gfm/overlap-1.png)<!-- -->
 
 ## Fig 4b: Groups
 
-``` r
-goi_tf
-```
-
     ##  [1] "CCM1"   "LCR1"   "HY5"    "QER7"   "QER4"   "QER6"   "ROC15"  "ROC40" 
     ##  [9] "ROC66"  "ROC75"  "ROC59"  "ROC114" "ROC55"  "CON1"   "CRB1"
-
-``` r
-res_core <- list(WT_blue = res_list$pcry$WT_BL.vs.D,
-             WT_red = res_list$pcry$WT_R.vs.D,
-             pcry_blue = res_list$pcry$pcry_BL.vs.D,
-             pcry_red = res_list$pcry$pcry_R.vs.D,
-             dd_blue = res_list$pcry$pcry_BLvD.vs.WT_BLvD,
-             dd_red = res_list$pcry$pcry_RvD.vs.WT_RvD) %>% lapply(data.frame)
-
-# plot(res_list$pcry$pcry_BL.vs.D$log2FoldChange~res_list$pcry$pcry_R.vs.D$log2FoldChange)
-#res_list$pcry$WT_BL.vs.D$symbol == anno[res_list$pcry$WT_BL.vs.D %>% rownames(),"geneSymbol"]
-
-res_comb <- bind_cols(symbol = anno[res_list$pcry$WT_BL.vs.D %>% rownames(),"geneSymbol"],
-                       res_core[[1]][,c(1,2,6)],
-                       res_core[[2]][,c(2,6)],
-                       res_core[[3]][,c(2,6)],
-                       res_core[[4]][,c(2,6)],
-                       res_core[[5]][,c(2,6)],
-                       res_core[[6]][,c(2,6)])
-
-colnames(res_comb)[c(3,4)] <- c("l2FC.WT_blue","padj.WT_blue")
-colnames(res_comb)[c(5,6)] <- c("l2FC.WT_red","padj.WT_red")
-colnames(res_comb)[c(7,8)] <- c("l2FC.pcry_blue","padj.pcry_blue")
-colnames(res_comb)[c(9,10)] <- c("l2FC.pcry_red","padj.pcry_red")
-colnames(res_comb)[c(11,12)] <- c("l2FC.dd_blue","padj.dd_blue")
-colnames(res_comb)[c(13,14)] <- c("l2FC.dd_red","padj.dd_red")                                  
-
-res_comb$symbol2 <- anno[res_comb %>% rownames(),"geneSymbol"]
-res_comb$id.symbol <- anno[res_comb %>% rownames(),"id.symbol"]
-
-  blue_red_genes <- c(deg_list$pcry$deg_pcry_BLvD.vs.WT_BLvD,
-                    deg_list$pcry$deg_pcry_RvD.vs.WT_RvD) %>%
-  unique()
-
-non_sig <- data.frame(x = c(-20, 0, 20), y = c(20, 0.5, 20))
-
-df <- res_comb[anno_tf$gene_id,]
-df <- res_comb[anno_phot$gene_id,]
-
-gg_phots <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
-  geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
-    arrow = arrow(length = unit(0.01,units = "npc"))) +
-  scale_color_gradient2(mid="grey") +
-  geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
-  scale_fill_manual(name="Genotype",values="green3") +
-  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
-  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
-  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
-  # coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
-  coord_fixed() +
-  geom_text_repel(size=4, max.overlaps = 20) +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-gg_phots
-
-# ROCs
-df <- res_comb[anno_tf$gene_id,]
-gg_rocs <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
-  scale_color_gradient2(mid="grey") +
-  geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
-  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
-  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
-  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
-  # coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
-  coord_fixed() +
-  geom_text_repel(size=4, max.overlaps = 20) +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-gg_rocs
-
-
-# TOP
-df <- res_comb[blue_red_genes,]
-df %>% kable()
-```
 
 |  | symbol | baseMean | l2FC.WT_blue | padj.WT_blue | l2FC.WT_red | padj.WT_red | l2FC.pcry_blue | padj.pcry_blue | l2FC.pcry_red | padj.pcry_red | l2FC.dd_blue | padj.dd_blue | l2FC.dd_red | padj.dd_red | symbol2 | id.symbol |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---|:---|
@@ -1232,28 +330,6 @@ df %>% kable()
 | Cre07.g329050 | AOC5 | 89.09958 | -0.7533875 | 0.0525125 | 0.2085977 | 0.6493559 | -2.0436827 | 0.0000000 | -1.5839405 | 0.0000019 | -1.2902952 | 0.1462976 | -1.7925382 | 0.0047817 | AOC5 | AOC5 |
 | Cre16.g687000 | FPN1 | 172.69472 | -0.2216115 | 0.3831199 | 0.0209792 | 0.9419827 | -0.8145136 | 0.0000043 | -1.0343937 | 0.0000000 | -0.5929021 | 0.3041292 | -1.0553728 | 0.0011744 | FPN1 | FPN1 |
 
-``` r
-plot(df$l2FC.dd_red ~ df$l2FC.dd_blue)
-
-gg_top <- ggplot(df, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = l2FC.dd_red),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
-  scale_color_gradient2(mid="grey") +
-  geom_point(shape=21, fill="grey", col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red),shape=21, fill="green3", col="grey40") +
-  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
-  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
-  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
-  coord_cartesian(xlim=c(-5,5),ylim = c(-5,5)) +
-  # coord_fixed() +
-  geom_text_repel(size=4, max.overlaps = 20) +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-gg_top %>% print()
-
-# scale_colour_manual(name="Error Bars",values=cols)
-```
-
 <img src="README_files/figure-gfm/groups-1.png" width="50%" /><img src="README_files/figure-gfm/groups-2.png" width="50%" /><img src="README_files/figure-gfm/groups-3.png" width="50%" /><img src="README_files/figure-gfm/groups-4.png" width="50%" />
 
 # Fig. 5: pCRY interaction partner
@@ -1271,40 +347,9 @@ summary(top20_id %in% anno$gene_id)
 
 ## Plot interaction counts
 
-``` r
-## Interaction genes all-in-one
-fig <- "Fig5"
-goi_interaction <- top20_id
-anno_interaction <- anno[top20_id,]
-
-goi <- anno_interaction
-l <- nrow(goi)
-all_counts <- {}
-for (i in 1:l){
-  d <-  plotCounts(dds, gene=goi[i,"gene_id"], intgroup=c("condition","experiment","treatment","genotype"), col=col,main=res$SYMBOL[i],returnData=TRUE)
-  d$Gene <- rep(goi[i,"id.symbol"],length(rownames(d)))
-  d$sample <- rownames(d)
-  rownames(d) <- {}
-  all_counts <- bind_rows(all_counts,d)
-  }
-
-# all_counts$Gene
-levels(all_counts$condition)
-```
-
     ## [1] "WT_dark"   "pcry_dark" "WT_blue"   "pcry_blue" "WT_red"    "pcry_red"
 
-``` r
-levels(all_counts$Gene)
-```
-
     ## NULL
-
-``` r
-all_counts$Gene <- factor(all_counts$Gene)
-all_counts$Gene <- fct_reorder(all_counts$Gene, all_counts$count, .fun = median, .desc = TRUE)
-levels(all_counts$Gene)
-```
 
     ##  [1] "PHC15"         "PHC6"          "PRP38A"        "PRP19"        
     ##  [5] "NSG17"         "Cre01.g013600" "CSK4"          "LIP1"         
@@ -1315,46 +360,9 @@ levels(all_counts$Gene)
     ## [25] "Cre06.g257400" "RFC2"          "Cre08.g378000" "CSL"          
     ## [29] "TEF13"         "Cre06.g278259" "Cre08.g358567" "Cre16.g676402"
 
-``` r
-# all_counts$Gene <- factor(all_counts$Gene, levels = c("PHOT1","CHR1","CHR2","HKR1","UVR8","DCRY1","PCRY1","ACRY1")) # "DCRY2", 
-# levels(all_counts$Gene)
-
-# Plot
-max_val <- 1.0*max(all_counts$count)
-gcounts_interaction <- ggplot(all_counts, aes(x = Gene, y = count, fill=condition)) +
-  geom_boxplot(fatten = 1) +
-  scale_fill_manual(values = group.colors) +
-  labs(title = "Interaction partners") + 
-  theme_bw() +
-  removeGrid(x=T, y=T) +
-  geom_vline(xintercept=seq(1,length(levels(all_counts$Gene))-1,1)+.5,color="grey") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  scale_y_continuous(trans = "log2") & plot_annotation(title = colData(dds)$experiment[1])
-gcounts_interaction %>% print()
-```
-
 ![](README_files/figure-gfm/plot_interaction-1.png)<!-- -->
 
-``` r
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Counts_Interaction.pdf",sep=""), plot = gcounts_interaction,
-width = 15,
-height = 8)
-```
-
 ## scatter plot
-
-``` r
-# Interaction
-df <- res_comb[anno_interaction$gene_id,]
-
-df_final <- df %>%
-  mutate(shift = sqrt((l2FC.pcry_blue - l2FC.WT_blue)^2 + (l2FC.pcry_red - l2FC.WT_red)^2)) %>%
-  arrange(desc(shift)) %>%
-  filter(!str_starts(id.symbol, "Cre")) %>%
-  filter((baseMean > 100 & shift > 0.2) | id.symbol == "CSL")
-
-df_final %>% kable()
-```
 
 |  | symbol | baseMean | l2FC.WT_blue | padj.WT_blue | l2FC.WT_red | padj.WT_red | l2FC.pcry_blue | padj.pcry_blue | l2FC.pcry_red | padj.pcry_red | l2FC.dd_blue | padj.dd_blue | l2FC.dd_red | padj.dd_red | symbol2 | id.symbol | shift |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---|:---|---:|
@@ -1375,54 +383,6 @@ df_final %>% kable()
 | Cre16.g666200 |  | 4170.3507 | 0.0919110 | 0.5506179 | 0.1388978 | 0.2264636 | -0.0094418 | 0.9601151 | -0.0693801 | 0.6533956 | -0.1013528 | 0.9708832 | -0.2082779 | 0.8411519 |  | CSK4 | 0.2316292 |
 | Cre02.g092150 |  | 129.8465 | -0.0511640 | 0.9466656 | -0.4982285 | 0.1696768 | -0.1972779 | 0.6820730 | -0.4649790 | 0.2251876 | -0.1461139 | 0.9731332 | 0.0332495 | 0.9983302 |  | CSL | 0.1498492 |
 
-``` r
-gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = shift), # color = baseMean
-        arrow = arrow(length = unit(0.02,units = "npc"))) +
-  scale_color_gradient(low = "grey",high = "green3") +
-  geom_point(aes(x=l2FC.WT_blue, y=l2FC.WT_red, fill="WT"),shape=21, col="grey40") +
-  geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
-  scale_fill_manual(name="Genotype",values=c("green3","grey")) + 
-  geom_hline(yintercept = c(-1,1), linewidth = 0.1) + 
-  geom_vline(xintercept = c(-1,1), linewidth = 0.1) +
-  geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
-  # coord_cartesian(xlim=c(-2,2),ylim = c(-2,2)) +
-  # coord_fixed(xlim=c(-1,2),ylim = c(-1,2)) +
-  geom_label_repel(fontface = "bold", color = "grey10", fill = "white", label.size = 0.15, label.padding = 0.15, size = 4, max.overlaps = Inf,   force = 2, point.padding = 0.5,    min.segment.length = 0, segment.color = "black", segment.size = 0.1) +
- # geom_text_repel(size=4, max.overlaps = 5, color="grey30", fontface="bold") +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-gg_interaction
-```
-
 ![](README_files/figure-gfm/interaction_scatter-1.png)<!-- -->
 
-``` r
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_Scatter_Interaction.pdf",sep=""), plot = gg_interaction,
-width = 10,
-height = 10)
-
-write_xlsx(data.frame(df),"Interaction_results.xlsx")
-```
-
 # Fig. Y
-
-``` r
-p_new2 <- ggplot(deg_table, aes(x=XX.log2FC, y=XY.log2FC,color=group, fill=group)) + 
-  geom_polygon(data = xyup, aes(x=x,y=y),color=cols2l[2],fill=cols2l[2], alpha=0.2) +
-  geom_polygon(data = xydo, aes(x=x,y=y),color=cols2l[2],fill=cols2l[2], alpha=0.8) +
-  geom_polygon(data = xxdo, aes(x=x,y=y),color=cols2l[1],fill=cols2l[1], alpha=0.8) +
-  geom_polygon(data = xxup, aes(x=x,y=y),color=cols2l[1],fill=cols2l[1], alpha=0.2) +
-  annotate("text", x= text$x,y= text$y,label = paste(text$label,text$size,sep="\n"), color=text$color,size=3 , fontface="bold") +
-  geom_hline(yintercept = 0, linewidth = 0.1) + 
-  geom_vline(xintercept = 0, linewidth = 0.1) +
-  geom_point(shape=21) + 
-  scale_color_manual(values=alpha(c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],rep(colsp,2),rep(colsap,2)),0.8)) +
-  scale_fill_manual(values=alpha(c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],rep(colsp,2),rep(colsap,2)),0.3)) +
-#  scale_color_manual(values = text$color) +
-  coord_cartesian(xlim=c(-10,10),ylim = c(-10,10)) +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-
-p_new2 + scale_fill_manual(values=c(cols2d[1],cols2d[1], cols2d[2],cols2d[2],alpha(c(rep(colsp,2),rep(colsap,2)),0.3))) 
-```

@@ -428,7 +428,7 @@ gcounts_roc59 <- gcounts
 
 
 # Fig 2x: Explain data
-```{r explain_data, eval=TRUE}
+```{r explain_data, eval=TRUE, echo=FALSE}
 
 c_graphic <- png::readPNG("Contrasts.png", native = TRUE)
 patchwork::wrap_elements((c_graphic))
@@ -542,7 +542,7 @@ DEGs_comb[ROC40,]
 
 # Fig 3: Volcanos
 ## a) Δgenotype per condition (1)
-```{r volcanos1, fig.height=6, fig.width=10}
+```{r volcanos1, fig.height=6, fig.width=10, echo=FALSE}
 
 fig <- "Fig3"
 
@@ -742,7 +742,7 @@ height = 6)
 ```
 
 ## b): Δlight = light effect (2)
-```{r volcanos2, fig.height=10, fig.width=10}
+```{r volcanos2, fig.height=10, fig.width=10, echo=FALSE}
 
 fig <- "Fig3"
 
@@ -1004,7 +1004,7 @@ height = 12)
 
 
 ## c): ΔgenotypeΔlight = difference in light effect (interaction term) (3)
-```{r volcanos3, fig.height=6, fig.width=10}
+```{r volcanos3, fig.height=6, fig.width=10, echo=FALSE}
 
 fig <- "Fig3"
 
@@ -1155,7 +1155,7 @@ anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","
 
 # Fig 4: Overlaps
 ## Fig 4a: Venns
-```{r overlap, eval=TRUE}
+```{r overlap, eval=TRUE, echo=FALSE}
 fig <- "Fig4"
 
 # res_list[["pcry"]] %>% names()
@@ -1195,7 +1195,7 @@ wrap_elements(plt) # + plot_annotation(caption = paste0("pCRY"))
 ```
 
 ## Fig 4b: Groups
-```{r groups, eval=TRUE, out.width="50%", fig.show='hold'}
+```{r groups, eval=TRUE, out.width="50%", fig.show='hold', echo=FALSE}
 
 goi_tf
 
@@ -1309,7 +1309,7 @@ summary(top20_id %in% anno$gene_id)
 ```
 
 ## Plot interaction counts
-```{r plot_interaction}
+```{r plot_interaction, echo=FALSE}
 ## Interaction genes all-in-one
 fig <- "Fig5"
 goi_interaction <- top20_id
@@ -1357,7 +1357,7 @@ height = 8)
 ```
 
 ## scatter plot
-```{r interaction_scatter}
+```{r interaction_scatter, echo=FALSE}
 # Interaction
 df <- res_comb[anno_interaction$gene_id,]
 
@@ -1397,7 +1397,7 @@ write_xlsx(data.frame(df),"Interaction_results.xlsx")
 
 
 # Fig. Y
-```{r 3_groups, eval=FALSE, fig.show='hold', fig.width=6, fig.height=4, dpi=300, out.width="50%"}
+```{r 3_groups, eval=FALSE, fig.show='hold', fig.width=6, fig.height=4, dpi=300, out.width="50%", echo=FALSE}
 
 
 p_new2 <- ggplot(deg_table, aes(x=XX.log2FC, y=XY.log2FC,color=group, fill=group)) + 
