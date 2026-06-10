@@ -28,249 +28,19 @@ BiocManager::install()
 
 # Fig 1: PCA
 
-``` r
-fig <- "Fig1"
-
-# group
-for (dds in dds_list) {
-vsd <- vst(dds, blind=FALSE)
-# colData(dds)
-### PCA with top 500 genes with highest row variance 
-pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
-percentVar <- round(100 * attr(pcaData, "percentVar"))
-
-g1 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
-  geom_hline(yintercept = 0, linewidth = 0.1) + 
-  geom_vline(xintercept = 0, linewidth = 0.1) +
-  geom_point(size=4, stroke = 1) +
-  scale_shape_manual(values = c(16,21)) + 
-  labs(title = "PCA plot") +
-  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
-  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  scale_color_manual(values = anno_colors$treatment) +
-  # coord_fixed() +
-  scale_x_reverse() +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-}
-
-# pCRY
-dds <- dds_list[["pcry"]]
-vsd <- vst(dds, blind=FALSE)
-
-pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
-percentVar <- round(100 * attr(pcaData, "percentVar"))
-g1 <- ggplot(pcaData, aes(PC2, PC1, color=treatment, shape=genotype)) +
-  geom_hline(yintercept = 0, linewidth = 0.1) + 
-  geom_vline(xintercept = 0, linewidth = 0.1) +
-  geom_point(size=4, stroke = 1) +
-  scale_shape_manual(values = c(16,21)) + 
-  labs(title = "PCA plot: pCRY") +
-  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
-  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  scale_color_manual(values = anno_colors$treatment) +
-  # coord_fixed() +
-  scale_x_reverse() +
-  scale_y_reverse() +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-g1
-
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_PCA.pdf",sep=""), plot = g1,
-width = 6,
-height = 6)
-
-# aCRY
-dds <- dds_list[["acry"]]
-vsd <- vst(dds, blind=FALSE)
-pcaData <- plotPCA(vsd, intgroup=c("treatment", "genotype","condition"), returnData=TRUE,)
-percentVar <- round(100 * attr(pcaData, "percentVar"))
-g2 <- ggplot(pcaData, aes(PC1, PC2, color=treatment, shape=genotype)) +
-  geom_hline(yintercept = 0, linewidth = 0.1) + 
-  geom_vline(xintercept = 0, linewidth = 0.1) +
-  geom_point(size=4, stroke = 1) +
-  scale_shape_manual(values = c(16,21)) + 
-  labs(title = "PCA plot: aCRY") +
-  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
-  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  scale_color_manual(values = anno_colors$treatment) +
-  # coord_fixed() +
-  scale_x_reverse() +
-  theme_bw() +
-  removeGrid(x=T, y=T)
-g2
-
-ggsave(paste(fig,"_",colData(dds)$experiment[1],"_PCA.pdf",sep=""), plot = g2,
-width = 6,
-height = 6)
-```
-
 <img src="README_files/figure-gfm/1_pca-1.png" width="50%" /><img src="README_files/figure-gfm/1_pca-2.png" width="50%" />
 
 # Fig 2: Counts
 
-![](README_files/figure-gfm/Counts-1.png)<!-- -->![](README_files/figure-gfm/Counts-2.png)<!-- -->![](README_files/figure-gfm/Counts-3.png)<!-- -->![](README_files/figure-gfm/Counts-4.png)<!-- -->![](README_files/figure-gfm/Counts-5.png)<!-- -->![](README_files/figure-gfm/Counts-6.png)<!-- -->![](README_files/figure-gfm/Counts-7.png)<!-- -->
+<img src="README_files/figure-gfm/Counts-1.png" width="50%" /><img src="README_files/figure-gfm/Counts-2.png" width="50%" /><img src="README_files/figure-gfm/Counts-3.png" width="50%" /><img src="README_files/figure-gfm/Counts-4.png" width="50%" /><img src="README_files/figure-gfm/Counts-5.png" width="50%" /><img src="README_files/figure-gfm/Counts-6.png" width="50%" /><img src="README_files/figure-gfm/Counts-7.png" width="50%" />
 
 ## TPM
 
-``` r
-library(tidyverse)
-library(scales) # Wichtig für die saubere Y-Achsen-Formatierung
-
-fig <- "Fig2"
-
-# Wir iterieren über alle dds-Objekte in der Liste
-for (dds in dds_list) {
-  
-  # ==========================================
-  # TEIL 1: ROC / CLOCK GENES
-  # ==========================================
-  
-  # 1. TF Gene definieren und Annotation anpassen
-  goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC59", "ROC114", "ROC55", "CON1", "CRB1")
-  
-  anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
-  anno_tf <- subset(anno, geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
-  
-  # Filtern auf Gene, die im aktuellen dds-Objekt vorhanden sind
-  anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
-  
-  # 2. TPM-Werte (Abundance) extrahieren
-  tpm_matrix <- assay(dds, "abundance")
-  gene_ids_tf <- anno_tf$gene_id
-  tpm_goi_tf <- tpm_matrix[gene_ids_tf, , drop = FALSE]
-  
-  # 3. Daten umwandeln (Tidyverse)
-  all_counts_tf <- as.data.frame(tpm_goi_tf) %>%
-    rownames_to_column(var = "gene_id") %>%
-    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
-    left_join(anno_tf %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
-    dplyr::rename(Gene = geneSymbol) %>%
-    left_join(as.data.frame(colData(dds)) %>% 
-                rownames_to_column(var = "sample") %>% 
-                dplyr::select(sample, condition, experiment, treatment, genotype), 
-              by = "sample")
-  
-  # 4. Dynamische Sortierung der TF-Gene nach dem Median der WT_dark Bedingung
-  gene_order_tf <- all_counts_tf %>%
-    dplyr::filter(condition == "WT_dark") %>%
-    dplyr::group_by(Gene) %>%
-    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
-    dplyr::arrange(desc(baseline_expr)) %>%
-    dplyr::pull(Gene)
-  
-  all_counts_tf$Gene <- factor(all_counts_tf$Gene, levels = gene_order_tf)
-  
-  # 5. Plot erstellen & speichern
-  gcounts_tf1 <- ggplot(all_counts_tf, aes(x = Gene, y = abundance, fill = condition)) +
-    geom_boxplot(fatten = 1) +
-    scale_fill_manual(values = group.colors) +
-    labs(title = "ROC genes", y = "TPM (Gene Length Normalized)") + 
-    theme_bw() +
-    removeGrid(x = T, y = T) +
-    geom_vline(xintercept = seq(1, length(levels(all_counts_tf$Gene)) - 1, 1) + .5, color = "grey") +
-    # log2 und saubere Achsen-Labels (drop0trailing)
-    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
-    plot_annotation(title = colData(dds)$experiment[1])
-  
-  print(gcounts_tf1)
-  
-  ggsave(paste(fig, "_", colData(dds)$experiment[1], "_TPMs_ROCs.pdf", sep = ""), 
-         plot = gcounts_tf1, width = 12, height = 8)
-  
-  
-  # ==========================================
-  # TEIL 2: PHOTORECEPTOR GENES
-  # ==========================================
-  
-  # 1. Vorbereitung der Gene
-  goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1")
-  
-  anno_phot <- subset(anno, geneSymbol %in% goi_phot, drop = FALSE)
-  rownames(anno_phot) <- anno_phot$geneSymbol
-  anno_phot <- anno_phot[goi_phot,]
-  
-  # 2. TPM-Werte aus der bereits extrahierten Matrix ziehen
-  gene_ids_phot <- anno_phot$gene_id
-  tpm_goi_phot <- tpm_matrix[gene_ids_phot, , drop = FALSE]
-  
-  # 3. Daten umwandeln (Tidyverse)
-  all_counts_phot <- as.data.frame(tpm_goi_phot) %>%
-    rownames_to_column(var = "gene_id") %>%
-    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
-    left_join(anno_phot %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
-    dplyr::rename(Gene = geneSymbol) %>%
-    left_join(as.data.frame(colData(dds)) %>% 
-                rownames_to_column(var = "sample") %>% 
-                dplyr::select(sample, condition, experiment, treatment, genotype), 
-              by = "sample")
-  
-  # 4. Dynamische Sortierung der Phot-Gene nach dem Median der WT_dark Bedingung
-  gene_order_phot <- all_counts_phot %>%
-    dplyr::filter(condition == "WT_dark") %>%
-    dplyr::group_by(Gene) %>%
-    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
-    dplyr::arrange(desc(baseline_expr)) %>%
-    dplyr::pull(Gene)
-  
-  all_counts_phot$Gene <- factor(all_counts_phot$Gene, levels = gene_order_phot)
-  
-  # 5. Plot erstellen & speichern
-  gcounts_phot1 <- ggplot(all_counts_phot, aes(x = Gene, y = abundance, fill = condition)) +
-    geom_boxplot(fatten = 1) +
-    scale_fill_manual(values = group.colors) +
-    labs(title = "Photoreceptor genes", y = "TPM (Gene Length Normalized)") + 
-    theme_bw() +
-    removeGrid(x=T, y=T) +
-    geom_vline(xintercept=seq(1,length(levels(all_counts_phot$Gene))-1,1)+.5,color="grey") +
-    # log2 und saubere Achsen-Labels (drop0trailing)
-    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
-    plot_annotation(title = colData(dds)$experiment[1])
-  
-  print(gcounts_phot1)
-  
-  ggsave(paste(fig,"_",colData(dds)$experiment[1],"_TPMs_Phots.pdf",sep=""), 
-         plot = gcounts_phot1, width = 12, height = 8)
-  
-}
-```
-
-![](README_files/figure-gfm/TPM-1.png)<!-- -->![](README_files/figure-gfm/TPM-2.png)<!-- -->![](README_files/figure-gfm/TPM-3.png)<!-- -->![](README_files/figure-gfm/TPM-4.png)<!-- -->
+<img src="README_files/figure-gfm/TPM-1.png" width="50%" /><img src="README_files/figure-gfm/TPM-2.png" width="50%" /><img src="README_files/figure-gfm/TPM-3.png" width="50%" /><img src="README_files/figure-gfm/TPM-4.png" width="50%" />
 
 ## individual counts
 
-``` r
-ROC59 <- "Cre10.g425050"
-goi <- ROC59
-
-    d <- plotCounts(dds, gene=goi, intgroup=c("condition","experiment","genotype","treatment","clientName"), main=s,returnData=TRUE)
-    colnames(d)[1] <- "counts"
-
-gcounts <- ggplot(d, aes(x = treatment, y = counts, fill=condition, color=condition)) +
-    geom_boxplot(color="black") +
-    geom_point(shape=21,color="black",aes(fill=condition),position=position_dodge(width=0.75), alpha=1) +
-  # geom_text_repel(aes(label=clientName)) +
-    scale_fill_manual(values=group.colors) +
-    scale_color_manual(values=group.colors) +
-    scale_y_continuous(trans = "log2") +
-    theme_bw() +
-  removeGrid(x=T, y=T) +
-    geom_vline(xintercept=seq(1,length(levels(all_counts$treatment))-1,1)+.5,color="grey") +
-
-    labs(title = paste(goi," (",mcols(dds)[goi,"id.symbol"], ")", " in ",colData(dds)$experiment[1],sep = "")) +
- theme(axis.text.x = element_text(size = 10, face = "bold"),
-        axis.text.y = element_text(color = "grey20", size = 8, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "white", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "bold"))
-
-gcounts
-```
-
-![](README_files/figure-gfm/plot_counts2-1.png)<!-- -->
-
-``` r
-gcounts_roc59 <- gcounts
-```
+<img src="README_files/figure-gfm/plot_counts2-1.png" width="50%" />
 
 # Fig 2x: Explain data
 
@@ -1444,40 +1214,40 @@ colnames(anno)
 
 ``` r
 # anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
-anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","Comments","TMHMM_transmembrane","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
+anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
 ```
 
-|  | geneSymbol | previousIdentifiers | Description | previousIdentifiers.1 | Description.1 | Comments | TMHMM_transmembrane | TargetP | Predalgo | Flagellar_Proteome |
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| Cre06.g275350 | ROC40 | ROC40#g6174.t1 | Rhythm Of Chloroplast 40 | ROC40#g6174.t1 | Rhythm Of Chloroplast 40 | CCA1/LHY-like MYB protein, circadian clock associated transcription factor# Goncalves et al (2016) show that the mutant is impaired in lipid accumulation during N starvation | TMHMM: 0 helices | Chloroplast (RC 5 score: 0.574 on \#1 protein) | Mitochondrion (score 1.412 on \#1 protein) |  |
-| Cre16.g681750 | FAP381 | g16469.t1 | Flagellar Associated Protein 381 | g16469.t1 | Flagellar Associated Protein 381 | Similar to Calcium-Transporting ATPase | TMHMM: 9 helices Topology: i129-146o156-175i318-340o355-377i774-796o841-863i992-1014o1029-1051i1064-1086o | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) | Total Peptides:3 (Axoneme:0; M+M:0; KCl extract:3; Tergitol:0) |
-| Cre16.g661850 |  | g15982.t1 |  | g15982.t1 |  |  | TMHMM: 0 helices | Secretory_pathway (RC 2 score: 0.801 on \#1 protein) | Secretory_pathway (score 1.611 on \#1 protein) |  |
-| Cre16.g677750 |  | \#g16561.t1 |  | \#g16561.t1 |  |  | TMHMM: 0 helices | Mitochondrion (RC 3 score: 0.627 TPlen: 91 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre02.g097800 | HLA3 | MRP1#HLA3#g1989.t1 | Bicarbonate ABC transporter | MRP1#HLA3#g1989.t1 | Bicarbonate ABC transporter | associated with bicarbonate uptake for CO2-cocentrating mechanism \[<PMID:19321421>, 25660294, 26015566\]# high light-induced, requiring both high light and low CO2 (ambient) levels for activation \[PMID: 12000678\]# MRP subfamily of ABC transporters \[PMID: 15710683\]# HLA3 is regulated by CCM1 \[PMID: 15235119\]# localized at plasma membrane \[PMID: 15710683\] | TMHMM: 13 helices Topology: i90-112o137-159i217-239o244-263i321-343o353-375i696-718o750-772i793-815o830-852i854-876o937-959i966-988o | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre10.g452250 | FAP41 | g11109.t1 | Flagellar Associated Protein 41 | g11109.t1 | Flagellar Associated Protein 41 | redox sensitive | TMHMM: 1 helices (SP) Topology: i7-29o | Secretory_pathway (RC 4 score: 0.858 on \#1 protein) | Mitochondrion (score 2.191 on \#1 protein) | Total Peptides:14 (Axoneme:13; M+M:0; KCl extract:0; Tergitol:1) |
-| Cre16.g661750 |  | \#g15980.t1 |  | \#g15980.t1 |  |  | TMHMM: 0 helices | Secretory_pathway (RC 4 score: 0.673 on \#1 protein) | Secretory_pathway (score 1.876 on \#1 protein) |  |
-| Cre06.g263550 | SELU1 | LCI7#g5921.t1 | SELU homolog | LCI7#g5921.t1 | SELU homolog | Similar to selenoprotein SELU, but lack selenocysteine residue# R53.5-related# low-CO2-inducible protein 7, regulated by CCM1 \[PMID: 15235119\]# identified in the flagellar and basal body proteome \[PMID: 15137946\] and upregulated by deflagellation | TMHMM: 0 helices | Chloroplast (RC 5 score: 0.274 on \#1 protein) | Chloroplast (score 0.546 on \#1 protein) |  |
-| Cre24.g755897 |  | Cre05.g231750.t1.1#g18266.t1 |  | Cre05.g231750.t1.1#g18266.t1 |  |  | TMHMM: 0 helices | Other (RC 5 on \#1 protein) | Mitochondrion (score 0.494 on \#1 protein) |  |
-| Cre24.g755997 | PHC18 | FAP150#Cre05.g231850.t1.1#g18268.t1#PHC18 | Pherophorin-like Flagellar Associated Protein 150 | FAP150#Cre05.g231850.t1.1#g18268.t1#PHC18 | Pherophorin-like Flagellar Associated Protein 150 | Belongs to the large pherophorin-family, a family of glycoproteins with a central hydroxyproline-rich (HR) domain# | TMHMM: 0 helices | Secretory_pathway (RC 2 score: 0.845 on \#1 protein) | Secretory_pathway (score 0.891 on \#1 protein) | Total Peptides:8 (Axoneme:4; M+M:0; KCl extract:3; Tergitol:1) |
-| Cre02.g095151 |  | Cre11.g474600.t1.2#Cre11.g474600.t1.1#g1923.t1 |  | Cre11.g474600.t1.2#Cre11.g474600.t1.1#g1923.t1 |  |  | TMHMM: 5 helices Topology: o557-579i600-622o632-654i661-683o738-760i | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre03.g800380 |  | 0 |  | 0 |  |  | TMHMM: 1 helices Topology: o1320-1342i | Other (RC 3 on \#1 protein) | Mitochondrion (score 0.932 on \#1 protein) |  |
-| Cre09.g410050 |  | g10159.t1# | putative Cation-transporting ATPase | g10159.t1# | putative Cation-transporting ATPase | High homology to bacterial genes# related to Cation-transporting ATPase pma1 | TMHMM: 9 helices Topology: i122-139o143-162i305-327o342-364i865-887o892-914i937-959o1012-1034i1046-1064o | Chloroplast (RC 4 score: 0.810 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre06.g800711 |  | 0 |  | 0 |  |  | TMHMM: 4 helices (SP) Topology: i21-43o47-69i76-98o108-130i | Other (RC 4 on \#1 protein) | Secretory_pathway (score 0.808 on \#1 protein) |  |
-| Cre01.g004157 |  | g103.t1# |  | g103.t1# |  | null-allele mutant was isolated (PMID 29743196) | TMHMM: 11 helices Topology: o124-146i213-235o272-294i307-329o344-366i431-453o1757-1779i1958-1980o1990-2007i2214-2236o2433-2455i | Chloroplast (RC 1 score: 0.898 on \#1 protein) | Chloroplast (score 1.365 on \#1 protein) |  |
-| Cre09.g399400 | FAP199 | TGL15#g9287.t1 | Lipase-Domain Containing Flagellar Associated Protein 199 | TGL15#g9287.t1 | Lipase-Domain Containing Flagellar Associated Protein 199 | Found in the flagellar proteome# Putative triacylglycerol lipase# | TMHMM: 0 helices | Other (RC 1 on \#1 protein) | Other (score - on \#1 protein) | Total Peptides:5 (Axoneme:4; M+M:0; KCl extract:1; Tergitol:0) |
-| Cre07.g329750 |  | \#g7671.t1 |  | \#g7671.t1 |  |  | TMHMM: 0 helices | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre10.g425050 | ROC59 | ROC28#g10507.t1#ROC59 | Rhythm Of Chloroplast 59 | ROC28#g10507.t1#ROC59 | Rhythm Of Chloroplast 59 | WD40- and tetratricopeptide-repeats protein involved in circadian rhythms with possible histone acetyltransferase activity# one of the target genes of the circadian transcription factor ROC75# Matsuo et al.’s (2008) roc28 (rhythm of chloroplast 28) and roc59 circadian bioluminescence rhythm mutant loci map here | TMHMM: 0 helices | Mitochondrion (RC 4 score: 0.540 TPlen: 31 on \#1 protein) | Mitochondrion (score 0.632 on \#1 protein) |  |
-| Cre11.g467664 |  | g11594.t1#Cre18.g745700.t1.1#Cre18.g745700.t1.2 |  | g11594.t1#Cre18.g745700.t1.1#Cre18.g745700.t1.2 |  |  | TMHMM: 1 helices (SP) Topology: i7-29o | Secretory_pathway (RC 1 score: 0.942 on \#1 protein) | Secretory_pathway (score 2.029 on \#1 protein) |  |
-| Cre17.g802135 |  | 0 |  | 0 |  |  | TMHMM: 0 helices | Chloroplast (RC 5 score: 0.594 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre12.g801353 |  | 0 |  | 0 |  |  | TMHMM: 0 helices | Mitochondrion (RC 3 score: 0.554 TPlen: 83 on \#1 protein) | Mitochondrion (score 0.818 on \#1 protein) |  |
-| Cre09.g413200 |  | STK22#STPK22#g10235.t2 | Serine/threonine protein kinase | STK22#STPK22#g10235.t2 | Serine/threonine protein kinase | Serine/Threonine Protein Kinase Homolog 22, hypothetical# null-allele mutant was isolated (PMID 29743196) | TMHMM: 0 helices | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre10.g447700 |  | g11010.t1 |  | g11010.t1 |  |  | TMHMM: 2 helices Topology: o1207-1229i1270-1292o | Secretory_pathway (RC 3 score: 0.899 on \#1 protein) | Secretory_pathway (score 1.721 on \#1 protein) | Total Peptides:1 (Axoneme:0; M+M:1; KCl extract:0; Tergitol:0) |
-| Cre06.g260700 |  | XUV1#UAPA6#g5858.t1 | Xanthine/uracil/vitamin C permease-like | XUV1#UAPA6#g5858.t1 | Xanthine/uracil/vitamin C permease-like | related to plants and fungi# also related to bacterial inner membrane proteins | TMHMM: 13 helices Topology: i53-75o118-140i147-169o173-192i199-221o226-245i291-308o312-329i383-405o420-442i463-485o516-538i543-562o | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre12.g531800 | FAP7 | g13086.t1 | Flagellar Associated Protein 7 | g13086.t1 | Flagellar Associated Protein 7 | Flagellar Associated Protein, found in the flagellar proteome# | TMHMM: 0 helices | Chloroplast (RC 5 score: 0.685 on \#1 protein) | Mitochondrion (score 0.604 on \#1 protein) | Total Peptides:17 (Axoneme:3; M+M:1; KCl extract:4; Tergitol:9) |
-| Cre06.g285350 |  | g6633.t1 |  | g6633.t1 |  |  | TMHMM: 0 helices | Chloroplast (RC 2 score: 0.901 on \#1 protein) | Mitochondrion (score 0.442 on \#1 protein) |  |
-| Cre12.g501950 |  | PPP39#g12534.t1 | Phosphoprotein phosphatase 2C-related | PPP39#g12534.t1 | Phosphoprotein phosphatase 2C-related |  | TMHMM: 0 helices | Other (RC 5 on \#1 protein) | Chloroplast (score 0.854 on \#1 protein) |  |
-| Cre07.g329050 | AOC5 | NCD7#g7651.t1#AOC5# | Cationic amino acid transporter | NCD7#g7651.t1#AOC5# | Cationic amino acid transporter | Related to human SLC7A family of solute carriers, involved in cationic amino acid transport (arginine, lysine, ornithine)# this is probably the gene mutated in the L-canavanine resistant mutant can1, which is closely linked to pf17 on Chromosome_07# siRNA silencing of this gene leads to canavanin resistance# | TMHMM: 15 helices Topology: o75-97i104-126o131-150i155-177o197-216i223-245o265-287i299-321o345-367i396-413o418-440i461-483o498-520i527-546o556-575i | Other (RC 4 on \#1 protein) | Other (score - on \#1 protein) |  |
-| Cre16.g687000 | FPN1 | g16352.t1 | Ferroportin 1 | g16352.t1 | Ferroportin 1 | Fe transporter# Orthologous to AtFPN1 in Arabidopsis thaliana# | TMHMM: 9 helices (SP) Topology: o43-65i93-115o125-147i179-201o205-227i448-470o483-505i512-534o614-636i | Other (RC 1 on \#1 protein) | Secretory_pathway (score 0.202 on \#1 protein) |  |
+|  | geneSymbol | previousIdentifiers | Description | previousIdentifiers.1 | Description.1 | TargetP | Predalgo | Flagellar_Proteome |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| Cre06.g275350 | ROC40 | ROC40#g6174.t1 | Rhythm Of Chloroplast 40 | ROC40#g6174.t1 | Rhythm Of Chloroplast 40 | Chloroplast (RC 5 score: 0.574 on \#1 protein) | Mitochondrion (score 1.412 on \#1 protein) |  |
+| Cre16.g681750 | FAP381 | g16469.t1 | Flagellar Associated Protein 381 | g16469.t1 | Flagellar Associated Protein 381 | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) | Total Peptides:3 (Axoneme:0; M+M:0; KCl extract:3; Tergitol:0) |
+| Cre16.g661850 |  | g15982.t1 |  | g15982.t1 |  | Secretory_pathway (RC 2 score: 0.801 on \#1 protein) | Secretory_pathway (score 1.611 on \#1 protein) |  |
+| Cre16.g677750 |  | \#g16561.t1 |  | \#g16561.t1 |  | Mitochondrion (RC 3 score: 0.627 TPlen: 91 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre02.g097800 | HLA3 | MRP1#HLA3#g1989.t1 | Bicarbonate ABC transporter | MRP1#HLA3#g1989.t1 | Bicarbonate ABC transporter | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre10.g452250 | FAP41 | g11109.t1 | Flagellar Associated Protein 41 | g11109.t1 | Flagellar Associated Protein 41 | Secretory_pathway (RC 4 score: 0.858 on \#1 protein) | Mitochondrion (score 2.191 on \#1 protein) | Total Peptides:14 (Axoneme:13; M+M:0; KCl extract:0; Tergitol:1) |
+| Cre16.g661750 |  | \#g15980.t1 |  | \#g15980.t1 |  | Secretory_pathway (RC 4 score: 0.673 on \#1 protein) | Secretory_pathway (score 1.876 on \#1 protein) |  |
+| Cre06.g263550 | SELU1 | LCI7#g5921.t1 | SELU homolog | LCI7#g5921.t1 | SELU homolog | Chloroplast (RC 5 score: 0.274 on \#1 protein) | Chloroplast (score 0.546 on \#1 protein) |  |
+| Cre24.g755897 |  | Cre05.g231750.t1.1#g18266.t1 |  | Cre05.g231750.t1.1#g18266.t1 |  | Other (RC 5 on \#1 protein) | Mitochondrion (score 0.494 on \#1 protein) |  |
+| Cre24.g755997 | PHC18 | FAP150#Cre05.g231850.t1.1#g18268.t1#PHC18 | Pherophorin-like Flagellar Associated Protein 150 | FAP150#Cre05.g231850.t1.1#g18268.t1#PHC18 | Pherophorin-like Flagellar Associated Protein 150 | Secretory_pathway (RC 2 score: 0.845 on \#1 protein) | Secretory_pathway (score 0.891 on \#1 protein) | Total Peptides:8 (Axoneme:4; M+M:0; KCl extract:3; Tergitol:1) |
+| Cre02.g095151 |  | Cre11.g474600.t1.2#Cre11.g474600.t1.1#g1923.t1 |  | Cre11.g474600.t1.2#Cre11.g474600.t1.1#g1923.t1 |  | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre03.g800380 |  | 0 |  | 0 |  | Other (RC 3 on \#1 protein) | Mitochondrion (score 0.932 on \#1 protein) |  |
+| Cre09.g410050 |  | g10159.t1# | putative Cation-transporting ATPase | g10159.t1# | putative Cation-transporting ATPase | Chloroplast (RC 4 score: 0.810 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre06.g800711 |  | 0 |  | 0 |  | Other (RC 4 on \#1 protein) | Secretory_pathway (score 0.808 on \#1 protein) |  |
+| Cre01.g004157 |  | g103.t1# |  | g103.t1# |  | Chloroplast (RC 1 score: 0.898 on \#1 protein) | Chloroplast (score 1.365 on \#1 protein) |  |
+| Cre09.g399400 | FAP199 | TGL15#g9287.t1 | Lipase-Domain Containing Flagellar Associated Protein 199 | TGL15#g9287.t1 | Lipase-Domain Containing Flagellar Associated Protein 199 | Other (RC 1 on \#1 protein) | Other (score - on \#1 protein) | Total Peptides:5 (Axoneme:4; M+M:0; KCl extract:1; Tergitol:0) |
+| Cre07.g329750 |  | \#g7671.t1 |  | \#g7671.t1 |  | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre10.g425050 | ROC59 | ROC28#g10507.t1#ROC59 | Rhythm Of Chloroplast 59 | ROC28#g10507.t1#ROC59 | Rhythm Of Chloroplast 59 | Mitochondrion (RC 4 score: 0.540 TPlen: 31 on \#1 protein) | Mitochondrion (score 0.632 on \#1 protein) |  |
+| Cre11.g467664 |  | g11594.t1#Cre18.g745700.t1.1#Cre18.g745700.t1.2 |  | g11594.t1#Cre18.g745700.t1.1#Cre18.g745700.t1.2 |  | Secretory_pathway (RC 1 score: 0.942 on \#1 protein) | Secretory_pathway (score 2.029 on \#1 protein) |  |
+| Cre17.g802135 |  | 0 |  | 0 |  | Chloroplast (RC 5 score: 0.594 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre12.g801353 |  | 0 |  | 0 |  | Mitochondrion (RC 3 score: 0.554 TPlen: 83 on \#1 protein) | Mitochondrion (score 0.818 on \#1 protein) |  |
+| Cre09.g413200 |  | STK22#STPK22#g10235.t2 | Serine/threonine protein kinase | STK22#STPK22#g10235.t2 | Serine/threonine protein kinase | Other (RC 3 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre10.g447700 |  | g11010.t1 |  | g11010.t1 |  | Secretory_pathway (RC 3 score: 0.899 on \#1 protein) | Secretory_pathway (score 1.721 on \#1 protein) | Total Peptides:1 (Axoneme:0; M+M:1; KCl extract:0; Tergitol:0) |
+| Cre06.g260700 |  | XUV1#UAPA6#g5858.t1 | Xanthine/uracil/vitamin C permease-like | XUV1#UAPA6#g5858.t1 | Xanthine/uracil/vitamin C permease-like | Other (RC 2 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre12.g531800 | FAP7 | g13086.t1 | Flagellar Associated Protein 7 | g13086.t1 | Flagellar Associated Protein 7 | Chloroplast (RC 5 score: 0.685 on \#1 protein) | Mitochondrion (score 0.604 on \#1 protein) | Total Peptides:17 (Axoneme:3; M+M:1; KCl extract:4; Tergitol:9) |
+| Cre06.g285350 |  | g6633.t1 |  | g6633.t1 |  | Chloroplast (RC 2 score: 0.901 on \#1 protein) | Mitochondrion (score 0.442 on \#1 protein) |  |
+| Cre12.g501950 |  | PPP39#g12534.t1 | Phosphoprotein phosphatase 2C-related | PPP39#g12534.t1 | Phosphoprotein phosphatase 2C-related | Other (RC 5 on \#1 protein) | Chloroplast (score 0.854 on \#1 protein) |  |
+| Cre07.g329050 | AOC5 | NCD7#g7651.t1#AOC5# | Cationic amino acid transporter | NCD7#g7651.t1#AOC5# | Cationic amino acid transporter | Other (RC 4 on \#1 protein) | Other (score - on \#1 protein) |  |
+| Cre16.g687000 | FPN1 | g16352.t1 | Ferroportin 1 | g16352.t1 | Ferroportin 1 | Other (RC 1 on \#1 protein) | Secretory_pathway (score 0.202 on \#1 protein) |  |
 
 # Fig 4: Overlaps
 

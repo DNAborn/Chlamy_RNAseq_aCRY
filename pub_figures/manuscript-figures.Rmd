@@ -15,7 +15,7 @@ editor_options:
 
 
 ```{r knit, include=FALSE}
-knitr::opts_chunk$set(echo = T,
+knitr::opts_chunk$set(echo=FALSE,
                       error=FALSE,
                       warning=FALSE,
                       message=FALSE,
@@ -39,7 +39,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
 
 
 # Fig 1: PCA
-```{r 1_pca, fig.show='hold', out.width="50%", dpi=300, results='hide'}
+```{r 1_pca, echo=FALSE, fig.show='hold', out.width="50%", dpi=300, results='hide'}
 
 fig <- "Fig1"
 
@@ -122,7 +122,7 @@ height = 6)
 
 
 # Fig 2: Counts
-```{r Counts, echo=FALSE, fig.width=10}
+```{r Counts, echo=FALSE, fig.show='hold', out.width="50%", dpi=300}
 
 fig <- "Fig2"
 
@@ -268,7 +268,7 @@ gcounts_roc40
 ```
 
 ## TPM
-```{r TPM}
+```{r TPM, echo=FALSE, fig.show='hold', out.width="50%", dpi=300}
 
 library(tidyverse)
 library(scales) # Wichtig für die saubere Y-Achsen-Formatierung
@@ -396,7 +396,7 @@ for (dds in dds_list) {
 
 
 ## individual counts
-```{r plot_counts2}
+```{r plot_counts2, echo=FALSE, fig.show='hold', out.width="50%", dpi=300}
 ROC59 <- "Cre10.g425050"
 goi <- ROC59
 
@@ -1146,7 +1146,7 @@ height = 6)
 
 colnames(anno)
 # anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,]
-anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","Comments","TMHMM_transmembrane","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
+anno[deg_list$pcry$deg_pcry_RvD.vs.WT_RvD,c("geneSymbol","previousIdentifiers","Description","previousIdentifiers","Description","TargetP","Predalgo","Flagellar_Proteome")] %>% kable()
 
 
 
