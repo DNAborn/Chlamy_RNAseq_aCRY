@@ -5,6 +5,7 @@ figures_manuscript
 - [run prepare_data scripts](#run-prepare_data-scripts)
 - [Fig 1: PCA](#fig-1-pca)
 - [Fig 2: Counts](#fig-2-counts)
+  - [TPM](#tpm)
   - [individual counts](#individual-counts)
 - [Fig 2x: Explain data](#fig-2x-explain-data)
 - [Fig 3: Volcanos](#fig-3-volcanos)
@@ -109,6 +110,132 @@ height = 6)
 # Fig 2: Counts
 
 ![](README_files/figure-gfm/Counts-1.png)<!-- -->![](README_files/figure-gfm/Counts-2.png)<!-- -->![](README_files/figure-gfm/Counts-3.png)<!-- -->![](README_files/figure-gfm/Counts-4.png)<!-- -->![](README_files/figure-gfm/Counts-5.png)<!-- -->![](README_files/figure-gfm/Counts-6.png)<!-- -->![](README_files/figure-gfm/Counts-7.png)<!-- -->
+
+## TPM
+
+``` r
+library(tidyverse)
+library(scales) # Wichtig für die saubere Y-Achsen-Formatierung
+
+fig <- "Fig2"
+
+# Wir iterieren über alle dds-Objekte in der Liste
+for (dds in dds_list) {
+  
+  # ==========================================
+  # TEIL 1: ROC / CLOCK GENES
+  # ==========================================
+  
+  # 1. TF Gene definieren und Annotation anpassen
+  goi_tf <- c("CCM1","LCR1", "HY5", "QER7", "QER4", "QER6", "ROC15", "ROC40", "ROC66", "ROC75", "ROC59", "ROC114", "ROC55", "CON1", "CRB1")
+  
+  anno[c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"),"geneSymbol"] <- c("QER4","QER6","QER7","ROC110")
+  anno_tf <- subset(anno, geneSymbol %in% goi_tf | gene_id %in% c("Cre17.g745697","Cre13.g567250","Cre01.g043550","Cre02.g079550"))
+  
+  # Filtern auf Gene, die im aktuellen dds-Objekt vorhanden sind
+  anno_tf <- anno_tf[anno_tf$gene_id %in% rownames(dds),]
+  
+  # 2. TPM-Werte (Abundance) extrahieren
+  tpm_matrix <- assay(dds, "abundance")
+  gene_ids_tf <- anno_tf$gene_id
+  tpm_goi_tf <- tpm_matrix[gene_ids_tf, , drop = FALSE]
+  
+  # 3. Daten umwandeln (Tidyverse)
+  all_counts_tf <- as.data.frame(tpm_goi_tf) %>%
+    rownames_to_column(var = "gene_id") %>%
+    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
+    left_join(anno_tf %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
+    dplyr::rename(Gene = geneSymbol) %>%
+    left_join(as.data.frame(colData(dds)) %>% 
+                rownames_to_column(var = "sample") %>% 
+                dplyr::select(sample, condition, experiment, treatment, genotype), 
+              by = "sample")
+  
+  # 4. Dynamische Sortierung der TF-Gene nach dem Median der WT_dark Bedingung
+  gene_order_tf <- all_counts_tf %>%
+    dplyr::filter(condition == "WT_dark") %>%
+    dplyr::group_by(Gene) %>%
+    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
+    dplyr::arrange(desc(baseline_expr)) %>%
+    dplyr::pull(Gene)
+  
+  all_counts_tf$Gene <- factor(all_counts_tf$Gene, levels = gene_order_tf)
+  
+  # 5. Plot erstellen & speichern
+  gcounts_tf1 <- ggplot(all_counts_tf, aes(x = Gene, y = abundance, fill = condition)) +
+    geom_boxplot(fatten = 1) +
+    scale_fill_manual(values = group.colors) +
+    labs(title = "ROC genes", y = "TPM (Gene Length Normalized)") + 
+    theme_bw() +
+    removeGrid(x = T, y = T) +
+    geom_vline(xintercept = seq(1, length(levels(all_counts_tf$Gene)) - 1, 1) + .5, color = "grey") +
+    # log2 und saubere Achsen-Labels (drop0trailing)
+    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
+    plot_annotation(title = colData(dds)$experiment[1])
+  
+  print(gcounts_tf1)
+  
+  ggsave(paste(fig, "_", colData(dds)$experiment[1], "_TPMs_ROCs.pdf", sep = ""), 
+         plot = gcounts_tf1, width = 12, height = 8)
+  
+  
+  # ==========================================
+  # TEIL 2: PHOTORECEPTOR GENES
+  # ==========================================
+  
+  # 1. Vorbereitung der Gene
+  goi_phot <- c("CHR1", "CHR2", "PCRY1", "ACRY1", "DCRY1", "PHOT1", "UVR8", "HKR1")
+  
+  anno_phot <- subset(anno, geneSymbol %in% goi_phot, drop = FALSE)
+  rownames(anno_phot) <- anno_phot$geneSymbol
+  anno_phot <- anno_phot[goi_phot,]
+  
+  # 2. TPM-Werte aus der bereits extrahierten Matrix ziehen
+  gene_ids_phot <- anno_phot$gene_id
+  tpm_goi_phot <- tpm_matrix[gene_ids_phot, , drop = FALSE]
+  
+  # 3. Daten umwandeln (Tidyverse)
+  all_counts_phot <- as.data.frame(tpm_goi_phot) %>%
+    rownames_to_column(var = "gene_id") %>%
+    pivot_longer(cols = -gene_id, names_to = "sample", values_to = "abundance") %>%
+    left_join(anno_phot %>% dplyr::select(gene_id, geneSymbol), by = "gene_id") %>%
+    dplyr::rename(Gene = geneSymbol) %>%
+    left_join(as.data.frame(colData(dds)) %>% 
+                rownames_to_column(var = "sample") %>% 
+                dplyr::select(sample, condition, experiment, treatment, genotype), 
+              by = "sample")
+  
+  # 4. Dynamische Sortierung der Phot-Gene nach dem Median der WT_dark Bedingung
+  gene_order_phot <- all_counts_phot %>%
+    dplyr::filter(condition == "WT_dark") %>%
+    dplyr::group_by(Gene) %>%
+    dplyr::summarise(baseline_expr = median(abundance, na.rm = TRUE)) %>%
+    dplyr::arrange(desc(baseline_expr)) %>%
+    dplyr::pull(Gene)
+  
+  all_counts_phot$Gene <- factor(all_counts_phot$Gene, levels = gene_order_phot)
+  
+  # 5. Plot erstellen & speichern
+  gcounts_phot1 <- ggplot(all_counts_phot, aes(x = Gene, y = abundance, fill = condition)) +
+    geom_boxplot(fatten = 1) +
+    scale_fill_manual(values = group.colors) +
+    labs(title = "Photoreceptor genes", y = "TPM (Gene Length Normalized)") + 
+    theme_bw() +
+    removeGrid(x=T, y=T) +
+    geom_vline(xintercept=seq(1,length(levels(all_counts_phot$Gene))-1,1)+.5,color="grey") +
+    # log2 und saubere Achsen-Labels (drop0trailing)
+    scale_y_continuous(trans = "log2", labels = scales::label_number(drop0trailing = TRUE)) & 
+    plot_annotation(title = colData(dds)$experiment[1])
+  
+  print(gcounts_phot1)
+  
+  ggsave(paste(fig,"_",colData(dds)$experiment[1],"_TPMs_Phots.pdf",sep=""), 
+         plot = gcounts_phot1, width = 12, height = 8)
+  
+}
+```
+
+![](README_files/figure-gfm/TPM-1.png)<!-- -->![](README_files/figure-gfm/TPM-2.png)<!-- -->![](README_files/figure-gfm/TPM-3.png)<!-- -->![](README_files/figure-gfm/TPM-4.png)<!-- -->
 
 ## individual counts
 
@@ -1612,6 +1739,7 @@ gg_top
     ##     dimension: function
     ##     drop: TRUE
     ##     expand: waiver
+    ##     fallback_palette: function
     ##     get_breaks: function
     ##     get_breaks_minor: function
     ##     get_labels: function
@@ -1626,6 +1754,7 @@ gg_top
     ##     make_title: function
     ##     map: function
     ##     map_df: function
+    ##     minor_breaks: waiver
     ##     n.breaks.cache: NULL
     ##     na.translate: TRUE
     ##     na.value: grey50
@@ -1963,9 +2092,9 @@ df_final
 
 ``` r
 gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.symbol)) + # color=group, fill=group 
-    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = baseMean),
-        arrow = arrow(length = unit(0.01,units = "npc"))) +
-  # scale_color_gradient2(mid="grey") +
+    geom_segment(aes(x = l2FC.WT_blue, y= l2FC.WT_red, xend = l2FC.pcry_blue,yend = l2FC.pcry_red, color = shift), # color = baseMean
+        arrow = arrow(length = unit(0.02,units = "npc"))) +
+  scale_color_gradient(low = "grey",high = "green3") +
   geom_point(aes(x=l2FC.WT_blue, y=l2FC.WT_red, fill="WT"),shape=21, col="grey40") +
   geom_point(aes(x=l2FC.pcry_blue, y=l2FC.pcry_red, fill = "pcry"),shape=21, col="grey40") +
   scale_fill_manual(name="Genotype",values=c("green3","grey")) + 
@@ -1974,7 +2103,8 @@ gg_interaction <- ggplot(df_final, aes(x=l2FC.WT_blue, y=l2FC.WT_red, label=id.s
   geom_abline(slope=c(1), intercept = 0, linewidth = 0.1) +
   # coord_cartesian(xlim=c(-2,2),ylim = c(-2,2)) +
   # coord_fixed(xlim=c(-1,2),ylim = c(-1,2)) +
-  geom_text_repel(size=4, max.overlaps = 5, color="grey30", fontface="bold") +
+  geom_label_repel(fontface = "bold", color = "grey10", fill = "white", label.size = 0.15, label.padding = 0.15, size = 4, max.overlaps = Inf,   force = 2, point.padding = 0.5,    min.segment.length = 0, segment.color = "black", segment.size = 0.1) +
+ # geom_text_repel(size=4, max.overlaps = 5, color="grey30", fontface="bold") +
   theme_bw() +
   removeGrid(x=T, y=T)
 gg_interaction
